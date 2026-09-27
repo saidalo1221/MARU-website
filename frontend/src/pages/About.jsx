@@ -1,7 +1,15 @@
+import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
+import { getSiteSettings } from '../api/siteSettings'
 
 export default function About() {
-  const { t } = useLocale()
+  const { locale, t } = useLocale()
+  const [settings, setSettings] = useState(null)
+
+  useEffect(() => {
+    getSiteSettings(locale).then(setSettings).catch(() => {})
+  }, [locale])
+
   const sections = [
     ['about.historyTitle', 'about.historyText'],
     ['about.companyTitle', 'about.companyText'],
@@ -14,8 +22,8 @@ export default function About() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-3">{t('about.title')}</h1>
-      <p className="text-gray-600 mb-10">{t('about.subtitle')}</p>
+      <h1 className="text-3xl font-bold mb-3">{settings?.about_title || t('about.title')}</h1>
+      <p className="text-gray-600 mb-10">{settings?.about_body || t('about.subtitle')}</p>
 
       <div className="space-y-8">
         {sections.map(([titleKey, textKey]) => (

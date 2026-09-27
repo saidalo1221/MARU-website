@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import uuid4
 
 from fastapi import Depends, Header, HTTPException, Response, status
@@ -49,6 +50,12 @@ def require_role(*roles: UserRole):
     def dependency(user: User = Depends(get_current_user_required)) -> User:
         if user.role != UserRole.SUPER_ADMIN and user.role not in roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        # Every admin-role endpoint additionally requires the /admin 2-step
+        # email-code login (app/routers/auth.py's admin_login_request/
+        # admin_login_verify) to have been completed recently — a plain
+        # site login is not enough to reach the admin panel or its API.
+        if user.admin_mfa_verified_until is None or user.admin_mfa_verified_until < datetime.utcnow():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="admin_verification_required")
         return user
 
     return dependency

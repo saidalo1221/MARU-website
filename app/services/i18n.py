@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.blog_post_translation import BlogPostTranslation
 from app.models.category_translation import CategoryTranslation
 from app.models.product_translation import ProductTranslation
+from app.models.site_settings_translation import SiteSettingsTranslation
 
 # MVP languages (PRD section 15: ru/uz/en minimum). Adding a locale here is the
 # only code change needed — storage is a plain string column, not an enum.
@@ -69,3 +70,11 @@ def get_blog_post_translations(db: Session, post_ids: list[int], locale: str) ->
         .all()
     )
     return {row.post_id: row for row in rows}
+
+
+def get_site_settings_translation(db: Session, site_settings_id: int, locale: str) -> SiteSettingsTranslation | None:
+    return db.execute(
+        select(SiteSettingsTranslation).where(
+            SiteSettingsTranslation.site_settings_id == site_settings_id, SiteSettingsTranslation.locale == locale
+        )
+    ).scalar_one_or_none()

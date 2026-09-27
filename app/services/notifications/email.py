@@ -66,6 +66,19 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
+    def admin_login_code(self, to_email: str, code: str, db: Session | None = None) -> None:
+        context = {"code": code, "to_email": to_email}
+        rendered = render_template(db, "admin_login_code", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = "Your MARU admin verification code"
+            body = (
+                f"Your verification code is: {code}\n\n"
+                "It expires in 10 minutes. If you did not request this, ignore this email.\n\nMARU"
+            )
+        self._send(to_email, subject, body)
+
     def order_created(self, order: Order, db: Session | None = None) -> None:
         context = {
             "order_number": order.order_number,

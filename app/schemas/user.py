@@ -52,3 +52,18 @@ class MfaSetupOut(BaseModel):
 
 class MfaCodeRequest(BaseModel):
     code: str
+
+
+class AdminLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class AdminVerifyRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
+class AdminPromoteRequest(BaseModel):
+    email: EmailStr
+    role: UserRole

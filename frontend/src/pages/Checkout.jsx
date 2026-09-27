@@ -7,6 +7,7 @@ import { listShippingCountries, listShippingMethods } from '../api/shipping'
 import { errorMessage } from '../api/client'
 import StripePaymentForm from '../components/checkout/StripePaymentForm'
 import PayPalButton from '../components/checkout/PayPalButton'
+import MapPicker from '../components/MapPicker'
 
 const emptyForm = {
   order_type: 'individual',
@@ -33,6 +34,7 @@ export default function Checkout() {
   const navigate = useNavigate()
 
   const [form, setForm] = useState(emptyForm)
+  const [pin, setPin] = useState(null)
   const [countries, setCountries] = useState([])
   const [methods, setMethods] = useState([])
   const [paymentMethods, setPaymentMethods] = useState([])
@@ -192,6 +194,23 @@ export default function Checkout() {
 
           <fieldset className="grid grid-cols-2 gap-3">
             <legend className="font-semibold mb-2 col-span-2">{t('checkout.shippingAddress')}</legend>
+            <div className="col-span-2">
+              <MapPicker
+                latitude={pin?.latitude}
+                longitude={pin?.longitude}
+                onChange={setPin}
+                onReverseGeocode={({ country, city, addressLine, postalCode }) => {
+                  const matchedCountry = countries.find((c) => c.toLowerCase() === country.toLowerCase())
+                  setForm((f) => ({
+                    ...f,
+                    country: matchedCountry || f.country,
+                    city: city || f.city,
+                    address_line: addressLine || f.address_line,
+                    postal_code: postalCode || f.postal_code,
+                  }))
+                }}
+              />
+            </div>
             <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
               <option value="">{t('checkout.selectCountry')}</option>
               {countries.map((c) => <option key={c} value={c}>{c}</option>)}

@@ -6,6 +6,7 @@ import { listShippingCountries } from '../api/shipping'
 import { createAddress, deleteAddress, listAddresses, updateAddress } from '../api/addresses'
 import { errorMessage } from '../api/client'
 import AccountNav from '../components/account/AccountNav'
+import MapPicker from '../components/MapPicker'
 
 const emptyForm = {
   label: '',
@@ -17,6 +18,8 @@ const emptyForm = {
   address_line: '',
   postal_code: '',
   is_default: false,
+  latitude: null,
+  longitude: null,
 }
 
 export default function Addresses() {
@@ -106,6 +109,23 @@ export default function Addresses() {
             <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
             <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
             <input required type="tel" placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+            <div className="col-span-2">
+              <MapPicker
+                latitude={form.latitude}
+                longitude={form.longitude}
+                onChange={({ latitude, longitude }) => setForm((f) => ({ ...f, latitude, longitude }))}
+                onReverseGeocode={({ country, city, addressLine, postalCode }) => {
+                  const matchedCountry = countries.find((c) => c.toLowerCase() === country.toLowerCase())
+                  setForm((f) => ({
+                    ...f,
+                    country: matchedCountry || f.country,
+                    city: city || f.city,
+                    address_line: addressLine || f.address_line,
+                    postal_code: postalCode || f.postal_code,
+                  }))
+                }}
+              />
+            </div>
             <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
               <option value="">{t('checkout.selectCountry')}</option>
               {countries.map((c) => <option key={c} value={c}>{c}</option>)}

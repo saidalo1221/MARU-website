@@ -18,8 +18,10 @@ from app.routers import (
     admin_quotes,
     admin_reviews,
     admin_shipping_rates,
+    admin_site_settings,
     admin_skus,
     admin_tax_rules,
+    admin_users,
     admin_variants,
     admin_warehouses,
     addresses,
@@ -34,6 +36,7 @@ from app.routers import (
     quotes,
     reviews,
     shipping,
+    site_settings,
     wishlist,
 )
 
@@ -69,8 +72,10 @@ api_v1.include_router(admin_promo_codes.router)
 api_v1.include_router(admin_quotes.router)
 api_v1.include_router(admin_reviews.router)
 api_v1.include_router(admin_shipping_rates.router)
+api_v1.include_router(admin_site_settings.router)
 api_v1.include_router(admin_skus.router)
 api_v1.include_router(admin_tax_rules.router)
+api_v1.include_router(admin_users.router)
 api_v1.include_router(admin_variants.router)
 api_v1.include_router(admin_warehouses.router)
 api_v1.include_router(addresses.router)
@@ -85,6 +90,7 @@ api_v1.include_router(products.router)
 api_v1.include_router(quotes.router)
 api_v1.include_router(reviews.router)
 api_v1.include_router(shipping.router)
+api_v1.include_router(site_settings.router)
 api_v1.include_router(wishlist.router)
 
 app.include_router(api_v1)

@@ -1,6 +1,6 @@
 import hashlib
 from datetime import datetime, timedelta, timezone
-from secrets import token_urlsafe
+from secrets import randbelow, token_urlsafe
 
 import pyotp
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -12,13 +12,24 @@ from app.core.security import create_access_token, hash_password, verify_passwor
 from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.dependencies import get_current_user_required
+from app.models.admin_login_code import AdminLoginCode
 from app.models.email_verification_token import EmailVerificationToken
+from app.models.enums import UserRole
 from app.models.password_reset_token import PasswordResetToken
 from app.models.user import User
 from app.schemas.extras import ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest
 from app.services.analytics import record_event
 from app.services.notifications.email import EmailNotifier
-from app.schemas.user import MfaCodeRequest, MfaSetupOut, Token, UserCreate, UserLogin, UserOut
+from app.schemas.user import (
+    AdminLoginRequest,
+    AdminVerifyRequest,
+    MfaCodeRequest,
+    MfaSetupOut,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserOut,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 email_notifier = EmailNotifier()
@@ -173,6 +184,91 @@ def resend_verification(user: User = Depends(get_current_user_required), db: Ses
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to resend verification email") from exc
     return {"detail": "Verification email sent"}
+
+
+# --- Admin panel 2-step email login ---------------------------------------
+#
+# Separate from the opt-in TOTP MFA below: every non-customer account must
+# complete this to use the admin panel at all (enforced in require_role(),
+# not here) — /auth/login alone is not sufficient. Step 1 checks the
+# password and emails a 6-digit code; step 2 checks the code and issues the
+# normal access token, additionally marking the account admin-verified for
+# ADMIN_MFA_VALID_HOURS.
+
+ADMIN_MFA_CODE_TTL_MINUTES = 10
+ADMIN_MFA_VALID_HOURS = 12
+
+
+def _generate_numeric_code() -> str:
+    return f"{randbelow(1_000_000):06d}"
+
+
+@router.post("/admin/login", dependencies=[Depends(rate_limit("admin_login", 5, 900))])
+def admin_login_request(payload: AdminLoginRequest, db: Session = Depends(get_db)) -> dict:
+    try:
+        user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to authenticate") from exc
+
+    if (
+        user is None
+        or not user.is_active
+        or user.role == UserRole.CUSTOMER
+        or not verify_password(payload.password, user.password_hash)
+    ):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    code = _generate_numeric_code()
+    db.add(
+        AdminLoginCode(
+            user_id=user.id,
+            code_hash=hashlib.sha256(code.encode()).hexdigest(),
+            expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=ADMIN_MFA_CODE_TTL_MINUTES),
+        )
+    )
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to start admin login") from exc
+
+    email_notifier.admin_login_code(user.email, code, db=db)
+    return {"detail": "Verification code sent"}
+
+
+@router.post("/admin/verify", response_model=Token, dependencies=[Depends(rate_limit("admin_verify", 10, 900))])
+def admin_login_verify(payload: AdminVerifyRequest, db: Session = Depends(get_db)) -> Token:
+    try:
+        user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to verify code") from exc
+
+    if user is None or user.role == UserRole.CUSTOMER:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    code_hash = hashlib.sha256(payload.code.encode()).hexdigest()
+    record = db.execute(
+        select(AdminLoginCode)
+        .where(AdminLoginCode.user_id == user.id, AdminLoginCode.code_hash == code_hash)
+        .order_by(AdminLoginCode.id.desc())
+    ).scalar_one_or_none()
+
+    if record is None or record.used_at is not None or record.expires_at < now:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
+
+    try:
+        record.used_at = now
+        user.admin_mfa_verified_until = now + timedelta(hours=ADMIN_MFA_VALID_HOURS)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to verify code") from exc
+
+    record_event(db, "admin_login", user=user)
+    return Token(access_token=create_access_token(str(user.id)))
 
 
 # --- Admin MFA (PRD ТЗ№3 §58) --------------------------------------------

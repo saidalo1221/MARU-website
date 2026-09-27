@@ -119,11 +119,12 @@ CREATE TABLE users (
 	customer_type VARCHAR(20) NOT NULL, 
 	is_active BOOL NOT NULL, 
 	email_verified BOOL NOT NULL, 
-	mfa_secret VARCHAR(32), 
-	mfa_enabled BOOL NOT NULL, 
-	created_at DATETIME NOT NULL DEFAULT now(), 
-	updated_at DATETIME NOT NULL DEFAULT now(), 
-	PRIMARY KEY (id), 
+	mfa_secret VARCHAR(32),
+	mfa_enabled BOOL NOT NULL,
+	admin_mfa_verified_until DATETIME,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
 	UNIQUE (email)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
@@ -149,11 +150,13 @@ CREATE TABLE addresses (
 	country VARCHAR(100) NOT NULL, 
 	city VARCHAR(100) NOT NULL, 
 	address_line VARCHAR(255) NOT NULL, 
-	postal_code VARCHAR(20) NOT NULL, 
-	is_default BOOL NOT NULL, 
-	created_at DATETIME NOT NULL DEFAULT now(), 
-	updated_at DATETIME NOT NULL DEFAULT now(), 
-	PRIMARY KEY (id), 
+	postal_code VARCHAR(20) NOT NULL,
+	is_default BOOL NOT NULL,
+	latitude FLOAT,
+	longitude FLOAT,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
 	FOREIGN KEY(user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
@@ -551,4 +554,40 @@ CREATE TABLE blog_post_translations (
 	PRIMARY KEY (id),
 	CONSTRAINT uq_blog_post_translations_post_locale UNIQUE (post_id, locale),
 	FOREIGN KEY(post_id) REFERENCES blog_posts (id) ON DELETE CASCADE
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE admin_login_codes (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	code_hash VARCHAR(64) NOT NULL,
+	expires_at DATETIME NOT NULL,
+	used_at DATETIME,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE site_settings (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	phone VARCHAR(30),
+	email VARCHAR(255),
+	address VARCHAR(500),
+	latitude FLOAT,
+	longitude FLOAT,
+	about_title VARCHAR(255),
+	about_body TEXT,
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE site_settings_translations (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	site_settings_id BIGINT NOT NULL,
+	locale VARCHAR(10) NOT NULL,
+	address VARCHAR(500),
+	about_title VARCHAR(255),
+	about_body TEXT,
+	PRIMARY KEY (id),
+	CONSTRAINT uq_site_settings_translations_settings_locale UNIQUE (site_settings_id, locale),
+	FOREIGN KEY(site_settings_id) REFERENCES site_settings (id) ON DELETE CASCADE
 )CHARSET=utf8mb4 ENGINE=InnoDB;

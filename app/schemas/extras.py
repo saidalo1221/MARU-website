@@ -93,6 +93,8 @@ class AddressIn(BaseModel):
     address_line: str = Field(min_length=1, max_length=255)
     postal_code: str = Field(min_length=1, max_length=20)
     is_default: bool = False
+    latitude: float | None = None
+    longitude: float | None = None
 
 
 class AddressOut(AddressIn):

@@ -1,5 +1,33 @@
 import { apiRequest } from './client'
 
+// Admin session / users
+export function adminSessionCheck() {
+  return apiRequest('/admin/users/session')
+}
+export function adminListAdmins() {
+  return apiRequest('/admin/users/admins')
+}
+export function adminPromoteUser(email, role) {
+  return apiRequest('/admin/users/promote', { method: 'POST', body: { email, role } })
+}
+export function adminDemoteUser(userId) {
+  return apiRequest(`/admin/users/${userId}/demote`, { method: 'POST' })
+}
+
+// Site settings
+export function adminGetSiteSettings() {
+  return apiRequest('/admin/site-settings')
+}
+export function adminUpdateSiteSettings(payload) {
+  return apiRequest('/admin/site-settings', { method: 'PATCH', body: payload })
+}
+export function adminListSiteSettingsTranslations() {
+  return apiRequest('/admin/site-settings/translations')
+}
+export function adminUpsertSiteSettingsTranslation(locale, payload) {
+  return apiRequest(`/admin/site-settings/translations/${locale}`, { method: 'PUT', body: payload })
+}
+
 // Orders
 export function adminListOrders(statusFilter) {
   const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''

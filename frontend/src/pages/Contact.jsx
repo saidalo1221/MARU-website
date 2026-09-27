@@ -1,17 +1,16 @@
+import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
+import { getSiteSettings } from '../api/siteSettings'
 import InquiryForm from '../components/forms/InquiryForm'
-
-// Contact details below are placeholders — replace with the real business
-// phone/email/address before launch (no real values exist anywhere in this
-// codebase or the PRD to source them from).
-const CONTACT = {
-  phone: '+998 71 200 00 00',
-  email: 'info@maruplast.uz',
-  address: 'Tashkent, Uzbekistan',
-}
+import MapPicker from '../components/MapPicker'
 
 export default function Contact() {
-  const { t } = useLocale()
+  const { locale, t } = useLocale()
+  const [settings, setSettings] = useState(null)
+
+  useEffect(() => {
+    getSiteSettings(locale).then(setSettings).catch(() => {})
+  }, [locale])
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
@@ -23,20 +22,26 @@ export default function Contact() {
           <dl className="text-sm space-y-3 mb-8">
             <div>
               <dt className="text-gray-500">{t('contact.phone')}</dt>
-              <dd className="font-medium">{CONTACT.phone}</dd>
+              <dd className="font-medium">{settings?.phone || '—'}</dd>
             </div>
             <div>
               <dt className="text-gray-500">{t('contact.email')}</dt>
-              <dd className="font-medium">{CONTACT.email}</dd>
+              <dd className="font-medium">{settings?.email || '—'}</dd>
             </div>
             <div>
               <dt className="text-gray-500">{t('contact.address')}</dt>
-              <dd className="font-medium">{CONTACT.address}</dd>
+              <dd className="font-medium">{settings?.address || '—'}</dd>
             </div>
           </dl>
-          <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm mb-6">
-            {t('contact.mapPlaceholder')}
-          </div>
+          {settings?.latitude != null && settings?.longitude != null ? (
+            <div className="mb-6">
+              <MapPicker latitude={settings.latitude} longitude={settings.longitude} readOnly />
+            </div>
+          ) : (
+            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm mb-6">
+              {t('contact.mapPlaceholder')}
+            </div>
+          )}
           <p className="text-xs text-gray-500">{t('contact.inquiriesNote')}</p>
         </div>
 

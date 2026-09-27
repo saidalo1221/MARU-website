@@ -34,5 +34,11 @@ class User(Base):
     mfa_secret = Column(String(32), nullable=True)
     mfa_enabled = Column(Boolean, nullable=False, default=False)
 
+    # Set by /auth/admin/verify (email-code 2-step login for the /admin
+    # panel — separate from the TOTP mfa_ fields above). require_role() in
+    # app/dependencies.py requires this to be in the future for every
+    # admin-role endpoint, regardless of mfa_enabled.
+    admin_mfa_verified_until = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

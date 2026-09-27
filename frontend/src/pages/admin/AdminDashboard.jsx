@@ -11,6 +11,7 @@ export default function AdminDashboard() {
     ['/admin/quotes', t('admin.nav.quotes'), t('admin.dashboard.quotes')],
     ['/admin/reviews', t('admin.nav.reviews'), t('admin.dashboard.reviews')],
     ['/admin/blog/posts', t('admin.nav.blog'), t('admin.dashboard.blog')],
+    ['/admin/site-settings', t('admin.nav.siteSettings'), t('admin.siteSettings.title')],
     ['/admin/products', t('admin.nav.products'), t('admin.dashboard.products')],
     ['/admin/categories', t('admin.nav.categories'), t('admin.dashboard.categories')],
     ['/admin/warehouses', t('admin.nav.warehouses'), t('admin.dashboard.warehouses')],
@@ -22,6 +23,7 @@ export default function AdminDashboard() {
     ['/admin/integration-logs', t('admin.nav.integrationLogs'), t('admin.dashboard.integrationLogs')],
     ['/admin/audit-log', t('admin.nav.auditLog'), t('admin.dashboard.auditLog')],
     ['/admin/analytics-events', t('admin.nav.analyticsEvents'), t('admin.dashboard.analyticsEvents')],
+    ['/admin/admins', t('admin.nav.admins'), t('admin.admins.subtitle')],
   ]
 
   return (

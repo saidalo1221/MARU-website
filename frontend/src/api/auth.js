@@ -16,6 +16,16 @@ export function logout() {
   setAccessToken(null)
 }
 
+export function requestAdminCode(email, password) {
+  return apiRequest('/auth/admin/login', { method: 'POST', body: { email, password } })
+}
+
+export async function verifyAdminCode(email, code) {
+  const token = await apiRequest('/auth/admin/verify', { method: 'POST', body: { email, code } })
+  setAccessToken(token.access_token)
+  return token
+}
+
 export function getMe() {
   return apiRequest('/auth/me')
 }

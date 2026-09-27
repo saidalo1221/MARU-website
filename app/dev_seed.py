@@ -43,6 +43,7 @@ from app.models.warehouse import Warehouse
 from app.models.blog_category import BlogCategory
 from app.models.blog_post import BlogPost
 from app.models.blog_post_translation import BlogPostTranslation
+from app.models.site_settings import SiteSettings
 from datetime import datetime, timedelta
 
 CATEGORIES_AND_PRODUCTS = [
@@ -216,6 +217,19 @@ def run() -> None:
                         post_id=post.id, locale=locale, title=t_title, excerpt=t_excerpt, content=t_content
                     )
                 )
+
+    db.add(
+        SiteSettings(
+            id=1,
+            phone="+998 71 200 00 00",
+            email="info@maruplast.uz",
+            address="Tashkent, Uzbekistan",
+            latitude=41.2995,
+            longitude=69.2401,
+            about_title="About MARU",
+            about_body="We manufacture polypropylene food containers in-house.",
+        )
+    )
 
     db.commit()
     print("Seeded dev catalog.")

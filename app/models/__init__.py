@@ -34,6 +34,9 @@ from app.models.analytics_event import AnalyticsEvent
 from app.models.blog_category import BlogCategory
 from app.models.blog_post import BlogPost
 from app.models.blog_post_translation import BlogPostTranslation
+from app.models.admin_login_code import AdminLoginCode
+from app.models.site_settings import SiteSettings
+from app.models.site_settings_translation import SiteSettingsTranslation
 
 __all__ = [
     "Category",
@@ -81,4 +84,7 @@ __all__ = [
     "BlogCategory",
     "BlogPost",
     "BlogPostTranslation",
+    "AdminLoginCode",
+    "SiteSettings",
+    "SiteSettingsTranslation",
 ]
