@@ -51,7 +51,10 @@ export async function apiRequest(
   { method = 'GET', body, orderToken, skipAuth = false, ...rest } = {}
 ) {
   const headers = { ...(rest.headers || {}) }
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
+  // Leave Content-Type unset for FormData — the browser fills in the
+  // multipart boundary itself; setting it manually breaks the upload.
+  if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
 
   const accessToken = getAccessToken()
   if (accessToken && !skipAuth) headers['Authorization'] = `Bearer ${accessToken}`
@@ -64,7 +67,7 @@ export async function apiRequest(
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
     ...rest,
   })
 

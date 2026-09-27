@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     # Base URL of the deployed frontend, used in password-reset links.
     FRONTEND_URL: str = "http://localhost:5173"
 
+    # Base URL of this API itself, used to build absolute URLs for uploaded
+    # files (admin_uploads.py) so they render correctly from the frontend's
+    # origin, not just the API's.
+    BACKEND_URL: str = "http://127.0.0.1:8000"
+
     # How long an unpaid order holds its stock reservation (PRD ТЗ№3 §19/§63)
     # before app/tasks/expire_reservations.py is allowed to release it.
     RESERVATION_TTL_MINUTES: int = 30

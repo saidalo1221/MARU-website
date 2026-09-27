@@ -180,6 +180,19 @@ def create_variant(
     return variant
 
 
+@router.get("/{product_id}/translations", response_model=list[ProductTranslationOut])
+def list_product_translations(
+    product_id: int,
+    user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
+    db: Session = Depends(get_db),
+) -> list[ProductTranslation]:
+    if db.get(Product, product_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    return list(
+        db.execute(select(ProductTranslation).where(ProductTranslation.product_id == product_id)).scalars().all()
+    )
+
+
 @router.put("/{product_id}/translations/{locale}", response_model=ProductTranslationOut)
 def upsert_product_translation(
     product_id: int,

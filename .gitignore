@@ -8,6 +8,10 @@ frontend/.env.local
 *.db
 *.db-journal
 
+# Admin-uploaded images (app/routers/admin_uploads.py) — local disk storage,
+# not meant to be committed
+app/static/uploads/
+
 # Python
 __pycache__/
 *.pyc

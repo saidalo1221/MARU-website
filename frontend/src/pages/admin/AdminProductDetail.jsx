@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   adminAddInventory, adminCreateSku, adminCreateVariant, adminGetProduct, adminListInventory,
-  adminListWarehouses, adminUpdateInventory, adminUpdateProduct, adminUpdateSku, adminUpdateVariant,
+  adminListProductTranslations, adminListWarehouses, adminUpdateInventory, adminUpdateProduct, adminUpdateSku,
+  adminUpdateVariant, adminUploadImage, adminUpsertProductTranslation,
 } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
@@ -198,12 +199,30 @@ function VariantBlock({ variant, warehouses, onChanged }) {
   const [skuForm, setSkuForm] = useState({ sku_code: '', retail_price: '', currency: 'USD' })
   const [skuError, setSkuError] = useState(null)
   const [skuOpen, setSkuOpen] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState(null)
 
   const update = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
     setForm((f) => ({ ...f, [field]: value }))
   }
   const updateSku = (field) => (e) => setSkuForm((f) => ({ ...f, [field]: e.target.value }))
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const { url } = await adminUploadImage(file)
+      setForm((f) => ({ ...f, photo_url: url }))
+    } catch (err) {
+      setUploadError(errorMessage(err, t('admin.productDetail.uploadFailed')))
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   const save = async (e) => {
     e.preventDefault()
@@ -246,6 +265,12 @@ function VariantBlock({ variant, warehouses, onChanged }) {
             <input placeholder={t('admin.productDetail.color')} value={form.color} onChange={update('color')} className={inputCls} />
             <input placeholder={t('admin.productDetail.colorHex')} value={form.color_hex} onChange={update('color_hex')} className={inputCls} />
             <input placeholder={t('admin.productDetail.photoUrl')} value={form.photo_url} onChange={update('photo_url')} className={inputCls} />
+            <div className="flex items-center gap-2">
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
+              {uploading && <span className="text-xs text-gray-400">{t('admin.productDetail.uploading')}</span>}
+              {form.photo_url && <img src={form.photo_url} alt="" className="h-10 w-10 object-cover rounded border border-gray-200" />}
+            </div>
+            {uploadError && <p className="text-red-600 text-xs col-span-2">{uploadError}</p>}
             <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}</label>
             <button type="submit" disabled={saving} className="bg-brand text-white rounded px-3 py-1.5 text-sm disabled:opacity-40 justify-self-start">{saving ? t('admin.common.saving') : t('admin.productDetail.saveVariant')}</button>
           </form>
@@ -268,6 +293,77 @@ function VariantBlock({ variant, warehouses, onChanged }) {
           )}
         </>
       )}
+    </div>
+  )
+}
+
+const TRANSLATION_LOCALES = ['ru', 'uz', 'en']
+const emptyTranslation = { name: '', description: '' }
+
+function ProductTranslations({ productId }) {
+  const { t } = useLocale()
+  const [activeLocale, setActiveLocale] = useState('ru')
+  const [translations, setTranslations] = useState({})
+  const [translationForm, setTranslationForm] = useState(emptyTranslation)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    adminListProductTranslations(productId)
+      .then((rows) => setTranslations(Object.fromEntries(rows.map((row) => [row.locale, row]))))
+      .catch((err) => setError(errorMessage(err, t('admin.productDetail.translationsLoadFailed'))))
+      .finally(() => setLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId])
+
+  useEffect(() => {
+    const existing = translations[activeLocale]
+    setTranslationForm(existing ? { name: existing.name, description: existing.description || '' } : emptyTranslation)
+    setError(null)
+  }, [activeLocale, translations])
+
+  const update = (field) => (e) => setTranslationForm((f) => ({ ...f, [field]: e.target.value }))
+
+  const save = async (e) => {
+    e.preventDefault()
+    setError(null)
+    setSaving(true)
+    try {
+      const saved = await adminUpsertProductTranslation(productId, activeLocale, translationForm)
+      setTranslations((t2) => ({ ...t2, [activeLocale]: saved }))
+    } catch (err) {
+      setError(errorMessage(err, t('admin.productDetail.translationSaveFailed')))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) return <p className="text-sm text-gray-400">{t('admin.common.loading')}</p>
+
+  return (
+    <div className="mb-8">
+      <h2 className="text-lg font-semibold mb-3">{t('admin.blog.translations')}</h2>
+      <div className="flex gap-2 mb-4">
+        {TRANSLATION_LOCALES.map((loc) => (
+          <button
+            key={loc}
+            type="button"
+            onClick={() => setActiveLocale(loc)}
+            className={`px-3 py-1.5 rounded text-sm border ${activeLocale === loc ? 'bg-brand text-white border-brand' : 'border-gray-300'}`}
+          >
+            {loc.toUpperCase()}
+          </button>
+        ))}
+      </div>
+      <form onSubmit={save} className="border border-gray-200 rounded-lg p-4 space-y-3">
+        <input required placeholder={t('admin.common.name')} value={translationForm.name} onChange={update('name')} className={`${inputCls} w-full`} />
+        <textarea placeholder={t('admin.products.description')} value={translationForm.description} onChange={update('description')} rows={3} className={`${inputCls} w-full`} />
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <button type="submit" disabled={saving} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
+          {saving ? t('admin.common.saving') : t('admin.common.save')}
+        </button>
+      </form>
     </div>
   )
 }
@@ -352,6 +448,8 @@ export default function AdminProductDetail() {
           {saving ? t('admin.common.saving') : t('admin.productDetail.saveProduct')}
         </button>
       </form>
+
+      <ProductTranslations productId={product.id} />
 
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold">{t('admin.productDetail.variants')}</h2>

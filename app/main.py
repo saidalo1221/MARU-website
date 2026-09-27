@@ -1,5 +1,6 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 
@@ -21,6 +22,7 @@ from app.routers import (
     admin_site_settings,
     admin_skus,
     admin_tax_rules,
+    admin_uploads,
     admin_users,
     admin_variants,
     admin_warehouses,
@@ -52,6 +54,10 @@ app.add_middleware(
     expose_headers=["X-Cart-Token"],
 )
 
+# Serves admin-uploaded images (app/routers/admin_uploads.py); see that
+# module's docstring for why this is local disk rather than S3.
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 # PRD ТЗ№3 §15/§43: base API version is /api/v1. All routers are mounted
 # under one versioned router rather than repeating prefix="/api/v1" on every
 # include_router() call below; bump to /api/v2 the same way for a future
@@ -75,6 +81,7 @@ api_v1.include_router(admin_shipping_rates.router)
 api_v1.include_router(admin_site_settings.router)
 api_v1.include_router(admin_skus.router)
 api_v1.include_router(admin_tax_rules.router)
+api_v1.include_router(admin_uploads.router)
 api_v1.include_router(admin_users.router)
 api_v1.include_router(admin_variants.router)
 api_v1.include_router(admin_warehouses.router)

@@ -106,6 +106,21 @@ export function adminUpdateProduct(productId, payload) {
   return apiRequest(`/admin/products/${productId}`, { method: 'PATCH', body: payload })
 }
 
+// Uploads
+export function adminUploadImage(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiRequest('/admin/uploads/image', { method: 'POST', body: formData })
+}
+
+// Product translations
+export function adminListProductTranslations(productId) {
+  return apiRequest(`/admin/products/${productId}/translations`)
+}
+export function adminUpsertProductTranslation(productId, locale, payload) {
+  return apiRequest(`/admin/products/${productId}/translations/${locale}`, { method: 'PUT', body: payload })
+}
+
 // Variants
 export function adminUpdateVariant(variantId, payload) {
   return apiRequest(`/admin/variants/${variantId}`, { method: 'PATCH', body: payload })
