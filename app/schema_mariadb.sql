@@ -503,12 +503,52 @@ CREATE TABLE quantity_price_tiers (
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
 CREATE TABLE wishlist_items (
-	id BIGINT NOT NULL AUTO_INCREMENT, 
-	user_id BIGINT NOT NULL, 
-	sku_id BIGINT NOT NULL, 
-	created_at DATETIME NOT NULL DEFAULT now(), 
-	PRIMARY KEY (id), 
-	CONSTRAINT uq_wishlist_user_sku UNIQUE (user_id, sku_id), 
-	FOREIGN KEY(user_id) REFERENCES users (id), 
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	sku_id BIGINT NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_wishlist_user_sku UNIQUE (user_id, sku_id),
+	FOREIGN KEY(user_id) REFERENCES users (id),
 	FOREIGN KEY(sku_id) REFERENCES skus (id) ON DELETE CASCADE
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE blog_categories (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	name VARCHAR(255) NOT NULL,
+	slug VARCHAR(255) NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	UNIQUE (slug)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE blog_posts (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	category_id BIGINT NOT NULL,
+	slug VARCHAR(255) NOT NULL,
+	title VARCHAR(255) NOT NULL,
+	excerpt TEXT,
+	content TEXT NOT NULL,
+	cover_image_url VARCHAR(500),
+	author_name VARCHAR(100),
+	is_published BOOL NOT NULL,
+	published_at DATETIME,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(category_id) REFERENCES blog_categories (id),
+	UNIQUE (slug)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE blog_post_translations (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	post_id BIGINT NOT NULL,
+	locale VARCHAR(10) NOT NULL,
+	title VARCHAR(255) NOT NULL,
+	excerpt TEXT,
+	content TEXT NOT NULL,
+	PRIMARY KEY (id),
+	CONSTRAINT uq_blog_post_translations_post_locale UNIQUE (post_id, locale),
+	FOREIGN KEY(post_id) REFERENCES blog_posts (id) ON DELETE CASCADE
 )CHARSET=utf8mb4 ENGINE=InnoDB;

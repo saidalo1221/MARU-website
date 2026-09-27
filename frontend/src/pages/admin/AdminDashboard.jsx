@@ -10,6 +10,7 @@ export default function AdminDashboard() {
     ['/admin/orders', t('admin.nav.orders'), t('admin.dashboard.orders')],
     ['/admin/quotes', t('admin.nav.quotes'), t('admin.dashboard.quotes')],
     ['/admin/reviews', t('admin.nav.reviews'), t('admin.dashboard.reviews')],
+    ['/admin/blog/posts', t('admin.nav.blog'), t('admin.dashboard.blog')],
     ['/admin/products', t('admin.nav.products'), t('admin.dashboard.products')],
     ['/admin/categories', t('admin.nav.categories'), t('admin.dashboard.categories')],
     ['/admin/warehouses', t('admin.nav.warehouses'), t('admin.dashboard.warehouses')],

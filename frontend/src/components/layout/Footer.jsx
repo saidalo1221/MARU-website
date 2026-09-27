@@ -27,6 +27,7 @@ export default function Footer() {
       links: [
         ['/about', 'footer.about'],
         ['/contact', 'footer.contact'],
+        ['/blog', 'footer.blog'],
       ],
     },
     {

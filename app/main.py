@@ -6,6 +6,7 @@ from app.config import settings
 from app.routers import (
     admin_analytics_events,
     admin_audit,
+    admin_blog,
     admin_categories,
     admin_exchange_rates,
     admin_integration_logs,
@@ -23,6 +24,7 @@ from app.routers import (
     admin_warehouses,
     addresses,
     auth,
+    blog,
     cart,
     categories,
     exchange_rates,
@@ -55,6 +57,7 @@ api_v1 = APIRouter(prefix="/api/v1")
 
 api_v1.include_router(admin_analytics_events.router)
 api_v1.include_router(admin_audit.router)
+api_v1.include_router(admin_blog.router)
 api_v1.include_router(admin_categories.router)
 api_v1.include_router(admin_exchange_rates.router)
 api_v1.include_router(admin_integration_logs.router)
@@ -72,6 +75,7 @@ api_v1.include_router(admin_variants.router)
 api_v1.include_router(admin_warehouses.router)
 api_v1.include_router(addresses.router)
 api_v1.include_router(auth.router)
+api_v1.include_router(blog.router)
 api_v1.include_router(cart.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(exchange_rates.router)

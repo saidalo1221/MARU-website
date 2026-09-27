@@ -4,6 +4,8 @@ import Footer from './components/layout/Footer'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
+import BlogHome from './pages/BlogHome'
+import BlogArticle from './pages/BlogArticle'
 import SearchResults from './pages/SearchResults'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
@@ -32,6 +34,9 @@ import AdminOrderDetail from './pages/admin/AdminOrderDetail'
 import AdminQuotes from './pages/admin/AdminQuotes'
 import AdminQuoteDetail from './pages/admin/AdminQuoteDetail'
 import AdminReviews from './pages/admin/AdminReviews'
+import AdminBlogPosts from './pages/admin/AdminBlogPosts'
+import AdminBlogPostDetail from './pages/admin/AdminBlogPostDetail'
+import AdminBlogCategories from './pages/admin/AdminBlogCategories'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductDetail from './pages/admin/AdminProductDetail'
 import AdminCategories from './pages/admin/AdminCategories'
@@ -55,6 +60,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Catalog />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
+          <Route path="/blog" element={<BlogHome />} />
+          <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
@@ -83,6 +90,9 @@ export default function App() {
             <Route path="quotes" element={<AdminQuotes />} />
             <Route path="quotes/:quoteId" element={<AdminQuoteDetail />} />
             <Route path="reviews" element={<AdminReviews />} />
+            <Route path="blog/posts" element={<AdminBlogPosts />} />
+            <Route path="blog/posts/:postId" element={<AdminBlogPostDetail />} />
+            <Route path="blog/categories" element={<AdminBlogCategories />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/:productId" element={<AdminProductDetail />} />
             <Route path="categories" element={<AdminCategories />} />

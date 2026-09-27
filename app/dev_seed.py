@@ -40,6 +40,10 @@ from app.models.product_variant import ProductVariant
 from app.models.shipping_rate import ShippingRate
 from app.models.sku import SKU
 from app.models.warehouse import Warehouse
+from app.models.blog_category import BlogCategory
+from app.models.blog_post import BlogPost
+from app.models.blog_post_translation import BlogPostTranslation
+from datetime import datetime, timedelta
 
 CATEGORIES_AND_PRODUCTS = [
     (
@@ -64,6 +68,79 @@ CATEGORIES_AND_PRODUCTS = [
                 {
                     "ru": ("Прямоугольный контейнер MARU", "Пищевой контейнер объемом 1000 мл из полипропилена."),
                     "uz": ("MARU to'rtburchak idishi", "1000 ml hajmli polipropilendan yasalgan oziq-ovqat idishi."),
+                },
+            ),
+        ],
+    ),
+]
+
+# (category_name, category_slug, [(slug, title, excerpt, content, author_name,
+# days_ago_published, {locale: (title, excerpt, content)})])
+BLOG_CATEGORIES_AND_POSTS = [
+    (
+        "Sustainability",
+        "sustainability",
+        [
+            (
+                "how-maru-reduces-plastic-waste",
+                "How MARU Reduces Plastic Waste",
+                "A look at the recycling programs and material choices behind our containers.",
+                "MARU containers are made from food-grade polypropylene chosen for "
+                "durability and recyclability. This article covers our take-back "
+                "program and how customers can recycle used containers.",
+                "MARU Team",
+                2,
+                {
+                    "ru": (
+                        "Как MARU сокращает пластиковые отходы",
+                        "Взгляд на программы переработки и выбор материалов для наших контейнеров.",
+                        "Контейнеры MARU изготовлены из пищевого полипропилена, выбранного "
+                        "за долговечность и перерабатываемость. В этой статье рассказывается "
+                        "о нашей программе приема тары и о том, как клиенты могут "
+                        "перерабатывать использованные контейнеры.",
+                    ),
+                    "uz": (
+                        "MARU plastik chiqindilarni qanday kamaytiradi",
+                        "Idishlarimiz uchun qayta ishlash dasturlari va material tanlovlariga nazar.",
+                        "MARU idishlari chidamliligi va qayta ishlanishi uchun tanlangan "
+                        "oziq-ovqat toifasidagi polipropilendan tayyorlanadi. Ushbu maqolada "
+                        "bizning qabul qilish dasturimiz va mijozlar ishlatilgan idishlarni "
+                        "qanday qayta ishlashi mumkinligi haqida so'z boradi.",
+                    ),
+                },
+            ),
+        ],
+    ),
+    (
+        "Product Care",
+        "product-care",
+        [
+            (
+                "keeping-your-containers-fresh",
+                "Keeping Your Containers Fresh",
+                "Simple cleaning and storage tips to extend the life of your MARU containers.",
+                "Hand-wash with mild detergent, avoid abrasive scrubbers, and let "
+                "lids air-dry to prevent odor buildup. Our containers are also "
+                "top-rack dishwasher safe.",
+                "MARU Team",
+                7,
+                {
+                    "ru": (
+                        "Как сохранить контейнеры свежими",
+                        "Простые советы по уходу и хранению для продления срока службы контейнеров MARU.",
+                        "Мойте вручную мягким моющим средством, избегайте абразивных губок "
+                        "и дайте крышкам высохнуть на воздухе, чтобы избежать появления "
+                        "запаха. Наши контейнеры также можно мыть в посудомоечной машине "
+                        "на верхней полке.",
+                    ),
+                    "uz": (
+                        "Idishlaringizni yangi holatda saqlash",
+                        "MARU idishlaringiz umrini uzaytirish uchun oddiy tozalash va saqlash maslahatlari.",
+                        "Yumshoq yuvish vositasi bilan qo'lda yuving, qattiq g'ovaklardan "
+                        "saqlaning va qopqoqlarni hidning to'planishini oldini olish uchun "
+                        "havoda quriting. Idishlarimiz idish yuvish mashinasining yuqori "
+                        "javonida yuvishga ham xavfsiz.",
+                    ),
                 },
             ),
         ],
@@ -115,6 +192,30 @@ def run() -> None:
                 db.add(sku)
                 db.flush()
                 db.add(Inventory(sku_id=sku.id, warehouse_id=warehouse.id, stock=stock, reserved=0))
+
+    for cat_name, cat_slug, posts in BLOG_CATEGORIES_AND_POSTS:
+        blog_category = BlogCategory(name=cat_name, slug=cat_slug)
+        db.add(blog_category)
+        db.flush()
+        for post_slug, title, excerpt, content, author_name, days_ago, translations in posts:
+            post = BlogPost(
+                category_id=blog_category.id,
+                slug=post_slug,
+                title=title,
+                excerpt=excerpt,
+                content=content,
+                author_name=author_name,
+                is_published=True,
+                published_at=datetime.utcnow() - timedelta(days=days_ago),
+            )
+            db.add(post)
+            db.flush()
+            for locale, (t_title, t_excerpt, t_content) in translations.items():
+                db.add(
+                    BlogPostTranslation(
+                        post_id=post.id, locale=locale, title=t_title, excerpt=t_excerpt, content=t_content
+                    )
+                )
 
     db.commit()
     print("Seeded dev catalog.")

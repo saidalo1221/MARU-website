@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.models.blog_post_translation import BlogPostTranslation
 from app.models.category_translation import CategoryTranslation
 from app.models.product_translation import ProductTranslation
 
@@ -45,3 +46,26 @@ def get_product_translations(db: Session, product_ids: list[int], locale: str) -
         .all()
     )
     return {row.product_id: row for row in rows}
+
+
+def get_blog_post_translation(db: Session, post_id: int, locale: str) -> BlogPostTranslation | None:
+    return db.execute(
+        select(BlogPostTranslation).where(
+            BlogPostTranslation.post_id == post_id, BlogPostTranslation.locale == locale
+        )
+    ).scalar_one_or_none()
+
+
+def get_blog_post_translations(db: Session, post_ids: list[int], locale: str) -> dict[int, BlogPostTranslation]:
+    if not post_ids:
+        return {}
+    rows = (
+        db.execute(
+            select(BlogPostTranslation).where(
+                BlogPostTranslation.post_id.in_(post_ids), BlogPostTranslation.locale == locale
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return {row.post_id: row for row in rows}

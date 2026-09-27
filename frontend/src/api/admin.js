@@ -187,3 +187,40 @@ export function adminListAnalyticsEvents(eventName) {
   const qs = eventName ? `?event_name=${encodeURIComponent(eventName)}` : ''
   return apiRequest(`/admin/analytics-events/${qs}`)
 }
+
+// Blog categories
+export function adminListBlogCategories() {
+  return apiRequest('/admin/blog/categories')
+}
+export function adminCreateBlogCategory(payload) {
+  return apiRequest('/admin/blog/categories', { method: 'POST', body: payload })
+}
+export function adminUpdateBlogCategory(categoryId, payload) {
+  return apiRequest(`/admin/blog/categories/${categoryId}`, { method: 'PATCH', body: payload })
+}
+export function adminDeleteBlogCategory(categoryId) {
+  return apiRequest(`/admin/blog/categories/${categoryId}`, { method: 'DELETE' })
+}
+
+// Blog posts
+export function adminListBlogPosts() {
+  return apiRequest('/admin/blog/posts')
+}
+export function adminGetBlogPost(postId) {
+  return apiRequest(`/admin/blog/posts/${postId}`)
+}
+export function adminCreateBlogPost(payload) {
+  return apiRequest('/admin/blog/posts', { method: 'POST', body: payload })
+}
+export function adminUpdateBlogPost(postId, payload) {
+  return apiRequest(`/admin/blog/posts/${postId}`, { method: 'PATCH', body: payload })
+}
+export function adminDeleteBlogPost(postId) {
+  return apiRequest(`/admin/blog/posts/${postId}`, { method: 'DELETE' })
+}
+export function adminListBlogPostTranslations(postId) {
+  return apiRequest(`/admin/blog/posts/${postId}/translations`)
+}
+export function adminUpsertBlogPostTranslation(postId, locale, payload) {
+  return apiRequest(`/admin/blog/posts/${postId}/translations/${locale}`, { method: 'PUT', body: payload })
+}

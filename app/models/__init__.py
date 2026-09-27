@@ -31,6 +31,9 @@ from app.models.notification_template import NotificationTemplate
 from app.models.tax_rule import TaxRule
 from app.models.integration_log import IntegrationLog, IntegrationLogStatus
 from app.models.analytics_event import AnalyticsEvent
+from app.models.blog_category import BlogCategory
+from app.models.blog_post import BlogPost
+from app.models.blog_post_translation import BlogPostTranslation
 
 __all__ = [
     "Category",
@@ -75,4 +78,7 @@ __all__ = [
     "IntegrationLog",
     "IntegrationLogStatus",
     "AnalyticsEvent",
+    "BlogCategory",
+    "BlogPost",
+    "BlogPostTranslation",
 ]
