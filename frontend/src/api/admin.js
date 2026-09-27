@@ -64,8 +64,7 @@ export function adminUpdateWarehouse(warehouseId, payload) {
   return apiRequest(`/admin/warehouses/${warehouseId}`, { method: 'PATCH', body: payload })
 }
 
-// Products (list/basic edit only — variant/SKU/inventory management is a
-// separate, larger admin surface not yet built; see TODO.md)
+// Products
 export function adminListProducts() {
   return apiRequest('/admin/products/')
 }
@@ -77,4 +76,114 @@ export function adminCreateProduct(payload) {
 }
 export function adminUpdateProduct(productId, payload) {
   return apiRequest(`/admin/products/${productId}`, { method: 'PATCH', body: payload })
+}
+
+// Variants
+export function adminUpdateVariant(variantId, payload) {
+  return apiRequest(`/admin/variants/${variantId}`, { method: 'PATCH', body: payload })
+}
+export function adminCreateVariant(productId, payload) {
+  return apiRequest(`/admin/products/${productId}/variants`, { method: 'POST', body: payload })
+}
+export function adminCreateSku(variantId, payload) {
+  return apiRequest(`/admin/variants/${variantId}/skus`, { method: 'POST', body: payload })
+}
+
+// SKUs
+export function adminUpdateSku(skuId, payload) {
+  return apiRequest(`/admin/skus/${skuId}`, { method: 'PATCH', body: payload })
+}
+
+// Inventory
+export function adminListInventory(skuId) {
+  return apiRequest(`/admin/inventory/${skuId}`)
+}
+export function adminAddInventory(skuId, payload) {
+  return apiRequest(`/admin/inventory/${skuId}`, { method: 'POST', body: payload })
+}
+export function adminUpdateInventory(skuId, warehouseId, payload) {
+  return apiRequest(`/admin/inventory/${skuId}/${warehouseId}`, { method: 'PATCH', body: payload })
+}
+
+// Promo codes
+export function adminListPromoCodes() {
+  return apiRequest('/admin/promo-codes/')
+}
+export function adminCreatePromoCode(payload) {
+  return apiRequest('/admin/promo-codes/', { method: 'POST', body: payload })
+}
+export function adminUpdatePromoCode(promoId, payload) {
+  return apiRequest(`/admin/promo-codes/${promoId}`, { method: 'PATCH', body: payload })
+}
+
+// Shipping rates
+export function adminListShippingRates() {
+  return apiRequest('/admin/shipping-rates/')
+}
+export function adminCreateShippingRate(payload) {
+  return apiRequest('/admin/shipping-rates/', { method: 'POST', body: payload })
+}
+export function adminUpdateShippingRate(rateId, payload) {
+  return apiRequest(`/admin/shipping-rates/${rateId}`, { method: 'PATCH', body: payload })
+}
+
+// Tax rules
+export function adminListTaxRules() {
+  return apiRequest('/admin/tax-rules/')
+}
+export function adminCreateTaxRule(payload) {
+  return apiRequest('/admin/tax-rules/', { method: 'POST', body: payload })
+}
+export function adminUpdateTaxRule(ruleId, payload) {
+  return apiRequest(`/admin/tax-rules/${ruleId}`, { method: 'PATCH', body: payload })
+}
+
+// Exchange rates
+export function adminListExchangeRates() {
+  return apiRequest('/admin/exchange-rates/')
+}
+export function adminCreateExchangeRate(payload) {
+  return apiRequest('/admin/exchange-rates/', { method: 'POST', body: payload })
+}
+export function adminUpdateExchangeRate(rateId, unitsPerUsd) {
+  return apiRequest(`/admin/exchange-rates/${rateId}`, { method: 'PATCH', body: { units_per_usd: unitsPerUsd } })
+}
+export function adminSyncExchangeRates() {
+  return apiRequest('/admin/exchange-rates/sync', { method: 'POST' })
+}
+
+// Notification templates
+export function adminListNotificationTemplates(event) {
+  const qs = event ? `?event=${encodeURIComponent(event)}` : ''
+  return apiRequest(`/admin/notification-templates/${qs}`)
+}
+export function adminCreateNotificationTemplate(payload) {
+  return apiRequest('/admin/notification-templates/', { method: 'POST', body: payload })
+}
+export function adminUpdateNotificationTemplate(templateId, payload) {
+  return apiRequest(`/admin/notification-templates/${templateId}`, { method: 'PATCH', body: payload })
+}
+
+// Integration logs
+export function adminListIntegrationLogs(statusFilter, integration) {
+  const params = new URLSearchParams()
+  if (statusFilter) params.set('status_filter', statusFilter)
+  if (integration) params.set('integration', integration)
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  return apiRequest(`/admin/integration-logs/${qs}`)
+}
+export function adminRetryIntegrationLog(logId) {
+  return apiRequest(`/admin/integration-logs/${logId}/retry`, { method: 'POST' })
+}
+
+// Audit log
+export function adminListAuditLogs(entity) {
+  const qs = entity ? `?entity=${encodeURIComponent(entity)}` : ''
+  return apiRequest(`/admin/audit-logs/${qs}`)
+}
+
+// Analytics events
+export function adminListAnalyticsEvents(eventName) {
+  const qs = eventName ? `?event_name=${encodeURIComponent(eventName)}` : ''
+  return apiRequest(`/admin/analytics-events/${qs}`)
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { adminCreateProduct, adminListCategories, adminListProducts, adminUpdateProduct } from '../../api/admin'
+import { Link } from 'react-router-dom'
+import { adminCreateProduct, adminListCategories, adminListProducts } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 
 const emptyForm = { category_id: '', name: '', slug: '', volume_ml: '', shape: '', purpose: '', description: '', country_of_origin: '', min_order_quantity: 1 }
@@ -8,15 +9,14 @@ function flattenCategories(nodes, depth = 0) {
   return nodes.flatMap((n) => [{ ...n, depth }, ...flattenCategories(n.children || [], depth + 1)])
 }
 
-// List + basic field editing only. Variants, SKUs, pricing, and inventory
-// are managed elsewhere (POST /admin/products/{id}/variants, /admin/skus,
-// /admin/inventory) and don't have an admin UI yet — see TODO.md.
+// List + create here. Editing a product's own fields, plus its variants,
+// SKUs, pricing, and per-warehouse inventory, happens on AdminProductDetail
+// (/admin/products/:id).
 export default function AdminProducts() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [formOpen, setFormOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -31,17 +31,7 @@ export default function AdminProducts() {
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
-  const openNew = () => { setEditingId(null); setForm(emptyForm); setFormError(null); setFormOpen(true) }
-  const openEdit = (p) => {
-    setEditingId(p.id)
-    setForm({
-      category_id: p.category_id, name: p.name, slug: p.slug, volume_ml: p.volume_ml,
-      shape: p.shape || '', purpose: p.purpose || '', description: p.description || '',
-      country_of_origin: p.country_of_origin || '', min_order_quantity: p.min_order_quantity,
-    })
-    setFormError(null)
-    setFormOpen(true)
-  }
+  const openNew = () => { setForm(emptyForm); setFormError(null); setFormOpen(true) }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -49,8 +39,7 @@ export default function AdminProducts() {
     setSubmitting(true)
     try {
       const payload = { ...form, category_id: Number(form.category_id), volume_ml: Number(form.volume_ml), min_order_quantity: Number(form.min_order_quantity) }
-      if (editingId) await adminUpdateProduct(editingId, payload)
-      else await adminCreateProduct(payload)
+      await adminCreateProduct(payload)
       setFormOpen(false)
       await load()
     } catch (err) {
@@ -107,7 +96,7 @@ export default function AdminProducts() {
                   <td className="px-3 py-2 text-gray-500">{p.slug}</td>
                   <td className="px-3 py-2">{p.volume_ml} ml</td>
                   <td className="px-3 py-2">{p.variants.length}</td>
-                  <td className="px-3 py-2 text-right"><button onClick={() => openEdit(p)} className="text-brand">Edit</button></td>
+                  <td className="px-3 py-2 text-right"><Link to={`/admin/products/${p.id}`} className="text-brand">Edit</Link></td>
                 </tr>
               ))}
               {products.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-400">No products found.</td></tr>}

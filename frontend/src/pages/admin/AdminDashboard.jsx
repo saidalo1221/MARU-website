@@ -7,9 +7,17 @@ export default function AdminDashboard() {
     ['/admin/orders', 'Orders', 'View and update order status, process refunds.'],
     ['/admin/quotes', 'Quotes', 'Review RFQs, set pricing, convert to orders.'],
     ['/admin/reviews', 'Reviews', 'Approve or reject pending customer reviews.'],
-    ['/admin/products', 'Products', 'Edit product listings.'],
+    ['/admin/products', 'Products', 'Edit products, variants, SKUs, pricing, and inventory.'],
     ['/admin/categories', 'Categories', 'Manage the category tree.'],
     ['/admin/warehouses', 'Warehouses', 'Manage warehouse locations and priority.'],
+    ['/admin/promo-codes', 'Promo Codes', 'Create and manage discount codes.'],
+    ['/admin/shipping-rates', 'Shipping Rates', 'Configure delivery fees per country/method.'],
+    ['/admin/tax-rules', 'Tax Rules', 'Configure tax rates per country/customer type.'],
+    ['/admin/exchange-rates', 'Exchange Rates', 'Manage or sync currency conversion rates.'],
+    ['/admin/notification-templates', 'Notification Templates', 'Customize customer email copy.'],
+    ['/admin/integration-logs', 'Integration Logs', 'Monitor and retry failed CRM syncs.'],
+    ['/admin/audit-log', 'Audit Log', 'Review changes made by admin accounts.'],
+    ['/admin/analytics-events', 'Analytics Events', 'Inspect captured storefront events.'],
   ]
 
   return (

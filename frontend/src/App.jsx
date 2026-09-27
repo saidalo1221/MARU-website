@@ -33,8 +33,17 @@ import AdminQuotes from './pages/admin/AdminQuotes'
 import AdminQuoteDetail from './pages/admin/AdminQuoteDetail'
 import AdminReviews from './pages/admin/AdminReviews'
 import AdminProducts from './pages/admin/AdminProducts'
+import AdminProductDetail from './pages/admin/AdminProductDetail'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminWarehouses from './pages/admin/AdminWarehouses'
+import AdminPromoCodes from './pages/admin/AdminPromoCodes'
+import AdminShippingRates from './pages/admin/AdminShippingRates'
+import AdminTaxRules from './pages/admin/AdminTaxRules'
+import AdminExchangeRates from './pages/admin/AdminExchangeRates'
+import AdminNotificationTemplates from './pages/admin/AdminNotificationTemplates'
+import AdminIntegrationLogs from './pages/admin/AdminIntegrationLogs'
+import AdminAuditLog from './pages/admin/AdminAuditLog'
+import AdminAnalyticsEvents from './pages/admin/AdminAnalyticsEvents'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -75,8 +84,17 @@ export default function App() {
             <Route path="quotes/:quoteId" element={<AdminQuoteDetail />} />
             <Route path="reviews" element={<AdminReviews />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="products/:productId" element={<AdminProductDetail />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="warehouses" element={<AdminWarehouses />} />
+            <Route path="promo-codes" element={<AdminPromoCodes />} />
+            <Route path="shipping-rates" element={<AdminShippingRates />} />
+            <Route path="tax-rules" element={<AdminTaxRules />} />
+            <Route path="exchange-rates" element={<AdminExchangeRates />} />
+            <Route path="notification-templates" element={<AdminNotificationTemplates />} />
+            <Route path="integration-logs" element={<AdminIntegrationLogs />} />
+            <Route path="audit-log" element={<AdminAuditLog />} />
+            <Route path="analytics-events" element={<AdminAnalyticsEvents />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
