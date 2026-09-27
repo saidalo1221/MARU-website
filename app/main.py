@@ -25,6 +25,7 @@ from app.routers import (
     auth,
     cart,
     categories,
+    exchange_rates,
     orders,
     payment_webhooks,
     products,
@@ -73,6 +74,7 @@ api_v1.include_router(addresses.router)
 api_v1.include_router(auth.router)
 api_v1.include_router(cart.router)
 api_v1.include_router(categories.router)
+api_v1.include_router(exchange_rates.router)
 api_v1.include_router(orders.router)
 api_v1.include_router(payment_webhooks.router)
 api_v1.include_router(products.router)

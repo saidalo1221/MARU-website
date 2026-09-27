@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { adminListAuditLogs } from '../../api/admin'
 import { errorMessage } from '../../api/client'
+import { useLocale } from '../../context/LocaleContext'
 
 export default function AdminAuditLog() {
+  const { t } = useLocale()
   const [logs, setLogs] = useState([])
   const [entityFilter, setEntityFilter] = useState('')
   const [loading, setLoading] = useState(true)
@@ -12,18 +14,18 @@ export default function AdminAuditLog() {
     setLoading(true)
     adminListAuditLogs(entityFilter || undefined)
       .then(setLogs)
-      .catch((err) => setError(errorMessage(err, 'Failed to load audit logs')))
+      .catch((err) => setError(errorMessage(err, t('admin.auditLog.loadFailed'))))
       .finally(() => setLoading(false))
-  }, [entityFilter])
+  }, [entityFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Audit Log</h1>
-        <input value={entityFilter} onChange={(e) => setEntityFilter(e.target.value)} placeholder="Filter by entity (e.g. sku)" className="border border-gray-300 rounded px-2 py-1.5 text-sm" />
+        <h1 className="text-2xl font-bold">{t('admin.auditLog.title')}</h1>
+        <input value={entityFilter} onChange={(e) => setEntityFilter(e.target.value)} placeholder={t('admin.auditLog.filterPlaceholder')} className="border border-gray-300 rounded px-2 py-1.5 text-sm" />
       </div>
 
-      {loading && <p>Loading...</p>}
+      {loading && <p>{t('admin.common.loading')}</p>}
       {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
 
       {!loading && (
@@ -31,16 +33,16 @@ export default function AdminAuditLog() {
           {logs.map((l) => (
             <li key={l.id} className="px-3 py-2 text-sm">
               <span className="font-medium">{l.action}</span> on {l.entity} #{l.entity_id ?? '—'}
-              {l.user_id != null && <span className="text-gray-400"> · by user #{l.user_id}</span>}
+              {l.user_id != null && <span className="text-gray-400"> · {t('admin.auditLog.byUser', { id: l.user_id })}</span>}
               <span className="text-gray-400"> · {new Date(l.created_at).toLocaleString()}</span>
               {(l.old_value || l.new_value) && (
                 <p className="text-xs text-gray-500 mt-1">
-                  {l.old_value ? `before: ${l.old_value}` : ''}{l.old_value && l.new_value ? ' → ' : ''}{l.new_value ? `after: ${l.new_value}` : ''}
+                  {l.old_value ? t('admin.auditLog.before', { value: l.old_value }) : ''}{l.old_value && l.new_value ? ' → ' : ''}{l.new_value ? t('admin.auditLog.after', { value: l.new_value }) : ''}
                 </p>
               )}
             </li>
           ))}
-          {logs.length === 0 && <li className="px-3 py-6 text-center text-gray-400">No audit log entries found.</li>}
+          {logs.length === 0 && <li className="px-3 py-6 text-center text-gray-400">{t('admin.auditLog.none')}</li>}
         </ul>
       )}
     </div>

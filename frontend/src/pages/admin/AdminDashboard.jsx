@@ -1,29 +1,32 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useLocale } from '../../context/LocaleContext'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
+  const { t } = useLocale()
+
   const cards = [
-    ['/admin/orders', 'Orders', 'View and update order status, process refunds.'],
-    ['/admin/quotes', 'Quotes', 'Review RFQs, set pricing, convert to orders.'],
-    ['/admin/reviews', 'Reviews', 'Approve or reject pending customer reviews.'],
-    ['/admin/products', 'Products', 'Edit products, variants, SKUs, pricing, and inventory.'],
-    ['/admin/categories', 'Categories', 'Manage the category tree.'],
-    ['/admin/warehouses', 'Warehouses', 'Manage warehouse locations and priority.'],
-    ['/admin/promo-codes', 'Promo Codes', 'Create and manage discount codes.'],
-    ['/admin/shipping-rates', 'Shipping Rates', 'Configure delivery fees per country/method.'],
-    ['/admin/tax-rules', 'Tax Rules', 'Configure tax rates per country/customer type.'],
-    ['/admin/exchange-rates', 'Exchange Rates', 'Manage or sync currency conversion rates.'],
-    ['/admin/notification-templates', 'Notification Templates', 'Customize customer email copy.'],
-    ['/admin/integration-logs', 'Integration Logs', 'Monitor and retry failed CRM syncs.'],
-    ['/admin/audit-log', 'Audit Log', 'Review changes made by admin accounts.'],
-    ['/admin/analytics-events', 'Analytics Events', 'Inspect captured storefront events.'],
+    ['/admin/orders', t('admin.nav.orders'), t('admin.dashboard.orders')],
+    ['/admin/quotes', t('admin.nav.quotes'), t('admin.dashboard.quotes')],
+    ['/admin/reviews', t('admin.nav.reviews'), t('admin.dashboard.reviews')],
+    ['/admin/products', t('admin.nav.products'), t('admin.dashboard.products')],
+    ['/admin/categories', t('admin.nav.categories'), t('admin.dashboard.categories')],
+    ['/admin/warehouses', t('admin.nav.warehouses'), t('admin.dashboard.warehouses')],
+    ['/admin/promo-codes', t('admin.nav.promoCodes'), t('admin.dashboard.promoCodes')],
+    ['/admin/shipping-rates', t('admin.nav.shippingRates'), t('admin.dashboard.shippingRates')],
+    ['/admin/tax-rules', t('admin.nav.taxRules'), t('admin.dashboard.taxRules')],
+    ['/admin/exchange-rates', t('admin.nav.exchangeRates'), t('admin.dashboard.exchangeRates')],
+    ['/admin/notification-templates', t('admin.nav.notificationTemplates'), t('admin.dashboard.notificationTemplates')],
+    ['/admin/integration-logs', t('admin.nav.integrationLogs'), t('admin.dashboard.integrationLogs')],
+    ['/admin/audit-log', t('admin.nav.auditLog'), t('admin.dashboard.auditLog')],
+    ['/admin/analytics-events', t('admin.nav.analyticsEvents'), t('admin.dashboard.analyticsEvents')],
   ]
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
-      <p className="text-sm text-gray-500 mb-6">Signed in as {user.email} ({user.role})</p>
+      <h1 className="text-2xl font-bold mb-1">{t('admin.nav.dashboard')}</h1>
+      <p className="text-sm text-gray-500 mb-6">{t('admin.signedInAs', { email: user.email, role: user.role })}</p>
       <div className="grid sm:grid-cols-2 gap-4">
         {cards.map(([to, title, desc]) => (
           <Link key={to} to={to} className="border border-gray-200 rounded-lg p-4 hover:border-brand">

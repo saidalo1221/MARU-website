@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { adminListIntegrationLogs, adminRetryIntegrationLog } from '../../api/admin'
 import { errorMessage } from '../../api/client'
+import { useLocale } from '../../context/LocaleContext'
 
 const STATUSES = ['success', 'failed', 'dead_letter']
 
 export default function AdminIntegrationLogs() {
+  const { t } = useLocale()
   const [logs, setLogs] = useState([])
   const [statusFilter, setStatusFilter] = useState('')
   const [loading, setLoading] = useState(true)
@@ -16,7 +18,7 @@ export default function AdminIntegrationLogs() {
     setError(null)
     return adminListIntegrationLogs(statusFilter || undefined)
       .then(setLogs)
-      .catch((err) => setError(errorMessage(err, 'Failed to load integration logs')))
+      .catch((err) => setError(errorMessage(err, t('admin.integrationLogs.loadFailed'))))
       .finally(() => setLoading(false))
   }
 
@@ -28,7 +30,7 @@ export default function AdminIntegrationLogs() {
       await adminRetryIntegrationLog(id)
       await load()
     } catch (err) {
-      setError(errorMessage(err, 'Retry failed'))
+      setError(errorMessage(err, t('admin.integrationLogs.retryFailed')))
     } finally {
       setRetryingId(null)
     }
@@ -37,21 +39,29 @@ export default function AdminIntegrationLogs() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Integration Logs</h1>
+        <h1 className="text-2xl font-bold">{t('admin.integrationLogs.title')}</h1>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 rounded px-2 py-1.5 text-sm">
-          <option value="">All statuses</option>
+          <option value="">{t('admin.common.allStatuses')}</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 
-      {loading && <p>Loading...</p>}
+      {loading && <p>{t('admin.common.loading')}</p>}
       {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
 
       {!loading && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
-              <tr><th className="px-3 py-2">Integration</th><th className="px-3 py-2">Operation</th><th className="px-3 py-2">Entity</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Attempt</th><th className="px-3 py-2">Error</th><th className="px-3 py-2"></th></tr>
+              <tr>
+                <th className="px-3 py-2">{t('admin.integrationLogs.integration')}</th>
+                <th className="px-3 py-2">{t('admin.integrationLogs.operation')}</th>
+                <th className="px-3 py-2">{t('admin.integrationLogs.entity')}</th>
+                <th className="px-3 py-2">{t('admin.common.status')}</th>
+                <th className="px-3 py-2">{t('admin.integrationLogs.attempt')}</th>
+                <th className="px-3 py-2">{t('admin.integrationLogs.error')}</th>
+                <th className="px-3 py-2"></th>
+              </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {logs.map((l) => (
@@ -65,13 +75,13 @@ export default function AdminIntegrationLogs() {
                   <td className="px-3 py-2 text-right">
                     {l.status !== 'success' && (
                       <button onClick={() => retry(l.id)} disabled={retryingId === l.id} className="text-brand disabled:opacity-40">
-                        {retryingId === l.id ? 'Retrying...' : 'Retry'}
+                        {retryingId === l.id ? t('admin.integrationLogs.retrying') : t('admin.integrationLogs.retry')}
                       </button>
                     )}
                   </td>
                 </tr>
               ))}
-              {logs.length === 0 && <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400">No integration logs found.</td></tr>}
+              {logs.length === 0 && <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400">{t('admin.integrationLogs.none')}</td></tr>}
             </tbody>
           </table>
         </div>

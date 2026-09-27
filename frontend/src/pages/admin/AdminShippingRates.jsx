@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { adminCreateShippingRate, adminListShippingRates, adminUpdateShippingRate } from '../../api/admin'
 import { errorMessage } from '../../api/client'
+import { useLocale } from '../../context/LocaleContext'
+import Money from '../../components/admin/Money'
 
 const emptyForm = { country: '', delivery_method: '', currency: 'USD', base_fee: 0, per_kg_fee: 0, is_active: true }
 
 // Pass '*' for country or delivery_method to mean "any" — matches the
 // backend's wildcard lookup (app/models/shipping_rate.py's ANY sentinel).
 export default function AdminShippingRates() {
+  const { t } = useLocale()
   const [rates, setRates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -16,8 +19,8 @@ export default function AdminShippingRates() {
   const [formError, setFormError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
-  const load = () => adminListShippingRates().then(setRates).catch((err) => setError(errorMessage(err, 'Failed to load shipping rates'))).finally(() => setLoading(false))
-  useEffect(() => { load() }, [])
+  const load = () => adminListShippingRates().then(setRates).catch((err) => setError(errorMessage(err, t('admin.shippingRates.loadFailed')))).finally(() => setLoading(false))
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
@@ -46,7 +49,7 @@ export default function AdminShippingRates() {
       setFormOpen(false)
       await load()
     } catch (err) {
-      setFormError(errorMessage(err, 'Failed to save shipping rate'))
+      setFormError(errorMessage(err, t('admin.shippingRates.saveFailed')))
     } finally {
       setSubmitting(false)
     }
@@ -55,25 +58,25 @@ export default function AdminShippingRates() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Shipping Rates</h1>
-        {!formOpen && <button onClick={openNew} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium">Add Rate</button>}
+        <h1 className="text-2xl font-bold">{t('admin.shippingRates.title')}</h1>
+        {!formOpen && <button onClick={openNew} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium">{t('admin.shippingRates.add')}</button>}
       </div>
 
-      {loading && <p>Loading...</p>}
+      {loading && <p>{t('admin.common.loading')}</p>}
       {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 grid grid-cols-2 gap-3">
-          <input required disabled={!!editingId} placeholder="Country (or * for any)" value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
-          <input required disabled={!!editingId} placeholder="Delivery method (or * for any)" value={form.delivery_method} onChange={update('delivery_method')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
-          <input placeholder="Currency" maxLength={3} value={form.currency} onChange={update('currency')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input type="number" step="0.01" min="0" placeholder="Base fee" value={form.base_fee} onChange={update('base_fee')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input type="number" step="0.01" min="0" placeholder="Per-kg fee" value={form.per_kg_fee} onChange={update('per_kg_fee')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> Active</label>
+          <input required disabled={!!editingId} placeholder={t('admin.shippingRates.countryWildcard')} value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
+          <input required disabled={!!editingId} placeholder={t('admin.shippingRates.methodWildcard')} value={form.delivery_method} onChange={update('delivery_method')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
+          <input placeholder={t('admin.shippingRates.currency')} maxLength={3} value={form.currency} onChange={update('currency')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="number" step="0.01" min="0" placeholder={t('admin.shippingRates.baseFee')} value={form.base_fee} onChange={update('base_fee')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="number" step="0.01" min="0" placeholder={t('admin.shippingRates.perKgFee')} value={form.per_kg_fee} onChange={update('per_kg_fee')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}</label>
           {formError && <p className="text-sm text-red-600 col-span-2">{formError}</p>}
           <div className="col-span-2 flex gap-2">
-            <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">{submitting ? 'Saving...' : 'Save'}</button>
-            <button type="button" onClick={() => setFormOpen(false)} className="border border-gray-300 rounded px-4 py-2 text-sm">Cancel</button>
+            <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">{submitting ? t('admin.common.saving') : t('admin.common.save')}</button>
+            <button type="button" onClick={() => setFormOpen(false)} className="border border-gray-300 rounded px-4 py-2 text-sm">{t('admin.common.cancel')}</button>
           </div>
         </form>
       )}
@@ -82,20 +85,27 @@ export default function AdminShippingRates() {
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
-              <tr><th className="px-3 py-2">Country</th><th className="px-3 py-2">Method</th><th className="px-3 py-2">Base fee</th><th className="px-3 py-2">Per-kg fee</th><th className="px-3 py-2">Active</th><th className="px-3 py-2"></th></tr>
+              <tr>
+                <th className="px-3 py-2">{t('admin.common.country')}</th>
+                <th className="px-3 py-2">{t('admin.shippingRates.method')}</th>
+                <th className="px-3 py-2">{t('admin.shippingRates.baseFee')}</th>
+                <th className="px-3 py-2">{t('admin.shippingRates.perKgFee')}</th>
+                <th className="px-3 py-2">{t('admin.common.active')}</th>
+                <th className="px-3 py-2"></th>
+              </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {rates.map((r) => (
                 <tr key={r.id} className="hover:bg-gray-50">
                   <td className="px-3 py-2">{r.country}</td>
                   <td className="px-3 py-2">{r.delivery_method}</td>
-                  <td className="px-3 py-2">{r.currency} {Number(r.base_fee).toFixed(2)}</td>
-                  <td className="px-3 py-2">{r.currency} {Number(r.per_kg_fee).toFixed(2)}</td>
-                  <td className="px-3 py-2">{r.is_active ? 'Yes' : 'No'}</td>
-                  <td className="px-3 py-2 text-right"><button onClick={() => openEdit(r)} className="text-brand">Edit</button></td>
+                  <td className="px-3 py-2"><Money amount={r.base_fee} currency={r.currency} /></td>
+                  <td className="px-3 py-2"><Money amount={r.per_kg_fee} currency={r.currency} /></td>
+                  <td className="px-3 py-2">{r.is_active ? t('admin.common.yes') : t('admin.common.no')}</td>
+                  <td className="px-3 py-2 text-right"><button onClick={() => openEdit(r)} className="text-brand">{t('admin.common.edit')}</button></td>
                 </tr>
               ))}
-              {rates.length === 0 && <tr><td colSpan={6} className="px-3 py-6 text-center text-gray-400">No shipping rates found.</td></tr>}
+              {rates.length === 0 && <tr><td colSpan={6} className="px-3 py-6 text-center text-gray-400">{t('admin.shippingRates.none')}</td></tr>}
             </tbody>
           </table>
         </div>
