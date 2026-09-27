@@ -3,6 +3,7 @@
 Handoff checklist from the current session. See `PRD.md` for the full spec (ТЗ №1-4) and `session_notes.md` for prior implementation history (note: it's stale — the frontend has since been started, see below).
 
 ## Setup / decisions needed from the user (do these first — everything downstream depends on them)
+- [ ] **Production server only has Python 3.9.9** (confirmed via shell — no 3.10+ binary anywhere, no per-app Python version selector found yet in the hosting panel). This codebase uses `X | None`-style union syntax throughout, which raises `TypeError` at import time on Python <3.10 — it is NOT just untested on 3.9, it will not run at all. Needs either a newer Python provisioned on that server (check the hosting panel for a "Python"/"Applications" section with a version selector before attempting a from-source build without root) or the codebase rewritten to avoid 3.10+ syntax (large, not recommended).
 - [ ] Confirm the MariaDB host is reachable from wherever work happens, or accept that verification still has to happen on the real UzCloud server.
 - [ ] Fill in `.env`: `SMTP_*`, `BITRIX24_WEBHOOK_URL`, `FRONTEND_URL`, plus real Payme/Click sandbox credentials.
 - [ ] Decide: keep Stripe/PayPal or drop them (currently unconfigured, disabled in `/payments/methods`).
@@ -21,7 +22,8 @@ Handoff checklist from the current session. See `PRD.md` for the full spec (ТЗ
 - [ ] Invoices/documents — blocked on an object storage decision (PRD ТЗ№3 §13/§82 says documents belong in S3-compatible storage, not the database); no bucket/provider/credentials exist yet, so nothing was built rather than guessing a storage shape.
 
 ## Frontend
-- [ ] Run the existing frontend (`frontend/`) against this backend end-to-end — never actually tested together.
+- [x] Ran the existing frontend against this backend end-to-end for the first time (local SQLite, seeded catalog, `/api/v1` wired via `VITE_API_BASE_URL`). Real signup → browse → add to cart → checkout all worked, including a genuine redirect to Payme's checkout URL with the correct amount (subtotal + computed delivery). Found and fixed one real bug: `Checkout.jsx` sent `order_type: "legal_entity"` for the Company option, but the backend's `OrderType` enum only accepts `"individual"`/`"company"` — any real customer selecting Company at checkout would have gotten a 422 and been completely blocked. Fixed by changing the frontend to send `"company"`.
+- [ ] Minor UI gap noticed during that test: the checkout page's order-summary sidebar shows "Delivery: TBD" and never updates to the real computed delivery fee once a country/delivery method is selected, even though the actual order total (computed server-side) is correct. Cosmetic only — not investigated further.
 - [ ] Add UI for what's new this session: quote/RFQ form, wishlist, saved addresses, reviews, forgot/reset password.
 - [ ] Build the missing pages: B2B, Wholesale, Distributor, About, Contact, Delivery, Payment, Returns, FAQ.
 - [ ] Blog.

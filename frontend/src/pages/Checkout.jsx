@@ -70,7 +70,7 @@ export default function Checkout() {
     setSubmitting(true)
     try {
       const payload = { ...form }
-      if (form.order_type !== 'legal_entity') {
+      if (form.order_type !== 'company') {
         delete payload.company_name
         delete payload.company_reg_number
         delete payload.company_tax_number
@@ -152,8 +152,8 @@ export default function Checkout() {
               <label className="flex items-center gap-1">
                 <input
                   type="radio"
-                  checked={form.order_type === 'legal_entity'}
-                  onChange={() => setForm((f) => ({ ...f, order_type: 'legal_entity' }))}
+                  checked={form.order_type === 'company'}
+                  onChange={() => setForm((f) => ({ ...f, order_type: 'company' }))}
                 />
                 Company
               </label>
@@ -168,7 +168,7 @@ export default function Checkout() {
             <input required type="email" placeholder="Email" value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
           </fieldset>
 
-          {form.order_type === 'legal_entity' && (
+          {form.order_type === 'company' && (
             <fieldset className="grid grid-cols-2 gap-3">
               <legend className="font-semibold mb-2 col-span-2">Company details</legend>
               <input required placeholder="Company name" value={form.company_name} onChange={update('company_name')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
