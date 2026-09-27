@@ -50,6 +50,11 @@ export default function Header() {
           <CurrencySwitcher />
           {user ? (
             <>
+              {user.role !== 'customer' && (
+                <Link to="/admin" className="text-sm font-medium text-gray-700">
+                  {t('header.admin')}
+                </Link>
+              )}
               <Link to="/account/orders" className="text-sm">
                 {user.first_name || t('header.account')}
               </Link>

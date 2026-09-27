@@ -32,6 +32,9 @@ export default function MobileMenu({ open, onClose }) {
         <Link to="/faq" className={linkClass}>{t('footer.faq')}</Link>
         {user ? (
           <>
+            {user.role !== 'customer' && (
+              <Link to="/admin" className={linkClass}>{t('header.admin')}</Link>
+            )}
             <Link to="/account/orders" className={linkClass}>{t('mobileMenu.myOrders')}</Link>
             <Link to="/account/wishlist" className={linkClass}>{t('wishlist.title')}</Link>
             <Link to="/account/addresses" className={linkClass}>{t('addresses.title')}</Link>

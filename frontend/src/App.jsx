@@ -25,6 +25,16 @@ import Delivery from './pages/Delivery'
 import Payment from './pages/Payment'
 import Returns from './pages/Returns'
 import FAQ from './pages/FAQ'
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminOrders from './pages/admin/AdminOrders'
+import AdminOrderDetail from './pages/admin/AdminOrderDetail'
+import AdminQuotes from './pages/admin/AdminQuotes'
+import AdminQuoteDetail from './pages/admin/AdminQuoteDetail'
+import AdminReviews from './pages/admin/AdminReviews'
+import AdminProducts from './pages/admin/AdminProducts'
+import AdminCategories from './pages/admin/AdminCategories'
+import AdminWarehouses from './pages/admin/AdminWarehouses'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -57,6 +67,17 @@ export default function App() {
           <Route path="/payment" element={<Payment />} />
           <Route path="/returns" element={<Returns />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="orders/:orderId" element={<AdminOrderDetail />} />
+            <Route path="quotes" element={<AdminQuotes />} />
+            <Route path="quotes/:quoteId" element={<AdminQuoteDetail />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="warehouses" element={<AdminWarehouses />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
