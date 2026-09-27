@@ -4,6 +4,10 @@
 frontend/.env
 frontend/.env.local
 
+# Local dev SQLite databases (created by app/dev_seed.py)
+*.db
+*.db-journal
+
 # Python
 __pycache__/
 *.pyc
