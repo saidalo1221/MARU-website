@@ -1,0 +1,30 @@
+import { apiRequest } from './client'
+
+export function getCart({ promoCode, country, deliveryMethod } = {}) {
+  const params = new URLSearchParams()
+  if (promoCode) params.set('promo_code', promoCode)
+  if (country) params.set('country', country)
+  if (deliveryMethod) params.set('delivery_method', deliveryMethod)
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  return apiRequest(`/cart/${qs}`)
+}
+
+export function addCartItem(skuId, quantity) {
+  return apiRequest('/cart/items', { method: 'POST', body: { sku_id: skuId, quantity } })
+}
+
+export function updateCartItem(skuId, quantity) {
+  return apiRequest(`/cart/items/${skuId}`, { method: 'PATCH', body: { quantity } })
+}
+
+export function removeCartItem(skuId) {
+  return apiRequest(`/cart/items/${skuId}`, { method: 'DELETE' })
+}
+
+export function setCartCurrency(currency) {
+  return apiRequest('/cart/currency', { method: 'PATCH', body: { currency } })
+}
+
+export function mergeCart() {
+  return apiRequest('/cart/merge', { method: 'POST' })
+}

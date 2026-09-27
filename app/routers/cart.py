@@ -1,0 +1,288 @@
+from decimal import Decimal
+
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, joinedload
+
+from app.database import get_db
+from app.dependencies import get_current_user_optional, get_current_user_required, get_or_create_cart
+from app.models.cart import Cart
+from app.models.cart_item import CartItem
+from app.models.enums import CustomerType
+from app.models.promo_code import PromoCode
+from app.models.sku import SKU
+from app.models.user import User
+from app.schemas.cart import CartCurrencyUpdate, CartItemCreate, CartItemOut, CartItemUpdate, CartOut
+from app.services.order_service import available_stock
+from app.services.currency import CurrencyError, get_rate_to_usd
+from app.services.analytics import record_event
+from app.services.pricing import PromoCodeError, apply_promo, resolve_unit_price, validate_promo
+from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g
+from app.services.tax import calculate_tax
+
+router = APIRouter(prefix="/cart", tags=["cart"])
+
+
+def _resolve_customer_type(user: User | None) -> CustomerType:
+    return user.customer_type if user is not None else CustomerType.RETAIL
+
+
+def _build_cart_out(
+    db: Session,
+    cart: Cart,
+    customer_type: CustomerType,
+    promo_code: str | None,
+    country: str | None = None,
+    delivery_method: str | None = None,
+) -> CartOut:
+    items: list[CartItemOut] = []
+    subtotal = Decimal("0")
+    for item in cart.items:
+        try:
+            unit_price = resolve_unit_price(db, item.sku, customer_type, item.quantity, cart.currency)
+        except CurrencyError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        line_total = unit_price * item.quantity
+        subtotal += line_total
+        items.append(
+            CartItemOut(
+                id=item.id,
+                sku_id=item.sku_id,
+                sku_code=item.sku.sku_code,
+                quantity=item.quantity,
+                unit_price=unit_price,
+                line_total=line_total,
+            )
+        )
+
+    # Promo validity (min order amount, expiry, usage cap) depends on the
+    # subtotal, so it can only be checked once item prices are resolved.
+    promo: PromoCode | None = None
+    if promo_code:
+        try:
+            promo = validate_promo(db, promo_code, subtotal)
+        except PromoCodeError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    discount = apply_promo(subtotal, promo) if promo is not None else Decimal("0")
+
+    # Destination is usually unknown before checkout, so shipping/tax are only
+    # estimated when the caller supplies a country (delivery method too, for shipping).
+    tax = Decimal("0")
+    if country:
+        tax = calculate_tax(db, country, customer_type.value, subtotal - discount)
+
+    delivery = Decimal("0")
+    if country and delivery_method:
+        try:
+            delivery = calculate_shipping(db, country, delivery_method, cart_weight_g(cart))
+        except ShippingError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    total = subtotal + delivery + tax - discount
+
+    return CartOut(
+        id=cart.id,
+        currency=cart.currency,
+        items=items,
+        subtotal=subtotal,
+        discount=discount,
+        tax=tax,
+        delivery=delivery,
+        total=total,
+        item_count=sum(i.quantity for i in cart.items),
+        promo_code=promo.code if promo is not None else None,
+    )
+
+
+def _load_cart_with_items(db: Session, cart_id: int) -> Cart:
+    stmt = select(Cart).where(Cart.id == cart_id).options(joinedload(Cart.items).joinedload(CartItem.sku))
+    return db.execute(stmt).unique().scalar_one()
+
+
+@router.get("/", response_model=CartOut)
+def get_cart(
+    promo_code: str | None = None,
+    country: str | None = None,
+    delivery_method: str | None = None,
+    cart: Cart = Depends(get_or_create_cart),
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+) -> CartOut:
+    return _build_cart_out(
+        db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method
+    )
+
+
+@router.post("/items", response_model=CartOut, status_code=status.HTTP_201_CREATED)
+def add_item(
+    payload: CartItemCreate,
+    cart: Cart = Depends(get_or_create_cart),
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+) -> CartOut:
+    try:
+        sku = db.get(SKU, payload.sku_id)
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to look up SKU") from exc
+
+    if sku is None or not sku.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="SKU not found or inactive")
+
+    try:
+        existing = db.execute(
+            select(CartItem).where(CartItem.cart_id == cart.id, CartItem.sku_id == sku.id)
+        ).scalar_one_or_none()
+
+        new_quantity = payload.quantity + (existing.quantity if existing is not None else 0)
+        if new_quantity > available_stock(db, sku.id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="INSUFFICIENT_STOCK: requested quantity exceeds available stock"
+            )
+
+        if existing is not None:
+            existing.quantity += payload.quantity
+        else:
+            db.add(CartItem(cart_id=cart.id, sku_id=sku.id, quantity=payload.quantity))
+
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to add item to cart") from exc
+
+    record_event(db, "add_to_cart", user=user, session_id=cart.token, sku_id=sku.id, quantity=payload.quantity)
+    return _build_cart_out(db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), None)
+
+
+@router.patch("/items/{sku_id}", response_model=CartOut)
+def update_item(
+    sku_id: int,
+    payload: CartItemUpdate,
+    cart: Cart = Depends(get_or_create_cart),
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+) -> CartOut:
+    try:
+        item = db.execute(
+            select(CartItem).where(CartItem.cart_id == cart.id, CartItem.sku_id == sku_id)
+        ).scalar_one_or_none()
+
+        if item is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not in cart")
+
+        if payload.quantity > available_stock(db, sku_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="INSUFFICIENT_STOCK: requested quantity exceeds available stock"
+            )
+
+        item.quantity = payload.quantity
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to update cart item") from exc
+
+    return _build_cart_out(db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), None)
+
+
+@router.delete("/items/{sku_id}", response_model=CartOut)
+def remove_item(
+    sku_id: int,
+    cart: Cart = Depends(get_or_create_cart),
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+) -> CartOut:
+    try:
+        item = db.execute(
+            select(CartItem).where(CartItem.cart_id == cart.id, CartItem.sku_id == sku_id)
+        ).scalar_one_or_none()
+
+        if item is not None:
+            db.delete(item)
+            db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to remove cart item") from exc
+
+    return _build_cart_out(db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), None)
+
+
+@router.patch("/currency", response_model=CartOut)
+def set_cart_currency(
+    payload: CartCurrencyUpdate,
+    cart: Cart = Depends(get_or_create_cart),
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+) -> CartOut:
+    """Lets the customer pick a display/checkout currency (PRD section 14).
+    Persisted on the cart so it carries through to the order at checkout."""
+    currency = payload.currency.upper()
+    if currency != "USD":
+        try:
+            get_rate_to_usd(db, currency)
+        except CurrencyError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    try:
+        cart.currency = currency
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to update cart currency") from exc
+
+    return _build_cart_out(db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), None)
+
+
+@router.post("/merge", response_model=CartOut)
+def merge_guest_cart(
+    x_cart_token: str | None = Header(default=None, alias="X-Cart-Token"),
+    user: User = Depends(get_current_user_required),
+    db: Session = Depends(get_db),
+) -> CartOut:
+    """Called right after login/register with the pre-login X-Cart-Token so
+    a guest's cart isn't lost (PRD section 10). Idempotent and safe to call
+    defensively even with no guest cart present."""
+    try:
+        user_cart = db.execute(
+            select(Cart).where(Cart.user_id == user.id, Cart.is_active.is_(True))
+        ).scalar_one_or_none()
+
+        guest_cart = None
+        if x_cart_token:
+            guest_cart = db.execute(
+                select(Cart).where(
+                    Cart.token == x_cart_token, Cart.is_active.is_(True), Cart.user_id.is_(None)
+                )
+            ).scalar_one_or_none()
+
+        if guest_cart is None:
+            if user_cart is None:
+                user_cart = Cart(user_id=user.id)
+                db.add(user_cart)
+                db.commit()
+                db.refresh(user_cart)
+        elif user_cart is None:
+            guest_cart.user_id = user.id
+            db.commit()
+            user_cart = guest_cart
+        else:
+            guest_items = db.execute(select(CartItem).where(CartItem.cart_id == guest_cart.id)).scalars().all()
+            for guest_item in guest_items:
+                existing = db.execute(
+                    select(CartItem).where(
+                        CartItem.cart_id == user_cart.id, CartItem.sku_id == guest_item.sku_id
+                    )
+                ).scalar_one_or_none()
+                if existing is not None:
+                    existing.quantity += guest_item.quantity
+                else:
+                    db.add(CartItem(cart_id=user_cart.id, sku_id=guest_item.sku_id, quantity=guest_item.quantity))
+
+            guest_cart.is_active = False
+            db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to merge cart") from exc
+
+    return _build_cart_out(db, _load_cart_with_items(db, user_cart.id), _resolve_customer_type(user), None)

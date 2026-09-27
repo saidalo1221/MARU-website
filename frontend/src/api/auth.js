@@ -1,0 +1,21 @@
+import { apiRequest, setAccessToken } from './client'
+
+export async function register(payload) {
+  const token = await apiRequest('/auth/register', { method: 'POST', body: payload })
+  setAccessToken(token.access_token)
+  return token
+}
+
+export async function login(email, password) {
+  const token = await apiRequest('/auth/login', { method: 'POST', body: { email, password } })
+  setAccessToken(token.access_token)
+  return token
+}
+
+export function logout() {
+  setAccessToken(null)
+}
+
+export function getMe() {
+  return apiRequest('/auth/me')
+}
