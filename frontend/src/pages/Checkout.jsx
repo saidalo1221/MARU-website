@@ -27,7 +27,7 @@ const emptyForm = {
 }
 
 export default function Checkout() {
-  const { cart } = useCart()
+  const { cart, refresh } = useCart()
   const navigate = useNavigate()
 
   const [form, setForm] = useState(emptyForm)
@@ -51,6 +51,15 @@ export default function Checkout() {
     }
     listShippingMethods(form.country).then(setMethods).catch(() => setMethods([]))
   }, [form.country])
+
+  // Re-fetch the cart's priced preview (tax/delivery/total) whenever the
+  // buyer picks a country or delivery method, so the sidebar shows the real
+  // computed amount instead of staying on the country-less "TBD" preview
+  // from the initial page load.
+  useEffect(() => {
+    if (!form.country) return
+    refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined }).catch(() => {})
+  }, [form.country, form.delivery_method, refresh])
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
