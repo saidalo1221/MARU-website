@@ -9,6 +9,7 @@ from app.models.enums import UserRole
 from app.models.exchange_rate import ExchangeRate
 from app.models.user import User
 from app.schemas.exchange_rate import ExchangeRateCreate, ExchangeRateOut, ExchangeRateUpdate
+from app.services.fx_provider import FxProviderError, sync_exchange_rates
 
 # Gated to Product Manager, who PRD section 34 assigns "Каталог и цены" (catalog and pricing).
 router = APIRouter(prefix="/admin/exchange-rates", tags=["admin-exchange-rates"])
@@ -49,6 +50,24 @@ def create_exchange_rate(
 
     db.refresh(rate)
     return rate
+
+
+@router.post("/sync", response_model=list[ExchangeRateOut])
+def sync_rates_from_provider(
+    user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
+    db: Session = Depends(get_db),
+) -> list[ExchangeRate]:
+    """On-demand refresh from the live FX feed (app/services/fx_provider.py)
+    — the same one app/tasks/sync_exchange_rates.py runs on a schedule.
+    Safe to call manually: it's a single request against the provider's
+    free tier (1,500/month), not a loop."""
+    try:
+        sync_exchange_rates(db)
+    except FxProviderError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+
+    rates = db.execute(select(ExchangeRate).order_by(ExchangeRate.currency)).scalars().all()
+    return list(rates)
 
 
 @router.patch("/{rate_id}", response_model=ExchangeRateOut)

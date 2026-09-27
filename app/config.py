@@ -50,6 +50,16 @@ class Settings(BaseSettings):
     # Leave unset to keep the old in-process limiter for local dev without Redis.
     REDIS_URL: str | None = None
 
+    # Live FX feed (app/services/fx_provider.py) that populates the
+    # admin-maintained ExchangeRate table (app/models/exchange_rate.py) — it
+    # doesn't replace that table, it's just another way to fill it in,
+    # exactly as that model's docstring anticipated. exchangerate-api.com's
+    # free tier is 1,500 requests/month; sync on a daily schedule (see
+    # app/tasks/sync_exchange_rates.py), never per-request, to stay well
+    # under that with room to spare.
+    EXCHANGERATE_API_KEY: str | None = None
+    EXCHANGERATE_API_BASE: str = "https://v6.exchangerate-api.com/v6"
+
     # CRM (PRD section 26).
     BITRIX24_WEBHOOK_URL: str | None = None
 
