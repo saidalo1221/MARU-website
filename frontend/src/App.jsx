@@ -10,7 +10,21 @@ import Checkout from './pages/Checkout'
 import OrderStatus from './pages/OrderStatus'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import OrdersHistory from './pages/OrdersHistory'
+import Wishlist from './pages/Wishlist'
+import Addresses from './pages/Addresses'
+import QuoteRequest from './pages/QuoteRequest'
+import B2B from './pages/B2B'
+import Wholesale from './pages/Wholesale'
+import Distributor from './pages/Distributor'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import Delivery from './pages/Delivery'
+import Payment from './pages/Payment'
+import Returns from './pages/Returns'
+import FAQ from './pages/FAQ'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -28,7 +42,21 @@ export default function App() {
           <Route path="/orders/:orderId" element={<OrderStatus />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/account/orders" element={<OrdersHistory />} />
+          <Route path="/account/wishlist" element={<Wishlist />} />
+          <Route path="/account/addresses" element={<Addresses />} />
+          <Route path="/quote" element={<QuoteRequest />} />
+          <Route path="/b2b" element={<B2B />} />
+          <Route path="/wholesale" element={<Wholesale />} />
+          <Route path="/distributor" element={<Distributor />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/delivery" element={<Delivery />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/returns" element={<Returns />} />
+          <Route path="/faq" element={<FAQ />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

@@ -30,6 +30,20 @@ export class ApiError extends Error {
   }
 }
 
+// FastAPI's 422 responses put `detail` as an array of {msg, loc, ...}
+// objects, not a string — every call site that did `err.detail || fallback`
+// would try to render that array/object directly and crash React. This
+// normalizes any shape ApiError.detail can take into a displayable string.
+export function errorMessage(err, fallback) {
+  if (!(err instanceof ApiError)) return fallback
+  const { detail } = err
+  if (typeof detail === 'string' && detail) return detail
+  if (Array.isArray(detail) && detail.length) {
+    return detail.map((d) => (typeof d === 'string' ? d : d.msg)).filter(Boolean).join(', ') || fallback
+  }
+  return fallback
+}
+
 // Guest order tokens are per-order (not global like the cart token), so
 // callers pass them in explicitly rather than this module tracking one.
 export async function apiRequest(

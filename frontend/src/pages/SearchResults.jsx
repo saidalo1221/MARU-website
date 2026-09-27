@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { listProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
+import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
 import SearchBar from '../components/SearchBar'
 
@@ -25,7 +26,9 @@ function matches(product, query) {
 }
 
 export default function SearchResults() {
-  const { locale } = useLocale()
+  const { locale, t } = useLocale()
+  const { cart } = useCart()
+  const currency = cart?.currency
   const [params] = useSearchParams()
   const query = params.get('q') || ''
   const [products, setProducts] = useState([])
@@ -33,10 +36,10 @@ export default function SearchResults() {
 
   useEffect(() => {
     setLoading(true)
-    listProducts(locale)
+    listProducts(locale, currency)
       .then(setProducts)
       .finally(() => setLoading(false))
-  }, [locale])
+  }, [locale, currency])
 
   const results = useMemo(
     () => (query ? products.filter((p) => matches(p, query)) : products),
@@ -49,13 +52,13 @@ export default function SearchResults() {
         <SearchBar />
       </div>
       <p className="text-sm text-gray-500 mb-4">
-        {loading ? 'Searching...' : `${results.length} result(s) for "${query}"`}
+        {loading ? t('search_results.searching') : t('search_results.resultsFor', { count: results.length, query })}
       </p>
 
       {!loading && results.length === 0 && (
         <div className="text-center py-12">
-          <p className="mb-2">No products found</p>
-          <p className="text-sm text-gray-500">Try a different search or browse all products.</p>
+          <p className="mb-2">{t('search_results.noneFound')}</p>
+          <p className="text-sm text-gray-500">{t('search_results.tryDifferent')}</p>
         </div>
       )}
 

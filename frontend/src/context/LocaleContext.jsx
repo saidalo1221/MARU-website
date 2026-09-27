@@ -1,9 +1,19 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useState } from 'react'
+import { translations } from '../i18n/translations'
 
 export const LOCALES = ['ru', 'uz', 'en']
 const LOCALE_KEY = 'maru_locale'
 
 const LocaleContext = createContext(null)
+
+function resolve(dict, path) {
+  return path.split('.').reduce((node, key) => (node == null ? node : node[key]), dict)
+}
+
+function interpolate(template, vars) {
+  if (!vars) return template
+  return template.replace(/\{(\w+)\}/g, (match, key) => (key in vars ? String(vars[key]) : match))
+}
 
 export function LocaleProvider({ children }) {
   const [locale, setLocaleState] = useState(() => localStorage.getItem(LOCALE_KEY) || 'ru')
@@ -14,8 +24,20 @@ export function LocaleProvider({ children }) {
     setLocaleState(value)
   }
 
+  // Static UI-text lookup (nav/buttons/form copy) — separate from the
+  // backend-driven product name/description translations, which are fetched
+  // via `?lang=` on the products API instead. Falls back to English, then to
+  // the raw key, so a missing translation never renders blank.
+  const t = useCallback(
+    (key, vars) => {
+      const value = resolve(translations[locale], key) ?? resolve(translations.en, key) ?? key
+      return interpolate(value, vars)
+    },
+    [locale]
+  )
+
   return (
-    <LocaleContext.Provider value={{ locale, setLocale }}>{children}</LocaleContext.Provider>
+    <LocaleContext.Provider value={{ locale, setLocale, t }}>{children}</LocaleContext.Provider>
   )
 }
 

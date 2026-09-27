@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useLocale } from '../../context/LocaleContext'
 
 function cheapestSku(product) {
   const skus = product.variants.flatMap((v) => v.skus)
@@ -6,6 +7,7 @@ function cheapestSku(product) {
 }
 
 export default function ProductCard({ product }) {
+  const { t } = useLocale()
   const sku = cheapestSku(product)
   const variant = product.variants[0]
   const inStock = sku ? sku.available_quantity > 0 : false
@@ -19,7 +21,7 @@ export default function ProductCard({ product }) {
         {variant?.photo_url ? (
           <img src={variant.photo_url} alt={product.name} className="w-full h-full object-cover" />
         ) : (
-          <span className="text-gray-400 text-sm">No image</span>
+          <span className="text-gray-400 text-sm">{t('product.noImage')}</span>
         )}
       </div>
       <div className="p-3">
@@ -30,7 +32,7 @@ export default function ProductCard({ product }) {
             {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
           </span>
           <span className={`text-xs ${inStock ? 'text-green-600' : 'text-red-500'}`}>
-            {inStock ? 'In stock' : 'Out of stock'}
+            {inStock ? t('product.inStock') : t('product.outOfStock')}
           </span>
         </div>
       </div>

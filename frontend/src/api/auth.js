@@ -19,3 +19,11 @@ export function logout() {
 export function getMe() {
   return apiRequest('/auth/me')
 }
+
+export function forgotPassword(email) {
+  return apiRequest('/auth/forgot-password', { method: 'POST', body: { email } })
+}
+
+export function resetPassword(token, newPassword) {
+  return apiRequest('/auth/reset-password', { method: 'POST', body: { token, new_password: newPassword } })
+}

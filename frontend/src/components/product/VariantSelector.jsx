@@ -1,7 +1,10 @@
+import { useLocale } from '../../context/LocaleContext'
+
 export default function VariantSelector({ variants, selectedVariantId, onSelect }) {
+  const { t } = useLocale()
   return (
     <div>
-      <p className="text-sm font-medium mb-2">Color</p>
+      <p className="text-sm font-medium mb-2">{t('product.color')}</p>
       <div className="flex gap-2 flex-wrap">
         {variants.map((variant) => {
           const active = variant.id === selectedVariantId

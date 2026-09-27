@@ -1,20 +1,64 @@
 import { Link } from 'react-router-dom'
+import { useLocale } from '../../context/LocaleContext'
 
 export default function Footer() {
+  const { t } = useLocale()
+
+  const columns = [
+    {
+      titleKey: 'footer.colShop',
+      links: [
+        ['/shop', 'header.shop'],
+        ['/cart', 'header.cart'],
+        ['/account/orders', 'footer.orders'],
+      ],
+    },
+    {
+      titleKey: 'footer.colBusiness',
+      links: [
+        ['/b2b', 'footer.b2b'],
+        ['/wholesale', 'footer.wholesale'],
+        ['/distributor', 'footer.distributor'],
+        ['/quote', 'footer.requestQuote'],
+      ],
+    },
+    {
+      titleKey: 'footer.colCompany',
+      links: [
+        ['/about', 'footer.about'],
+        ['/contact', 'footer.contact'],
+      ],
+    },
+    {
+      titleKey: 'footer.colSupport',
+      links: [
+        ['/delivery', 'footer.delivery'],
+        ['/payment', 'footer.payment'],
+        ['/returns', 'footer.returns'],
+        ['/faq', 'footer.faq'],
+      ],
+    },
+  ]
+
   return (
-    <footer className="border-t border-gray-200 mt-12 py-8 px-4 text-sm text-gray-600">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-4">
-        <div>
+    <footer className="border-t border-gray-200 mt-12 py-10 px-4 text-sm text-gray-600">
+      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8">
+        <div className="col-span-2 md:col-span-1">
           <p className="font-bold text-brand mb-1">MARU</p>
-          <p>Plastic food containers, made in-house.</p>
+          <p>{t('footer.tagline')}</p>
         </div>
-        <nav className="flex gap-6">
-          <Link to="/shop">Shop</Link>
-          <Link to="/cart">Cart</Link>
-          <Link to="/account/orders">Orders</Link>
-        </nav>
+        {columns.map((col) => (
+          <nav key={col.titleKey}>
+            <p className="font-semibold text-gray-900 mb-2">{t(col.titleKey)}</p>
+            <ul className="space-y-1.5">
+              {col.links.map(([to, key]) => (
+                <li key={to}><Link to={to}>{t(key)}</Link></li>
+              ))}
+            </ul>
+          </nav>
+        ))}
       </div>
-      <p className="max-w-7xl mx-auto mt-6 text-xs text-gray-400">
+      <p className="max-w-7xl mx-auto mt-8 text-xs text-gray-400">
         &copy; {new Date().getFullYear()} MARU
       </p>
     </footer>

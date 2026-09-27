@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useLocale } from '../context/LocaleContext'
 import { checkout, confirmPayment, getPaymentMethods } from '../api/orders'
 import { listShippingCountries, listShippingMethods } from '../api/shipping'
-import { ApiError } from '../api/client'
+import { errorMessage } from '../api/client'
 import StripePaymentForm from '../components/checkout/StripePaymentForm'
 import PayPalButton from '../components/checkout/PayPalButton'
 
@@ -28,6 +29,7 @@ const emptyForm = {
 
 export default function Checkout() {
   const { cart, refresh } = useCart()
+  const { t } = useLocale()
   const navigate = useNavigate()
 
   const [form, setForm] = useState(emptyForm)
@@ -66,7 +68,7 @@ export default function Checkout() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <p>Your cart is empty.</p>
+        <p>{t('checkout.empty')}</p>
       </div>
     )
   }
@@ -98,7 +100,7 @@ export default function Checkout() {
       }
       // Stripe/PayPal need a client-side confirmation step, rendered below.
     } catch (err) {
-      setError(err instanceof ApiError ? (err.detail || 'Checkout failed') : 'Checkout failed')
+      setError(errorMessage(err, t('checkout.checkoutFailed')))
     } finally {
       setSubmitting(false)
     }
@@ -117,9 +119,9 @@ export default function Checkout() {
   if (checkoutResult && checkoutResult.payment.reference_kind !== 'redirect_url') {
     return (
       <div className="max-w-md mx-auto px-4 py-10">
-        <h1 className="text-xl font-bold mb-4">Complete Payment</h1>
+        <h1 className="text-xl font-bold mb-4">{t('checkout.completePayment')}</h1>
         <p className="text-sm text-gray-500 mb-4">
-          Order {checkoutResult.order_number} — {checkoutResult.currency}{' '}
+          {t('checkout.order', { number: checkoutResult.order_number })} — {checkoutResult.currency}{' '}
           {Number(checkoutResult.total_amount).toFixed(2)}
         </p>
         {paymentError && <p className="text-sm text-red-600 mb-3">{paymentError}</p>}
@@ -143,12 +145,12 @@ export default function Checkout() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold mb-4">Checkout</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('checkout.title')}</h1>
 
       <div className="md:grid md:grid-cols-[1fr_320px] md:gap-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <fieldset>
-            <legend className="font-semibold mb-2">Order type</legend>
+            <legend className="font-semibold mb-2">{t('checkout.orderType')}</legend>
             <div className="flex gap-4 text-sm">
               <label className="flex items-center gap-1">
                 <input
@@ -156,7 +158,7 @@ export default function Checkout() {
                   checked={form.order_type === 'individual'}
                   onChange={() => setForm((f) => ({ ...f, order_type: 'individual' }))}
                 />
-                Individual
+                {t('checkout.individual')}
               </label>
               <label className="flex items-center gap-1">
                 <input
@@ -164,43 +166,43 @@ export default function Checkout() {
                   checked={form.order_type === 'company'}
                   onChange={() => setForm((f) => ({ ...f, order_type: 'company' }))}
                 />
-                Company
+                {t('checkout.company')}
               </label>
             </div>
           </fieldset>
 
           <fieldset className="grid grid-cols-2 gap-3">
-            <legend className="font-semibold mb-2 col-span-2">Contact information</legend>
-            <input required placeholder="First name" value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder="Last name" value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required type="tel" placeholder="Phone" value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required type="email" placeholder="Email" value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <legend className="font-semibold mb-2 col-span-2">{t('checkout.contactInfo')}</legend>
+            <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required type="tel" placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required type="email" placeholder={t('checkout.email')} value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
           </fieldset>
 
           {form.order_type === 'company' && (
             <fieldset className="grid grid-cols-2 gap-3">
-              <legend className="font-semibold mb-2 col-span-2">Company details</legend>
-              <input required placeholder="Company name" value={form.company_name} onChange={update('company_name')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-              <input placeholder="Registration number" value={form.company_reg_number} onChange={update('company_reg_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder="Tax number" value={form.company_tax_number} onChange={update('company_tax_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder="Company address" value={form.company_address} onChange={update('company_address')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-              <input placeholder="Contact person" value={form.contact_person} onChange={update('contact_person')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+              <legend className="font-semibold mb-2 col-span-2">{t('checkout.companyDetails')}</legend>
+              <input required placeholder={t('checkout.companyName')} value={form.company_name} onChange={update('company_name')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+              <input placeholder={t('checkout.regNumber')} value={form.company_reg_number} onChange={update('company_reg_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('checkout.taxNumber')} value={form.company_tax_number} onChange={update('company_tax_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('checkout.companyAddress')} value={form.company_address} onChange={update('company_address')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+              <input placeholder={t('checkout.contactPerson')} value={form.contact_person} onChange={update('contact_person')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
             </fieldset>
           )}
 
           <fieldset className="grid grid-cols-2 gap-3">
-            <legend className="font-semibold mb-2 col-span-2">Shipping address</legend>
+            <legend className="font-semibold mb-2 col-span-2">{t('checkout.shippingAddress')}</legend>
             <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
-              <option value="">Select country</option>
+              <option value="">{t('checkout.selectCountry')}</option>
               {countries.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-            <input required placeholder="City" value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input placeholder="Postal code" value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder="Address" value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+            <input required placeholder={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input placeholder={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required placeholder={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
           </fieldset>
 
           <fieldset>
-            <legend className="font-semibold mb-2">Delivery method</legend>
+            <legend className="font-semibold mb-2">{t('checkout.deliveryMethod')}</legend>
             <select
               required
               value={form.delivery_method}
@@ -209,17 +211,17 @@ export default function Checkout() {
               className="border border-gray-300 rounded px-3 py-2 text-sm w-full"
             >
               <option value="">
-                {form.country ? 'Select delivery method' : 'Select a country first'}
+                {form.country ? t('checkout.selectDeliveryMethod') : t('checkout.selectCountryFirst')}
               </option>
               {methods.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </fieldset>
 
           <fieldset>
-            <legend className="font-semibold mb-2">Payment method</legend>
+            <legend className="font-semibold mb-2">{t('checkout.paymentMethod')}</legend>
             <div className="space-y-2">
               {enabledPaymentMethods.length === 0 && (
-                <p className="text-sm text-gray-500">No payment methods are currently available.</p>
+                <p className="text-sm text-gray-500">{t('checkout.noPaymentMethods')}</p>
               )}
               {enabledPaymentMethods.map((m) => (
                 <label key={m.id} className="flex items-center gap-2 text-sm">
@@ -244,12 +246,12 @@ export default function Checkout() {
             disabled={submitting}
             className="w-full bg-brand text-white rounded py-3 font-medium disabled:opacity-40 sticky bottom-0"
           >
-            {submitting ? 'Placing order...' : 'Place Order'}
+            {submitting ? t('checkout.placingOrder') : t('checkout.placeOrder')}
           </button>
         </form>
 
         <div className="mt-6 md:mt-0 border border-gray-200 rounded-lg p-4 h-fit">
-          <h2 className="font-semibold mb-3">Order summary</h2>
+          <h2 className="font-semibold mb-3">{t('checkout.orderSummary')}</h2>
           <ul className="text-sm space-y-1 mb-3">
             {cart.items.map((item) => (
               <li key={item.id} className="flex justify-between">
@@ -260,21 +262,21 @@ export default function Checkout() {
           </ul>
           <dl className="text-sm space-y-1 border-t border-gray-200 pt-2">
             <div className="flex justify-between">
-              <dt className="text-gray-500">Subtotal</dt>
+              <dt className="text-gray-500">{t('cart.subtotal')}</dt>
               <dd>{cart.currency} {Number(cart.subtotal).toFixed(2)}</dd>
             </div>
             {Number(cart.discount) > 0 && (
               <div className="flex justify-between text-green-600">
-                <dt>Discount</dt>
+                <dt>{t('cart.discount')}</dt>
                 <dd>-{cart.currency} {Number(cart.discount).toFixed(2)}</dd>
               </div>
             )}
             <div className="flex justify-between">
-              <dt className="text-gray-500">Delivery</dt>
-              <dd>{Number(cart.delivery) > 0 ? `${cart.currency} ${Number(cart.delivery).toFixed(2)}` : 'TBD'}</dd>
+              <dt className="text-gray-500">{t('productDetail.delivery')}</dt>
+              <dd>{Number(cart.delivery) > 0 ? `${cart.currency} ${Number(cart.delivery).toFixed(2)}` : t('checkout.tbd')}</dd>
             </div>
             <div className="flex justify-between font-semibold text-base border-t border-gray-200 pt-2 mt-2">
-              <dt>Total</dt>
+              <dt>{t('cart.total')}</dt>
               <dd>{cart.currency} {Number(cart.total).toFixed(2)}</dd>
             </div>
           </dl>

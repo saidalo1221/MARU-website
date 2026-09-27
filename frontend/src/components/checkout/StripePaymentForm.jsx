@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadScript } from '../../lib/loadScript'
+import { useLocale } from '../../context/LocaleContext'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 
 export default function StripePaymentForm({ clientSecret, onSuccess, onError }) {
+  const { t } = useLocale()
   const cardElementRef = useRef(null)
   const stripeRef = useRef(null)
   const cardRef = useRef(null)
@@ -12,7 +14,7 @@ export default function StripePaymentForm({ clientSecret, onSuccess, onError }) 
 
   useEffect(() => {
     if (!PUBLISHABLE_KEY) {
-      onError('Stripe is not configured (missing VITE_STRIPE_PUBLISHABLE_KEY).')
+      onError(t('stripe.notConfigured'))
       return
     }
     let cancelled = false
@@ -42,7 +44,7 @@ export default function StripePaymentForm({ clientSecret, onSuccess, onError }) 
     })
     setSubmitting(false)
     if (error) {
-      onError(error.message || 'Payment failed')
+      onError(error.message || t('stripe.paymentFailed'))
       return
     }
     if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'processing') {
@@ -58,7 +60,7 @@ export default function StripePaymentForm({ clientSecret, onSuccess, onError }) 
         disabled={!ready || submitting}
         className="w-full bg-brand text-white rounded py-3 font-medium disabled:opacity-40"
       >
-        {submitting ? 'Processing...' : 'Pay Now'}
+        {submitting ? t('checkout.processing') : t('checkout.payNow')}
       </button>
     </form>
   )

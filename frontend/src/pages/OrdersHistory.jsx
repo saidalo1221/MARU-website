@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { listMyOrders } from '../api/orders'
+import AccountNav from '../components/account/AccountNav'
 
 export default function OrdersHistory() {
+  const { t } = useLocale()
   const { user, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -18,10 +21,11 @@ export default function OrdersHistory() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">My Orders</h1>
-      {loading && <p>Loading...</p>}
+      <AccountNav />
+      <h1 className="text-2xl font-bold mb-6">{t('ordersHistory.title')}</h1>
+      {loading && <p>{t('ordersHistory.loading')}</p>}
       {!loading && orders.length === 0 && (
-        <p className="text-gray-500">You have no orders yet.</p>
+        <p className="text-gray-500">{t('ordersHistory.empty')}</p>
       )}
       <ul className="divide-y divide-gray-200">
         {orders.map((order) => (

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { cancelOrder, getOrder } from '../api/orders'
+import { useLocale } from '../context/LocaleContext'
 
 const CANCELLABLE = new Set(['NEW', 'PAYMENT_PENDING', 'PAID', 'PROCESSING'])
 
 export default function OrderStatus() {
+  const { t } = useLocale()
   const { orderId } = useParams()
   const [order, setOrder] = useState(null)
   const [error, setError] = useState(null)
@@ -33,34 +35,34 @@ export default function OrderStatus() {
     }
   }
 
-  if (error) return <p className="max-w-2xl mx-auto px-4 py-8 text-red-600">Order not found.</p>
-  if (!order) return <p className="max-w-2xl mx-auto px-4 py-8">Loading...</p>
+  if (error) return <p className="max-w-2xl mx-auto px-4 py-8 text-red-600">{t('orderStatus.notFound')}</p>
+  if (!order) return <p className="max-w-2xl mx-auto px-4 py-8">{t('orderStatus.loading')}</p>
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-1">Order Confirmed</h1>
-      <p className="text-gray-500 mb-6">Order Number: {order.order_number}</p>
+      <h1 className="text-2xl font-bold mb-1">{t('orderStatus.title')}</h1>
+      <p className="text-gray-500 mb-6">{t('orderStatus.orderNumber', { number: order.order_number })}</p>
 
       <div className="border border-gray-200 rounded-lg p-4 mb-6">
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-gray-500">Status</span>
+          <span className="text-gray-500">{t('orderStatus.status')}</span>
           <span className="font-medium">{order.status}</span>
         </div>
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-gray-500">Payment status</span>
+          <span className="text-gray-500">{t('orderStatus.paymentStatus')}</span>
           <span className="font-medium">{order.payment_method || '—'}</span>
         </div>
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-gray-500">Shipping to</span>
+          <span className="text-gray-500">{t('orderStatus.shippingTo')}</span>
           <span className="font-medium">{order.city}, {order.country}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Total</span>
+          <span className="text-gray-500">{t('orderStatus.total')}</span>
           <span className="font-medium">{order.currency} {Number(order.total_amount).toFixed(2)}</span>
         </div>
       </div>
 
-      <h2 className="font-semibold mb-2">Items</h2>
+      <h2 className="font-semibold mb-2">{t('orderStatus.items')}</h2>
       <ul className="divide-y divide-gray-200 mb-6">
         {order.items.map((item) => (
           <li key={item.id} className="py-2 flex justify-between text-sm">
@@ -72,7 +74,7 @@ export default function OrderStatus() {
 
       {order.status_history?.length > 0 && (
         <div className="mb-6">
-          <h2 className="font-semibold mb-2">History</h2>
+          <h2 className="font-semibold mb-2">{t('orderStatus.history')}</h2>
           <ul className="text-xs text-gray-500 space-y-1">
             {order.status_history.map((h, i) => (
               <li key={i}>{h.to_status} — {new Date(h.created_at).toLocaleString()}</li>
@@ -83,7 +85,7 @@ export default function OrderStatus() {
 
       <div className="flex gap-3">
         <Link to="/shop" className="border border-gray-300 rounded px-4 py-2 text-sm">
-          Continue Shopping
+          {t('cart.continueShopping')}
         </Link>
         {CANCELLABLE.has(order.status) && (
           <button
@@ -91,7 +93,7 @@ export default function OrderStatus() {
             disabled={cancelling}
             className="border border-red-400 text-red-600 rounded px-4 py-2 text-sm disabled:opacity-40"
           >
-            {cancelling ? 'Cancelling...' : 'Cancel Order'}
+            {cancelling ? t('orderStatus.cancelling') : t('orderStatus.cancelOrder')}
           </button>
         )}
       </div>

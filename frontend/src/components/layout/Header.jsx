@@ -2,14 +2,16 @@ import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
+import { useLocale } from '../../context/LocaleContext'
 import SearchBar from '../SearchBar'
 import CurrencySwitcher from '../CurrencySwitcher'
 import LanguageSwitcher from '../LanguageSwitcher'
 import MobileMenu from './MobileMenu'
 
 export default function Header() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const { cart } = useCart()
+  const { t } = useLocale()
   const [menuOpen, setMenuOpen] = useState(false)
   const itemCount = cart?.item_count ?? 0
 
@@ -21,7 +23,7 @@ export default function Header() {
         <div className="flex-1">
           <SearchBar />
         </div>
-        <Link to="/cart" className="relative px-2" aria-label="Cart">
+        <Link to="/cart" className="relative px-2" aria-label={t('header.cart')}>
           🛒
           {itemCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-brand text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
@@ -29,7 +31,7 @@ export default function Header() {
             </span>
           )}
         </Link>
-        <button onClick={() => setMenuOpen(true)} aria-label="Open menu" className="px-2 text-xl">
+        <button onClick={() => setMenuOpen(true)} aria-label={t('header.openMenu')} className="px-2 text-xl">
           ☰
         </button>
       </div>
@@ -38,7 +40,7 @@ export default function Header() {
       <div className="hidden md:flex items-center gap-6 px-6 py-3 max-w-7xl mx-auto">
         <Link to="/" className="font-bold text-xl text-brand">MARU</Link>
         <nav className="flex items-center gap-4 text-sm font-medium">
-          <Link to="/shop">Shop</Link>
+          <Link to="/shop">{t('header.shop')}</Link>
         </nav>
         <div className="flex-1 max-w-md">
           <SearchBar />
@@ -46,11 +48,22 @@ export default function Header() {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <CurrencySwitcher />
-          <Link to={user ? '/account/orders' : '/login'} className="text-sm">
-            {user ? user.first_name || 'Account' : 'Login'}
-          </Link>
+          {user ? (
+            <>
+              <Link to="/account/orders" className="text-sm">
+                {user.first_name || t('header.account')}
+              </Link>
+              <button onClick={logout} className="text-sm text-gray-500 hover:text-gray-800">
+                {t('header.logout')}
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="text-sm font-medium text-brand">
+              {t('header.login')}
+            </Link>
+          )}
           <Link to="/cart" className="relative text-sm">
-            Cart
+            {t('header.cart')}
             {itemCount > 0 && (
               <span className="ml-1 bg-brand text-white text-xs rounded-full px-1.5">
                 {itemCount}

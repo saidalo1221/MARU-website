@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { ApiError } from '../api/client'
+import { useLocale } from '../context/LocaleContext'
+import { errorMessage } from '../api/client'
 
 const emptyForm = { email: '', password: '', first_name: '', last_name: '', phone: '' }
 
 export default function Register() {
   const { register } = useAuth()
+  const { t } = useLocale()
   const navigate = useNavigate()
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState(null)
@@ -22,7 +24,7 @@ export default function Register() {
       await register(form)
       navigate('/account/orders')
     } catch (err) {
-      setError(err instanceof ApiError ? (err.detail || 'Registration failed') : 'Registration failed')
+      setError(errorMessage(err, t('register.failed')))
     } finally {
       setSubmitting(false)
     }
@@ -30,20 +32,20 @@ export default function Register() {
 
   return (
     <div className="max-w-sm mx-auto px-4 py-12">
-      <h1 className="text-2xl font-bold mb-6">Create an account</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('register.title')}</h1>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <input required placeholder="First name" value={form.first_name} onChange={update('first_name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input required placeholder="Last name" value={form.last_name} onChange={update('last_name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input placeholder="Phone" value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input required type="email" placeholder="Email" value={form.email} onChange={update('email')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input required type="password" placeholder="Password" value={form.password} onChange={update('password')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input required type="email" placeholder={t('checkout.email')} value={form.email} onChange={update('email')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input required type="password" placeholder={t('login.password')} value={form.password} onChange={update('password')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
-          {submitting ? 'Creating account...' : 'Create Account'}
+          {submitting ? t('register.submitting') : t('register.submit')}
         </button>
       </form>
       <p className="text-sm text-gray-500 mt-4">
-        Already have an account? <Link to="/login" className="text-brand">Login</Link>
+        {t('register.haveAccount')} <Link to="/login" className="text-brand">{t('register.login')}</Link>
       </p>
     </div>
   )
