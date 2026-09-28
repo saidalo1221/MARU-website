@@ -299,6 +299,7 @@ export const translations = {
         blog: 'Blog',
         siteSettings: 'Site Content',
         aboutSections: 'About Us Sections',
+        pageSections: 'Support Pages Content',
         notificationTemplates: 'Notification Templates',
         analyticsEvents: 'Analytics Events',
         integrationLogs: 'Integration Logs',
@@ -317,6 +318,7 @@ export const translations = {
         back: 'Use a different account',
         invalidCredentials: 'Invalid email or password',
         invalidCode: 'Invalid or expired code',
+        idleLoggedOut: 'You were logged out after 5 minutes of inactivity.',
       },
       common: {
         loading: 'Loading...',
@@ -677,6 +679,22 @@ export const translations = {
         saveFailed: 'Failed to save',
         deleteFailed: 'Failed to delete',
       },
+      pageSections: {
+        subtitle: 'Add, edit, reorder, and remove the content shown on each support page.',
+        add: 'Add Section',
+        body: 'Text',
+        none: 'No sections found.',
+        loadFailed: 'Failed to load sections',
+        saveFailed: 'Failed to save',
+        deleteFailed: 'Failed to delete',
+        page: {
+          delivery: 'Delivery',
+          payment: 'Payment',
+          returns: 'Returns',
+          faq: 'FAQ',
+          contact: 'Contact',
+        },
+      },
     },
     b2b: {
       title: 'MARU for Business',
@@ -785,6 +803,7 @@ export const translations = {
     },
     faq: {
       title: 'Frequently Asked Questions',
+      empty: 'No questions yet — check back soon.',
       category: {
         products: 'Products',
         orders: 'Orders',
@@ -1147,6 +1166,7 @@ export const translations = {
         blog: 'Блог',
         siteSettings: 'Контент сайта',
         aboutSections: 'Разделы «О нас»',
+        pageSections: 'Контент страниц поддержки',
         notificationTemplates: 'Шаблоны уведомлений',
         analyticsEvents: 'События аналитики',
         integrationLogs: 'Журнал интеграций',
@@ -1165,6 +1185,7 @@ export const translations = {
         back: 'Использовать другой аккаунт',
         invalidCredentials: 'Неверный email или пароль',
         invalidCode: 'Неверный или истёкший код',
+        idleLoggedOut: 'Вы вышли из системы после 5 минут бездействия.',
       },
       common: {
         loading: 'Загрузка...',
@@ -1525,6 +1546,22 @@ export const translations = {
         saveFailed: 'Не удалось сохранить',
         deleteFailed: 'Не удалось удалить',
       },
+      pageSections: {
+        subtitle: 'Добавляйте, редактируйте, меняйте порядок и удаляйте контент на страницах поддержки.',
+        add: 'Добавить раздел',
+        body: 'Текст',
+        none: 'Разделы не найдены.',
+        loadFailed: 'Не удалось загрузить разделы',
+        saveFailed: 'Не удалось сохранить',
+        deleteFailed: 'Не удалось удалить',
+        page: {
+          delivery: 'Доставка',
+          payment: 'Оплата',
+          returns: 'Возврат',
+          faq: 'Вопросы и ответы',
+          contact: 'Контакты',
+        },
+      },
     },
     b2b: {
       title: 'MARU для бизнеса',
@@ -1633,6 +1670,7 @@ export const translations = {
     },
     faq: {
       title: 'Часто задаваемые вопросы',
+      empty: 'Пока нет вопросов — загляните позже.',
       category: {
         products: 'Товары',
         orders: 'Заказы',
@@ -1995,6 +2033,7 @@ export const translations = {
         blog: 'Blog',
         siteSettings: 'Sayt kontenti',
         aboutSections: "\"Biz haqimizda\" bo'limlari",
+        pageSections: "Qo'llab-quvvatlash sahifalari kontenti",
         notificationTemplates: 'Xabarnoma shablonlari',
         analyticsEvents: 'Analitika hodisalari',
         integrationLogs: 'Integratsiya jurnali',
@@ -2013,6 +2052,7 @@ export const translations = {
         back: 'Boshqa akkauntdan foydalanish',
         invalidCredentials: "Email yoki parol noto'g'ri",
         invalidCode: "Kod noto'g'ri yoki muddati o'tgan",
+        idleLoggedOut: "5 daqiqa harakatsizlikdan so'ng tizimdan chiqarildingiz.",
       },
       common: {
         loading: 'Yuklanmoqda...',
@@ -2373,6 +2413,22 @@ export const translations = {
         saveFailed: "Saqlab bo'lmadi",
         deleteFailed: "O'chirib bo'lmadi",
       },
+      pageSections: {
+        subtitle: "Qo'llab-quvvatlash sahifalaridagi kontentni qo'shing, tahrirlang, tartibini o'zgartiring va o'chiring.",
+        add: "Bo'lim qo'shish",
+        body: 'Matn',
+        none: "Bo'limlar topilmadi.",
+        loadFailed: "Bo'limlarni yuklab bo'lmadi",
+        saveFailed: "Saqlab bo'lmadi",
+        deleteFailed: "O'chirib bo'lmadi",
+        page: {
+          delivery: 'Yetkazib berish',
+          payment: "To'lov",
+          returns: 'Qaytarish',
+          faq: "Ko'p so'raladigan savollar",
+          contact: 'Aloqa',
+        },
+      },
     },
     b2b: {
       title: 'Biznes uchun MARU',
@@ -2481,6 +2537,7 @@ export const translations = {
     },
     faq: {
       title: "Tez-tez so'raladigan savollar",
+      empty: "Hozircha savollar yo'q — birozdan so'ng qayta tekshiring.",
       category: {
         products: 'Mahsulotlar',
         orders: 'Buyurtmalar',

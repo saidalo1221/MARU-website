@@ -585,6 +585,28 @@ CREATE TABLE blog_post_translations (
 	FOREIGN KEY(post_id) REFERENCES blog_posts (id) ON DELETE CASCADE
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
+CREATE TABLE page_sections (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	page VARCHAR(30) NOT NULL,
+	title VARCHAR(255) NOT NULL,
+	body TEXT NOT NULL,
+	sort_order INTEGER NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE page_section_translations (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	section_id BIGINT NOT NULL,
+	locale VARCHAR(10) NOT NULL,
+	title VARCHAR(255) NOT NULL,
+	body TEXT NOT NULL,
+	PRIMARY KEY (id),
+	CONSTRAINT uq_page_section_translations_section_locale UNIQUE (section_id, locale),
+	FOREIGN KEY(section_id) REFERENCES page_sections (id) ON DELETE CASCADE
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
 CREATE TABLE admin_login_codes (
 	id BIGINT NOT NULL AUTO_INCREMENT,
 	user_id BIGINT NOT NULL,

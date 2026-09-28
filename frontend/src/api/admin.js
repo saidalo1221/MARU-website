@@ -254,6 +254,29 @@ export function adminUpsertAboutSectionTranslation(sectionId, locale, payload) {
   return apiRequest(`/admin/about-sections/${sectionId}/translations/${locale}`, { method: 'PUT', body: payload })
 }
 
+// Page sections (Delivery/Payment/Returns/FAQ/Contact free-form content)
+export function adminListPageSections(page) {
+  return apiRequest(`/admin/page-sections?page=${encodeURIComponent(page)}`)
+}
+export function adminCreatePageSection(payload) {
+  return apiRequest('/admin/page-sections', { method: 'POST', body: payload })
+}
+export function adminUpdatePageSection(sectionId, payload) {
+  return apiRequest(`/admin/page-sections/${sectionId}`, { method: 'PATCH', body: payload })
+}
+export function adminDeletePageSection(sectionId) {
+  return apiRequest(`/admin/page-sections/${sectionId}`, { method: 'DELETE' })
+}
+export function adminMovePageSection(sectionId, direction) {
+  return apiRequest(`/admin/page-sections/${sectionId}/move`, { method: 'POST', body: { direction } })
+}
+export function adminListPageSectionTranslations(sectionId) {
+  return apiRequest(`/admin/page-sections/${sectionId}/translations`)
+}
+export function adminUpsertPageSectionTranslation(sectionId, locale, payload) {
+  return apiRequest(`/admin/page-sections/${sectionId}/translations/${locale}`, { method: 'PUT', body: payload })
+}
+
 // Blog categories
 export function adminListBlogCategories() {
   return apiRequest('/admin/blog/categories')

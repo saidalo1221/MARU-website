@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
 import { getPaymentMethods } from '../api/orders'
+import { listPageSections } from '../api/pageSections'
 
 export default function Payment() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [methods, setMethods] = useState([])
+  const [sections, setSections] = useState([])
 
   useEffect(() => {
     getPaymentMethods().then(setMethods).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    listPageSections('payment', locale).then(setSections).catch(() => {})
+  }, [locale])
 
   const enabled = methods.filter((m) => m.enabled)
 
@@ -30,7 +36,14 @@ export default function Payment() {
         <p className="text-sm text-gray-500">{t('payment.noneAvailable')}</p>
       )}
 
-      <p className="text-sm text-gray-500 mt-8">{t('payment.note')}</p>
+      <div className="mt-8 space-y-4">
+        {sections.map((s) => (
+          <div key={s.id}>
+            <h2 className="font-semibold mb-1">{s.title}</h2>
+            <p className="text-sm text-gray-500">{s.body}</p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

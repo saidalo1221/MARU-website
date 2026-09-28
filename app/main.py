@@ -16,6 +16,7 @@ from app.routers import (
     admin_inventory,
     admin_notification_templates,
     admin_orders,
+    admin_page_sections,
     admin_products,
     admin_promo_codes,
     admin_quotes,
@@ -35,6 +36,7 @@ from app.routers import (
     categories,
     exchange_rates,
     orders,
+    page_sections,
     payment_webhooks,
     products,
     quotes,
@@ -77,6 +79,7 @@ api_v1.include_router(admin_integration_logs.router)
 api_v1.include_router(admin_inventory.router)
 api_v1.include_router(admin_notification_templates.router)
 api_v1.include_router(admin_orders.router)
+api_v1.include_router(admin_page_sections.router)
 api_v1.include_router(admin_products.router)
 api_v1.include_router(admin_promo_codes.router)
 api_v1.include_router(admin_quotes.router)
@@ -96,6 +99,7 @@ api_v1.include_router(cart.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(exchange_rates.router)
 api_v1.include_router(orders.router)
+api_v1.include_router(page_sections.router)
 api_v1.include_router(payment_webhooks.router)
 api_v1.include_router(products.router)
 api_v1.include_router(quotes.router)

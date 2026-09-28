@@ -41,6 +41,8 @@ from app.models.about_section import AboutSection
 from app.models.about_section_translation import AboutSectionTranslation
 from app.models.trusted_device import TrustedDevice
 from app.models.login_device_code import LoginDeviceCode
+from app.models.page_section import PageSection, PAGE_KEYS
+from app.models.page_section_translation import PageSectionTranslation
 
 __all__ = [
     "Category",
@@ -95,4 +97,7 @@ __all__ = [
     "AboutSectionTranslation",
     "TrustedDevice",
     "LoginDeviceCode",
+    "PageSection",
+    "PAGE_KEYS",
+    "PageSectionTranslation",
 ]

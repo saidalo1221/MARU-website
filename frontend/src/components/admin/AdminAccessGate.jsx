@@ -10,8 +10,14 @@ import PasswordInput from '../PasswordInput'
 // emailed to that account) required by app/dependencies.py's require_role()
 // for every admin-role endpoint — a plain site login alone never grants
 // access, regardless of the account's role. See AdminLayout.jsx.
+// Admin sessions log out automatically after this long with no mouse/
+// keyboard/touch activity, regardless of how much time is left on the
+// underlying token/admin-verification window.
+const IDLE_LOGOUT_MS = 5 * 60 * 1000
+const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart']
+
 export default function AdminAccessGate({ children }) {
-  const { user, loading: authLoading, refreshUser } = useAuth()
+  const { user, loading: authLoading, refreshUser, logout } = useAuth()
   const { t } = useLocale()
 
   const [phase, setPhase] = useState('checking') // checking | credentials | code | granted
@@ -39,6 +45,26 @@ export default function AdminAccessGate({ children }) {
     }
     runCheck()
   }, [authLoading, user]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (phase !== 'granted') return
+    let timer
+    const onIdle = () => {
+      logout()
+      setError(t('admin.login.idleLoggedOut'))
+    }
+    const reset = () => {
+      clearTimeout(timer)
+      timer = setTimeout(onIdle, IDLE_LOGOUT_MS)
+    }
+    ACTIVITY_EVENTS.forEach((event) => window.addEventListener(event, reset))
+    reset()
+    return () => {
+      clearTimeout(timer)
+      ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, reset))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
 
   const handleCredentials = async (e) => {
     e.preventDefault()

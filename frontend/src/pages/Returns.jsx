@@ -1,13 +1,14 @@
+import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
+import { listPageSections } from '../api/pageSections'
 
 export default function Returns() {
-  const { t } = useLocale()
-  const sections = [
-    ['returns.conditionsTitle', 'returns.conditionsText'],
-    ['returns.timeframeTitle', 'returns.timeframeText'],
-    ['returns.procedureTitle', 'returns.procedureText'],
-    ['returns.exceptionsTitle', 'returns.exceptionsText'],
-  ]
+  const { t, locale } = useLocale()
+  const [sections, setSections] = useState([])
+
+  useEffect(() => {
+    listPageSections('returns', locale).then(setSections).catch(() => {})
+  }, [locale])
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -15,10 +16,10 @@ export default function Returns() {
       <p className="text-gray-600 mb-8">{t('returns.subtitle')}</p>
 
       <div className="space-y-6 mb-8">
-        {sections.map(([titleKey, textKey]) => (
-          <div key={titleKey}>
-            <h2 className="font-semibold mb-1">{t(titleKey)}</h2>
-            <p className="text-sm text-gray-600">{t(textKey)}</p>
+        {sections.map((s) => (
+          <div key={s.id}>
+            <h2 className="font-semibold mb-1">{s.title}</h2>
+            <p className="text-sm text-gray-600">{s.body}</p>
           </div>
         ))}
       </div>

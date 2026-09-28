@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
 import { getSiteSettings } from '../api/siteSettings'
+import { listPageSections } from '../api/pageSections'
 import InquiryForm from '../components/forms/InquiryForm'
 import MapPicker from '../components/MapPicker'
 
 export default function Contact() {
   const { locale, t } = useLocale()
   const [settings, setSettings] = useState(null)
+  const [sections, setSections] = useState([])
 
   useEffect(() => {
     getSiteSettings(locale).then(setSettings).catch(() => {})
+  }, [locale])
+
+  useEffect(() => {
+    listPageSections('contact', locale).then(setSections).catch(() => {})
   }, [locale])
 
   return (
@@ -42,7 +48,12 @@ export default function Contact() {
               {t('contact.mapPlaceholder')}
             </div>
           )}
-          <p className="text-xs text-gray-500">{t('contact.inquiriesNote')}</p>
+          {sections.map((s) => (
+            <div key={s.id} className="mb-2">
+              <p className="text-xs font-medium text-gray-600">{s.title}</p>
+              <p className="text-xs text-gray-500">{s.body}</p>
+            </div>
+          ))}
         </div>
 
         <div className="border border-gray-200 rounded-lg p-6 h-fit">

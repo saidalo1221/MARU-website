@@ -1,8 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
-
-const CATEGORIES = ['products', 'orders', 'payment', 'delivery', 'returns', 'wholesale', 'international']
-const QUESTIONS_PER_CATEGORY = 3
+import { listPageSections } from '../api/pageSections'
 
 function FaqItem({ question, answer }) {
   const [open, setOpen] = useState(false)
@@ -22,28 +20,22 @@ function FaqItem({ question, answer }) {
 }
 
 export default function FAQ() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
+  const [sections, setSections] = useState([])
+
+  useEffect(() => {
+    listPageSections('faq', locale).then(setSections).catch(() => {})
+  }, [locale])
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold mb-8">{t('faq.title')}</h1>
-
-      <div className="space-y-10">
-        {CATEGORIES.map((cat) => (
-          <div key={cat}>
-            <h2 className="text-lg font-semibold mb-2">{t(`faq.category.${cat}`)}</h2>
-            <div>
-              {Array.from({ length: QUESTIONS_PER_CATEGORY }, (_, i) => i + 1).map((n) => (
-                <FaqItem
-                  key={n}
-                  question={t(`faq.${cat}.q${n}`)}
-                  answer={t(`faq.${cat}.a${n}`)}
-                />
-              ))}
-            </div>
-          </div>
+      <div>
+        {sections.map((s) => (
+          <FaqItem key={s.id} question={s.title} answer={s.body} />
         ))}
       </div>
+      {sections.length === 0 && <p className="text-gray-400 text-sm">{t('faq.empty')}</p>}
     </div>
   )
 }

@@ -43,6 +43,7 @@ export default function AdminLayout() {
         ['/admin/blog/categories', t('admin.blog.categoriesTitle')],
         ['/admin/site-settings', t('admin.nav.siteSettings')],
         ['/admin/about-sections', t('admin.nav.aboutSections')],
+        ['/admin/page-sections', t('admin.nav.pageSections')],
         ['/admin/notification-templates', t('admin.nav.notificationTemplates')],
         ['/admin/analytics-events', t('admin.nav.analyticsEvents')],
       ],

@@ -6,6 +6,7 @@ from app.models.category_translation import CategoryTranslation
 from app.models.product_translation import ProductTranslation
 from app.models.site_settings_translation import SiteSettingsTranslation
 from app.models.about_section_translation import AboutSectionTranslation
+from app.models.page_section_translation import PageSectionTranslation
 
 # MVP languages (PRD section 15: ru/uz/en minimum). Adding a locale here is the
 # only code change needed — storage is a plain string column, not an enum.
@@ -96,6 +97,29 @@ def get_about_section_translations(db: Session, section_ids: list[int], locale: 
         db.execute(
             select(AboutSectionTranslation).where(
                 AboutSectionTranslation.section_id.in_(section_ids), AboutSectionTranslation.locale == locale
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return {row.section_id: row for row in rows}
+
+
+def get_page_section_translation(db: Session, section_id: int, locale: str) -> PageSectionTranslation | None:
+    return db.execute(
+        select(PageSectionTranslation).where(
+            PageSectionTranslation.section_id == section_id, PageSectionTranslation.locale == locale
+        )
+    ).scalar_one_or_none()
+
+
+def get_page_section_translations(db: Session, section_ids: list[int], locale: str) -> dict[int, PageSectionTranslation]:
+    if not section_ids:
+        return {}
+    rows = (
+        db.execute(
+            select(PageSectionTranslation).where(
+                PageSectionTranslation.section_id.in_(section_ids), PageSectionTranslation.locale == locale
             )
         )
         .scalars()

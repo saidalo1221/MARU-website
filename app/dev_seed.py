@@ -46,6 +46,8 @@ from app.models.blog_post_translation import BlogPostTranslation
 from app.models.site_settings import SiteSettings
 from app.models.about_section import AboutSection
 from app.models.about_section_translation import AboutSectionTranslation
+from app.models.page_section import PageSection
+from app.models.page_section_translation import PageSectionTranslation
 from datetime import datetime, timedelta
 
 CATEGORIES_AND_PRODUCTS = [
@@ -212,6 +214,114 @@ ABOUT_SECTIONS = [
     ),
 ]
 
+# (page, title, body, {locale: (title, body)}) — free-form content sections
+# for the Delivery/Payment/Returns/FAQ/Contact pages (app/models/page_section.py),
+# seeded with what used to be the hardcoded copy in frontend/src/i18n/translations.js.
+# FAQ is seeded English-only (21 Q&A pairs) — add ru/uz via the admin panel.
+PAGE_SECTIONS = [
+    (
+        "delivery", "Uzbekistan",
+        "Domestic delivery methods available at checkout:",
+        {
+            "ru": ("Узбекистан", "Способы доставки по стране, доступные при оформлении заказа:"),
+            "uz": ("O'zbekiston", "Buyurtma rasmiylashtirishda mavjud bo'lgan mamlakat ichidagi yetkazib berish usullari:"),
+        },
+    ),
+    (
+        "delivery", "International Delivery",
+        "We currently ship to the following countries:",
+        {
+            "ru": ("Международная доставка", "В настоящее время мы доставляем в следующие страны:"),
+            "uz": ("Xalqaro yetkazib berish", "Hozirda quyidagi davlatlarga yetkazib beramiz:"),
+        },
+    ),
+    (
+        "delivery", "Tracking",
+        "You can check your order's status anytime from your Orders page.",
+        {
+            "ru": ("Отслеживание", "Вы можете проверить статус заказа в любое время на странице «Заказы»."),
+            "uz": ("Kuzatish", "Buyurtmangiz holatini istalgan vaqtda «Buyurtmalar» sahifasidan tekshirishingiz mumkin."),
+        },
+    ),
+    (
+        "delivery", "Restrictions",
+        "Some delivery methods may not be available for all order sizes or destinations — the checkout page always shows what's actually available for your address.",
+        {
+            "ru": ("Ограничения", "Некоторые способы доставки могут быть недоступны для определённых объёмов заказа или адресов — страница оформления заказа всегда показывает реально доступные варианты для вашего адреса."),
+            "uz": ("Cheklovlar", "Ba'zi yetkazib berish usullari barcha buyurtma hajmlari yoki manzillar uchun mavjud bo'lmasligi mumkin — buyurtma rasmiylashtirish sahifasi doim manzilingiz uchun haqiqatda mavjud variantlarni ko'rsatadi."),
+        },
+    ),
+    (
+        "payment", "Note",
+        "Only methods available for your order are shown at checkout.",
+        {
+            "ru": ("Примечание", "При оформлении заказа показываются только способы, доступные для вашего заказа."),
+            "uz": ("Eslatma", "Buyurtma rasmiylashtirishda faqat buyurtmangiz uchun mavjud usullar ko'rsatiladi."),
+        },
+    ),
+    (
+        "returns", "Conditions",
+        "Items must be unused, in original packaging, and reported within the return window below.",
+        {
+            "ru": ("Условия", "Товар должен быть неиспользованным, в оригинальной упаковке, о возврате нужно заявить в указанный ниже срок."),
+            "uz": ("Shartlar", "Mahsulot ishlatilmagan, original qadoqda bo'lishi va quyidagi muddatda xabar qilinishi kerak."),
+        },
+    ),
+    (
+        "returns", "Timeframe",
+        "Returns must be requested within 14 days of delivery.",
+        {
+            "ru": ("Сроки", "Запрос на возврат нужно подать в течение 14 дней с момента доставки."),
+            "uz": ("Muddat", "Qaytarish so'rovi yetkazib berilgan kundan 14 kun ichida berilishi kerak."),
+        },
+    ),
+    (
+        "returns", "Procedure",
+        "Contact us with your order number and reason for return; we'll confirm the next steps by email.",
+        {
+            "ru": ("Процедура", "Свяжитесь с нами, указав номер заказа и причину возврата; мы подтвердим дальнейшие шаги по эл. почте."),
+            "uz": ("Tartib", "Buyurtma raqamingiz va qaytarish sababini ko'rsatib biz bilan bog'laning; keyingi qadamlarni elektron pochta orqali tasdiqlaymiz."),
+        },
+    ),
+    (
+        "returns", "Exceptions",
+        "Custom or bulk wholesale orders may not be eligible for return — this is confirmed at order time.",
+        {
+            "ru": ("Исключения", "Индивидуальные или крупные оптовые заказы могут не подлежать возврату — это уточняется при оформлении заказа."),
+            "uz": ("Istisnolar", "Individual yoki katta ulgurji buyurtmalar qaytarilmasligi mumkin — bu buyurtma vaqtida aniqlanadi."),
+        },
+    ),
+    (
+        "contact", "Business Inquiries",
+        "For business or wholesale inquiries, use the form and select the matching request type on the Request a Quote page.",
+        {
+            "ru": ("Деловые запросы", "По вопросам сотрудничества или оптовых закупок используйте форму и выберите соответствующий тип запроса на странице «Запросить цену»."),
+            "uz": ("Biznes so'rovlari", "Biznes yoki ulgurji so'rovlar uchun formadan foydalaning va «Narx so'rash» sahifasida mos so'rov turini tanlang."),
+        },
+    ),
+    ("faq", "What materials are your containers made of?", "All MARU containers are made of food-safe polypropylene.", {}),
+    ("faq", "What sizes are available?", "Our containers range from 350 ml to 1900 ml — see the Shop page for the full current lineup.", {}),
+    ("faq", "Are the containers microwave-safe?", "Polypropylene containers are generally microwave-safe; check the specific product page for details.", {}),
+    ("faq", "How do I check my order status?", "Log in and visit your Orders page, or use the order confirmation link you received.", {}),
+    ("faq", "Can I change my order after placing it?", "Contact us as soon as possible — orders that haven't shipped yet can often still be adjusted.", {}),
+    ("faq", "Can I cancel my order?", "Orders that haven't shipped can be cancelled from the order status page.", {}),
+    ("faq", "What payment methods do you accept?", "Available methods are shown at checkout and on the Payment page — they vary based on current configuration.", {}),
+    ("faq", "Is my payment information secure?", "Payments are processed directly by our payment providers; we never store your card details.", {}),
+    ("faq", "Can I pay by invoice for a wholesale order?", "Yes — invoice payment is available for approved wholesale and distributor accounts.", {}),
+    ("faq", "How long does delivery take?", "Delivery times depend on your location and chosen method — see the Delivery page for details.", {}),
+    ("faq", "Do you ship internationally?", "Yes, to a growing list of countries — see the Delivery page for the current list.", {}),
+    ("faq", "Can I track my shipment?", "You can check your order's status from your Orders page.", {}),
+    ("faq", "What is your return policy?", "See the Returns page for full details on conditions, timeframe, and procedure.", {}),
+    ("faq", "Who pays for return shipping?", "This depends on the reason for the return — we'll confirm details when you contact us.", {}),
+    ("faq", "How long do refunds take?", "Refunds are processed once the return is received and inspected.", {}),
+    ("faq", "How do I get wholesale pricing?", "Submit a request on the Wholesale page and our team will follow up with pricing.", {}),
+    ("faq", "Is there a minimum order quantity?", "MOQ varies by product — mention your target volume when requesting a quote.", {}),
+    ("faq", "Do you offer custom packaging?", "Custom packaging is available on request for larger orders.", {}),
+    ("faq", "Which countries do you ship to?", "See the Delivery page for the current list of supported countries.", {}),
+    ("faq", "Are prices shown in my local currency?", "Yes — use the currency switcher in the header to see prices in your preferred currency.", {}),
+    ("faq", "Is the site available in my language?", "MARU is available in Russian, Uzbek, and English — use the language switcher in the header.", {}),
+]
+
 
 def run() -> None:
     Base.metadata.create_all(bind=engine)
@@ -301,6 +411,15 @@ def run() -> None:
         db.flush()
         for locale, (t_title, t_body) in translations.items():
             db.add(AboutSectionTranslation(section_id=section.id, locale=locale, title=t_title, body=t_body))
+
+    page_orders: dict[str, int] = {}
+    for page, title, body, translations in PAGE_SECTIONS:
+        page_orders[page] = page_orders.get(page, 0) + 1
+        section = PageSection(page=page, title=title, body=body, sort_order=page_orders[page])
+        db.add(section)
+        db.flush()
+        for locale, (t_title, t_body) in translations.items():
+            db.add(PageSectionTranslation(section_id=section.id, locale=locale, title=t_title, body=t_body))
 
     db.commit()
     print("Seeded dev catalog.")
