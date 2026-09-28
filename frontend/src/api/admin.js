@@ -197,6 +197,9 @@ export function adminSyncExchangeRates() {
 export function adminListAvailableCurrencies() {
   return apiRequest('/admin/exchange-rates/available-currencies')
 }
+export function adminDeleteExchangeRate(rateId) {
+  return apiRequest(`/admin/exchange-rates/${rateId}`, { method: 'DELETE' })
+}
 
 // Notification templates
 export function adminListNotificationTemplates(event) {
@@ -235,8 +238,9 @@ export function adminListAnalyticsEvents(eventName) {
 }
 
 // About sections
-export function adminListAboutSections() {
-  return apiRequest('/admin/about-sections')
+export function adminListAboutSections(lang) {
+  const qs = lang ? `?lang=${encodeURIComponent(lang)}` : ''
+  return apiRequest(`/admin/about-sections${qs}`)
 }
 export function adminCreateAboutSection(payload) {
   return apiRequest('/admin/about-sections', { method: 'POST', body: payload })
@@ -258,8 +262,10 @@ export function adminUpsertAboutSectionTranslation(sectionId, locale, payload) {
 }
 
 // Page sections (Delivery/Payment/Returns/FAQ/Contact free-form content)
-export function adminListPageSections(page) {
-  return apiRequest(`/admin/page-sections?page=${encodeURIComponent(page)}`)
+export function adminListPageSections(page, lang) {
+  const params = new URLSearchParams({ page })
+  if (lang) params.set('lang', lang)
+  return apiRequest(`/admin/page-sections?${params.toString()}`)
 }
 export function adminCreatePageSection(payload) {
   return apiRequest('/admin/page-sections', { method: 'POST', body: payload })

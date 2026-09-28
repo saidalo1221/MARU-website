@@ -572,6 +572,7 @@ export const translations = {
         autoRateHint: "The exchange rate is fetched automatically from the live feed when you pick a currency — no need to type one in.",
         fetchingRate: 'Fetching live rate...',
         saveManualRate: 'Save {currency} with this rate',
+        deleteFailed: 'Failed to delete currency',
       },
       notificationTemplates: {
         title: 'Notification Templates',
@@ -1447,6 +1448,7 @@ export const translations = {
         autoRateHint: 'Курс автоматически загружается из источника при выборе валюты — вводить его вручную не нужно.',
         fetchingRate: 'Загрузка актуального курса...',
         saveManualRate: 'Сохранить {currency} с этим курсом',
+        deleteFailed: 'Не удалось удалить валюту',
       },
       notificationTemplates: {
         title: 'Шаблоны уведомлений',
@@ -2322,6 +2324,7 @@ export const translations = {
         autoRateHint: "Valyutani tanlaganingizda kurs jonli manbadan avtomatik yuklanadi — qo'lda kiritish shart emas.",
         fetchingRate: 'Joriy kurs yuklanmoqda...',
         saveManualRate: '{currency} ni ushbu kurs bilan saqlash',
+        deleteFailed: "Valyutani o'chirib bo'lmadi",
       },
       notificationTemplates: {
         title: 'Xabarnoma shablonlari',

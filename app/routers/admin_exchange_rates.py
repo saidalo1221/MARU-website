@@ -89,6 +89,23 @@ def sync_rates_from_provider(
     return list(rates)
 
 
+@router.delete("/{rate_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_exchange_rate(
+    rate_id: int,
+    user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
+    db: Session = Depends(get_db),
+) -> None:
+    rate = db.get(ExchangeRate, rate_id)
+    if rate is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exchange rate not found")
+    try:
+        db.delete(rate)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete exchange rate") from exc
+
+
 @router.patch("/{rate_id}", response_model=ExchangeRateOut)
 def update_exchange_rate(
     rate_id: int,

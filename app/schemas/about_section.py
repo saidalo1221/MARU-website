@@ -13,11 +13,13 @@ class AboutSectionOut(BaseModel):
 
 
 class AboutSectionAdminOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     title: str
     body: str
+    # Translated title for the requested ?lang= (falls back to `title` when
+    # untranslated or no lang given) — display-only, for recognizing
+    # sections at a glance; editing always targets the base `title`/`body`.
+    display_title: str
     sort_order: int
     created_at: datetime
     updated_at: datetime

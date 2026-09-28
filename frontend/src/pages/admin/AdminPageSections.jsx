@@ -127,7 +127,10 @@ function SectionBlock({ section, isFirst, isLast, onChanged }) {
     <div className="border border-gray-200 rounded-lg p-4 mb-3">
       <div className="flex items-center justify-between">
         <button onClick={() => setExpanded((x) => !x)} className="font-medium text-left flex-1">
-          {section.title}
+          {section.display_title}
+          {section.display_title !== section.title && (
+            <span className="text-gray-400 font-normal"> ({section.title})</span>
+          )}
         </button>
         <div className="flex items-center gap-2 text-sm">
           <button type="button" onClick={() => move('up')} disabled={isFirst} className="text-gray-500 disabled:opacity-30">&uarr;</button>
@@ -154,7 +157,7 @@ function SectionBlock({ section, isFirst, isLast, onChanged }) {
 }
 
 export default function AdminPageSections() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [page, setPage] = useState('delivery')
   const [sections, setSections] = useState([])
   const [loading, setLoading] = useState(true)
@@ -165,7 +168,7 @@ export default function AdminPageSections() {
   const [submitting, setSubmitting] = useState(false)
 
   const load = () =>
-    adminListPageSections(page)
+    adminListPageSections(page, locale)
       .then(setSections)
       .catch((err) => setError(errorMessage(err, t('admin.pageSections.loadFailed'))))
       .finally(() => setLoading(false))
@@ -175,7 +178,7 @@ export default function AdminPageSections() {
     setFormOpen(false)
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page])
+  }, [page, locale])
 
   const handleAdd = async (e) => {
     e.preventDefault()

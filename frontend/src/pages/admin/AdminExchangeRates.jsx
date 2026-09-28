@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   adminCreateExchangeRate,
+  adminDeleteExchangeRate,
   adminListAvailableCurrencies,
   adminListExchangeRates,
   adminSyncExchangeRates,
@@ -113,6 +114,15 @@ export default function AdminExchangeRates() {
     }
   }
 
+  const deleteRate = async (id) => {
+    try {
+      await adminDeleteExchangeRate(id)
+      await load()
+    } catch (err) {
+      setError(errorMessage(err, t('admin.exchangeRates.deleteFailed')))
+    }
+  }
+
   const addCurrency = async (currency, rate) => {
     setNewError(null)
     setAdding(true)
@@ -198,7 +208,7 @@ export default function AdminExchangeRates() {
       {!loading && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left"><tr><th className="px-3 py-2">{t('admin.common.name')}</th><th className="px-3 py-2">{t('admin.exchangeRates.unitsPerUsd')}</th></tr></thead>
+            <thead className="bg-gray-50 text-left"><tr><th className="px-3 py-2">{t('admin.common.name')}</th><th className="px-3 py-2">{t('admin.exchangeRates.unitsPerUsd')}</th><th className="px-3 py-2"></th></tr></thead>
             <tbody className="divide-y divide-gray-100">
               {rates.map((r) => (
                 <tr key={r.id}>
@@ -206,9 +216,12 @@ export default function AdminExchangeRates() {
                   <td className="px-3 py-2">
                     <input type="number" step="0.0001" defaultValue={r.units_per_usd} onBlur={(e) => updateRate(r.id, e.target.value)} className="w-32 border border-gray-200 rounded px-2 py-1" />
                   </td>
+                  <td className="px-3 py-2 text-right">
+                    <button type="button" onClick={() => deleteRate(r.id)} className="text-red-500 text-xs">{t('admin.common.delete')}</button>
+                  </td>
                 </tr>
               ))}
-              {rates.length === 0 && <tr><td colSpan={2} className="px-3 py-6 text-center text-gray-400">{t('admin.exchangeRates.none')}</td></tr>}
+              {rates.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-gray-400">{t('admin.exchangeRates.none')}</td></tr>}
             </tbody>
           </table>
         </div>

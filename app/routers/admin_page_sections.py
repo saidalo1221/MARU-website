@@ -20,7 +20,7 @@ from app.schemas.page_section import (
     PageSectionTranslationOut,
     PageSectionUpdate,
 )
-from app.services.i18n import get_page_section_translation
+from app.services.i18n import get_page_section_translation, get_page_section_translations
 
 router = APIRouter(prefix="/admin/page-sections", tags=["admin-page-sections"])
 
@@ -35,13 +35,29 @@ def _ordered(db: Session, page: str) -> list[PageSection]:
     )
 
 
+def _to_out(section: PageSection, display_title: str | None = None) -> PageSectionAdminOut:
+    return PageSectionAdminOut(
+        id=section.id,
+        page=section.page,
+        title=section.title,
+        body=section.body,
+        display_title=display_title or section.title,
+        sort_order=section.sort_order,
+        created_at=section.created_at,
+        updated_at=section.updated_at,
+    )
+
+
 @router.get("", response_model=list[PageSectionAdminOut])
 def list_sections(
     page: PageKey,
+    lang: str | None = None,
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
-) -> list[PageSection]:
-    return _ordered(db, page)
+) -> list[PageSectionAdminOut]:
+    sections = _ordered(db, page)
+    translations = get_page_section_translations(db, [s.id for s in sections], lang) if lang else {}
+    return [_to_out(s, translations[s.id].title if s.id in translations else None) for s in sections]
 
 
 @router.post("", response_model=PageSectionAdminOut, status_code=status.HTTP_201_CREATED)
@@ -49,7 +65,7 @@ def create_section(
     payload: PageSectionCreate,
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
-) -> PageSection:
+) -> PageSectionAdminOut:
     max_order = db.execute(
         select(PageSection.sort_order).where(PageSection.page == payload.page).order_by(PageSection.sort_order.desc())
     ).scalars().first()
@@ -61,7 +77,7 @@ def create_section(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to create section") from exc
     db.refresh(section)
-    return section
+    return _to_out(section)
 
 
 @router.patch("/{section_id}", response_model=PageSectionAdminOut)
@@ -70,7 +86,7 @@ def update_section(
     payload: PageSectionUpdate,
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
-) -> PageSection:
+) -> PageSectionAdminOut:
     section = db.get(PageSection, section_id)
     if section is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Section not found")
@@ -82,7 +98,7 @@ def update_section(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update section") from exc
     db.refresh(section)
-    return section
+    return _to_out(section)
 
 
 @router.delete("/{section_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -108,7 +124,7 @@ def move_section(
     payload: PageSectionMove,
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
-) -> list[PageSection]:
+) -> list[PageSectionAdminOut]:
     """Swaps this section's sort_order with its immediate neighbor *within
     the same page* — mirrors admin_about_sections.py's move_section()."""
     section = db.get(PageSection, section_id)
@@ -120,7 +136,7 @@ def move_section(
 
     neighbor_index = index - 1 if payload.direction == "up" else index + 1
     if neighbor_index < 0 or neighbor_index >= len(sections):
-        return sections
+        return [_to_out(s) for s in sections]
 
     try:
         sections[index].sort_order, sections[neighbor_index].sort_order = (
@@ -132,7 +148,7 @@ def move_section(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to reorder sections") from exc
 
-    return _ordered(db, section.page)
+    return [_to_out(s) for s in _ordered(db, section.page)]
 
 
 @router.get("/{section_id}/translations", response_model=list[PageSectionTranslationOut])

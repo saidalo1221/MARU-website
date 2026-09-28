@@ -126,7 +126,10 @@ function SectionBlock({ section, isFirst, isLast, onChanged }) {
     <div className="border border-gray-200 rounded-lg p-4 mb-3">
       <div className="flex items-center justify-between">
         <button onClick={() => setExpanded((x) => !x)} className="font-medium text-left flex-1">
-          {section.title}
+          {section.display_title}
+          {section.display_title !== section.title && (
+            <span className="text-gray-400 font-normal"> ({section.title})</span>
+          )}
         </button>
         <div className="flex items-center gap-2 text-sm">
           <button type="button" onClick={() => move('up')} disabled={isFirst} className="text-gray-500 disabled:opacity-30">&uarr;</button>
@@ -153,7 +156,7 @@ function SectionBlock({ section, isFirst, isLast, onChanged }) {
 }
 
 export default function AdminAboutSections() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [sections, setSections] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -163,12 +166,12 @@ export default function AdminAboutSections() {
   const [submitting, setSubmitting] = useState(false)
 
   const load = () =>
-    adminListAboutSections()
+    adminListAboutSections(locale)
       .then(setSections)
       .catch((err) => setError(errorMessage(err, t('admin.aboutSections.loadFailed'))))
       .finally(() => setLoading(false))
 
-  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load() }, [locale]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAdd = async (e) => {
     e.preventDefault()
