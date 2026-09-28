@@ -39,6 +39,8 @@ from app.models.site_settings import SiteSettings
 from app.models.site_settings_translation import SiteSettingsTranslation
 from app.models.about_section import AboutSection
 from app.models.about_section_translation import AboutSectionTranslation
+from app.models.trusted_device import TrustedDevice
+from app.models.login_device_code import LoginDeviceCode
 
 __all__ = [
     "Category",
@@ -91,4 +93,6 @@ __all__ = [
     "SiteSettingsTranslation",
     "AboutSection",
     "AboutSectionTranslation",
+    "TrustedDevice",
+    "LoginDeviceCode",
 ]

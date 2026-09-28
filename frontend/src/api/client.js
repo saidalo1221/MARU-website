@@ -4,6 +4,20 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000
 
 const ACCESS_TOKEN_KEY = 'maru_access_token'
 const CART_TOKEN_KEY = 'maru_cart_token'
+const DEVICE_ID_KEY = 'maru_device_id'
+
+// Opaque per-browser id sent with every login attempt so the backend can
+// recognize a device it already challenged with an email code (see
+// app/routers/auth.py's login()). Persists across logins/logouts in this
+// browser — clearing site data starts a new "unrecognized device".
+export function getDeviceId() {
+  let id = localStorage.getItem(DEVICE_ID_KEY)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(DEVICE_ID_KEY, id)
+  }
+  return id
+}
 
 export function getAccessToken() {
   return localStorage.getItem(ACCESS_TOKEN_KEY)

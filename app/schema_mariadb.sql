@@ -122,10 +122,35 @@ CREATE TABLE users (
 	mfa_secret VARCHAR(32),
 	mfa_enabled BOOL NOT NULL,
 	admin_mfa_verified_until DATETIME,
+	failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+	locked_until DATETIME,
 	created_at DATETIME NOT NULL DEFAULT now(),
 	updated_at DATETIME NOT NULL DEFAULT now(),
 	PRIMARY KEY (id),
 	UNIQUE (email)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE trusted_devices (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	device_id VARCHAR(64) NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	last_used_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_trusted_devices_user_device UNIQUE (user_id, device_id),
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE login_device_codes (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	device_id VARCHAR(64) NOT NULL,
+	code_hash VARCHAR(64) NOT NULL,
+	expires_at DATETIME NOT NULL,
+	used_at DATETIME,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
 CREATE TABLE warehouses (

@@ -1,4 +1,4 @@
-import { apiRequest, setAccessToken } from './client'
+import { apiRequest, getDeviceId, setAccessToken } from './client'
 
 export async function register(payload) {
   const token = await apiRequest('/auth/register', { method: 'POST', body: payload })
@@ -6,8 +6,23 @@ export async function register(payload) {
   return token
 }
 
+// Returns either { access_token, ... } (known device — login complete) or
+// { device_verification_required: true } (a code was emailed; the caller
+// must collect it and call verifyLoginDevice()).
 export async function login(email, password) {
-  const token = await apiRequest('/auth/login', { method: 'POST', body: { email, password } })
+  const result = await apiRequest('/auth/login', {
+    method: 'POST',
+    body: { email, password, device_id: getDeviceId() },
+  })
+  if (result.access_token) setAccessToken(result.access_token)
+  return result
+}
+
+export async function verifyLoginDevice(email, code) {
+  const token = await apiRequest('/auth/login/verify-device', {
+    method: 'POST',
+    body: { email, code, device_id: getDeviceId() },
+  })
   setAccessToken(token.access_token)
   return token
 }

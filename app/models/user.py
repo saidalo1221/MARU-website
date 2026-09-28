@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, String, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, Integer, String, func
 from sqlalchemy import Enum as SAEnum
 
 from app.database import Base
@@ -39,6 +39,12 @@ class User(Base):
     # app/dependencies.py requires this to be in the future for every
     # admin-role endpoint, regardless of mfa_enabled.
     admin_mfa_verified_until = Column(DateTime, nullable=True)
+
+    # Account lockout on repeated failed logins (customer /auth/login and
+    # admin /auth/admin/login share this — see app/routers/auth.py). Reset
+    # to 0/NULL on any successful login/admin-code-verify.
+    failed_login_attempts = Column(Integer, nullable=False, default=0)
+    locked_until = Column(DateTime, nullable=True)
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

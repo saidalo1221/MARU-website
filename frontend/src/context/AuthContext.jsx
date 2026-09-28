@@ -30,8 +30,20 @@ export function AuthProvider({ children }) {
     loadMe()
   }, [loadMe])
 
+  // Returns the raw login result so the caller can detect
+  // device_verification_required and prompt for the emailed code instead of
+  // treating the call as a completed login.
   const login = useCallback(async (email, password) => {
-    await authApi.login(email, password)
+    const result = await authApi.login(email, password)
+    if (result.access_token) {
+      await mergeCart().catch(() => {})
+      await loadMe()
+    }
+    return result
+  }, [loadMe])
+
+  const verifyDevice = useCallback(async (email, code) => {
+    await authApi.verifyLoginDevice(email, code)
     await mergeCart().catch(() => {})
     await loadMe()
   }, [loadMe])
@@ -48,7 +60,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser: loadMe }}>
+    <AuthContext.Provider value={{ user, loading, login, verifyDevice, register, logout, refreshUser: loadMe }}>
       {children}
     </AuthContext.Provider>
   )

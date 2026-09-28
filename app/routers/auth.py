@@ -15,7 +15,9 @@ from app.dependencies import get_current_user_required
 from app.models.admin_login_code import AdminLoginCode
 from app.models.email_verification_token import EmailVerificationToken
 from app.models.enums import UserRole
+from app.models.login_device_code import LoginDeviceCode
 from app.models.password_reset_token import PasswordResetToken
+from app.models.trusted_device import TrustedDevice
 from app.models.user import User
 from app.schemas.extras import ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest
 from app.services.analytics import record_event
@@ -23,16 +25,48 @@ from app.services.notifications.email import EmailNotifier
 from app.schemas.user import (
     AdminLoginRequest,
     AdminVerifyRequest,
+    LoginResult,
     MfaCodeRequest,
     MfaSetupOut,
     Token,
     UserCreate,
     UserLogin,
     UserOut,
+    VerifyDeviceRequest,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 email_notifier = EmailNotifier()
+
+# Account lockout (shared by customer /auth/login and admin /auth/admin/login
+# — both call the helpers below). Separate from the per-IP rate limiters
+# already on these routes: this tracks failed attempts per *account*, so an
+# attacker can't just rotate IPs to keep guessing one target's password.
+MAX_FAILED_LOGIN_ATTEMPTS = 5
+LOCKOUT_MINUTES = 15
+
+
+def _is_locked(user: User) -> bool:
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    return user.locked_until is not None and user.locked_until > now
+
+
+def _register_failed_attempt(db: Session, user: User) -> None:
+    user.failed_login_attempts += 1
+    if user.failed_login_attempts >= MAX_FAILED_LOGIN_ATTEMPTS:
+        user.locked_until = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=LOCKOUT_MINUTES)
+        user.failed_login_attempts = 0
+    db.commit()
+
+
+def _reset_failed_attempts(db: Session, user: User) -> None:
+    if user.failed_login_attempts or user.locked_until:
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        db.commit()
+
+
+LOCKED_ACCOUNT_DETAIL = f"Too many failed attempts. Try again in {LOCKOUT_MINUTES} minutes."
 
 
 def _issue_email_verification(db: Session, user: User) -> None:
@@ -85,20 +119,99 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
     return Token(access_token=create_access_token(str(user.id)))
 
 
-@router.post("/login", response_model=Token, dependencies=[Depends(rate_limit("login", 10, 60))])
-def login(payload: UserLogin, db: Session = Depends(get_db)) -> Token:
+@router.post("/login", response_model=LoginResult, dependencies=[Depends(rate_limit("login", 10, 60))])
+def login(payload: UserLogin, db: Session = Depends(get_db)) -> LoginResult:
     try:
         user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to authenticate") from exc
 
+    if user is not None and user.is_active and _is_locked(user):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=LOCKED_ACCOUNT_DETAIL)
+
     if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
+        if user is not None and user.is_active:
+            _register_failed_attempt(db, user)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
     if user.mfa_enabled:
         if not payload.mfa_code or not pyotp.TOTP(user.mfa_secret).verify(payload.mfa_code, valid_window=1):
+            _register_failed_attempt(db, user)
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing MFA code")
+
+    # New/unrecognized device (PRD-adjacent hardening, not in the original
+    # spec): challenge with an emailed code instead of issuing a token
+    # straight away. No device_id at all is treated the same as an unknown
+    # one — safest default for any client that hasn't adopted it yet.
+    trusted = None
+    if payload.device_id:
+        trusted = db.execute(
+            select(TrustedDevice).where(
+                TrustedDevice.user_id == user.id, TrustedDevice.device_id == payload.device_id
+            )
+        ).scalar_one_or_none()
+
+    if trusted is None:
+        _reset_failed_attempts(db, user)
+        code = _generate_numeric_code()
+        db.add(
+            LoginDeviceCode(
+                user_id=user.id,
+                device_id=payload.device_id or "",
+                code_hash=hashlib.sha256(code.encode()).hexdigest(),
+                expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=10),
+            )
+        )
+        try:
+            db.commit()
+        except SQLAlchemyError as exc:
+            db.rollback()
+            raise HTTPException(status_code=500, detail="Failed to start login") from exc
+        email_notifier.device_login_code(user.email, code, db=db)
+        return LoginResult(device_verification_required=True)
+
+    trusted.last_used_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    _reset_failed_attempts(db, user)
+    record_event(db, "login", user=user)
+    return LoginResult(access_token=create_access_token(str(user.id)))
+
+
+@router.post(
+    "/login/verify-device", response_model=Token, dependencies=[Depends(rate_limit("login_verify_device", 10, 900))]
+)
+def verify_login_device(payload: VerifyDeviceRequest, db: Session = Depends(get_db)) -> Token:
+    try:
+        user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to verify code") from exc
+
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    code_hash = hashlib.sha256(payload.code.encode()).hexdigest()
+    record = db.execute(
+        select(LoginDeviceCode)
+        .where(
+            LoginDeviceCode.user_id == user.id,
+            LoginDeviceCode.device_id == payload.device_id,
+            LoginDeviceCode.code_hash == code_hash,
+        )
+        .order_by(LoginDeviceCode.id.desc())
+    ).scalar_one_or_none()
+
+    if record is None or record.used_at is not None or record.expires_at < now:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired code")
+
+    try:
+        record.used_at = now
+        db.add(TrustedDevice(user_id=user.id, device_id=payload.device_id))
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to verify code") from exc
 
     record_event(db, "login", user=user)
     return Token(access_token=create_access_token(str(user.id)))
@@ -211,14 +324,20 @@ def admin_login_request(payload: AdminLoginRequest, db: Session = Depends(get_db
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to authenticate") from exc
 
+    if user is not None and user.is_active and _is_locked(user):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=LOCKED_ACCOUNT_DETAIL)
+
     if (
         user is None
         or not user.is_active
         or user.role == UserRole.CUSTOMER
         or not verify_password(payload.password, user.password_hash)
     ):
+        if user is not None and user.is_active and user.role != UserRole.CUSTOMER:
+            _register_failed_attempt(db, user)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
+    _reset_failed_attempts(db, user)
     code = _generate_numeric_code()
     db.add(
         AdminLoginCode(
