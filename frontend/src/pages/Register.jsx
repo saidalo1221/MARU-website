@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
@@ -10,6 +10,8 @@ export default function Register() {
   const { register } = useAuth()
   const { t } = useLocale()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const next = params.get('next') || '/account/orders'
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -22,7 +24,7 @@ export default function Register() {
     setSubmitting(true)
     try {
       await register(form)
-      navigate('/account/orders')
+      navigate(next)
     } catch (err) {
       setError(errorMessage(err, t('register.failed')))
     } finally {
@@ -45,7 +47,7 @@ export default function Register() {
         </button>
       </form>
       <p className="text-sm text-gray-500 mt-4">
-        {t('register.haveAccount')} <Link to="/login" className="text-brand">{t('register.login')}</Link>
+        {t('register.haveAccount')} <Link to={`/login?next=${encodeURIComponent(next)}`} className="text-brand">{t('register.login')}</Link>
       </p>
     </div>
   )

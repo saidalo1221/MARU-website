@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { ApiError } from '../api/client'
@@ -8,6 +8,8 @@ export default function Login() {
   const { login } = useAuth()
   const { t } = useLocale()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const next = params.get('next') || '/account/orders'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
@@ -19,7 +21,7 @@ export default function Login() {
     setSubmitting(true)
     try {
       await login(email, password)
-      navigate('/account/orders')
+      navigate(next)
     } catch (err) {
       setError(err instanceof ApiError ? t('login.invalidCredentials') : t('login.failed'))
     } finally {
@@ -42,7 +44,7 @@ export default function Login() {
         </button>
       </form>
       <p className="text-sm text-gray-500 mt-4">
-        {t('login.noAccount')} <Link to="/register" className="text-brand">{t('login.register')}</Link>
+        {t('login.noAccount')} <Link to={`/register?next=${encodeURIComponent(next)}`} className="text-brand">{t('login.register')}</Link>
       </p>
     </div>
   )

@@ -451,6 +451,12 @@ export default function AdminProductDetail() {
 
       <ProductTranslations productId={product.id} />
 
+      {!product.variants.some((v) => v.is_active && v.skus.some((s) => s.is_active)) && (
+        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
+          {t('admin.productDetail.notVisibleHint')}
+        </p>
+      )}
+
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold">{t('admin.productDetail.variants')}</h2>
         {!variantOpen && <button onClick={() => setVariantOpen(true)} className="text-sm text-brand">{t('admin.productDetail.addVariant')}</button>}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
@@ -33,7 +33,7 @@ const emptyForm = {
 }
 
 export default function Checkout() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { cart, refresh } = useCart()
   const { t } = useLocale()
   const navigate = useNavigate()
@@ -107,6 +107,9 @@ export default function Checkout() {
   }, [form.country, form.delivery_method, refresh])
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
+
+  if (authLoading) return null
+  if (!user) return <Navigate to="/login?next=/checkout" replace />
 
   if (!cart || cart.items.length === 0) {
     return (
