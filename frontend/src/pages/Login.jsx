@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
 import PasswordInput from '../components/PasswordInput'
+import Seo from '../components/Seo'
 
 export default function Login() {
   const { login, verifyDevice } = useAuth()
@@ -83,6 +84,7 @@ export default function Login() {
 
   return (
     <div className="max-w-sm mx-auto px-4 py-12">
+      <Seo title={t('login.title')} noindex />
       <h1 className="text-2xl font-bold mb-6">{t('login.title')}</h1>
       <form onSubmit={handleSubmit} className="space-y-3">
         <input required type="email" placeholder={t('checkout.email')} value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />

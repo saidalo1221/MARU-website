@@ -3,6 +3,7 @@ import { listProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
+import Seo from '../components/Seo'
 
 function minPrice(product) {
   const prices = product.variants.flatMap((v) => v.skus.map((s) => Number(s.retail_price)))
@@ -81,6 +82,7 @@ export default function Catalog() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
+      <Seo title={t('catalog.title')} />
       <nav className="text-xs text-gray-500 mb-2">{t('catalog.breadcrumb')}</nav>
       <h1 className="text-2xl font-bold mb-4">{t('catalog.title')}</h1>
 

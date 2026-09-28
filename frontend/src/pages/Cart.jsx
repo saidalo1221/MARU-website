@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import QuantitySelector from '../components/product/QuantitySelector'
 import { errorMessage } from '../api/client'
+import Seo from '../components/Seo'
 
 export default function Cart() {
   const { cart, loading, updateItem, removeItem, refresh } = useCart()
@@ -37,6 +38,7 @@ export default function Cart() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
+      <Seo title={t('cart.title')} noindex />
       <h1 className="text-2xl font-bold mb-4">{t('cart.title')}</h1>
 
       <div className="md:grid md:grid-cols-[1fr_320px] md:gap-8">

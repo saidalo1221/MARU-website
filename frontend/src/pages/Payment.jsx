@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
 import { getPaymentMethods } from '../api/orders'
 import { listPageSections } from '../api/pageSections'
+import Seo from '../components/Seo'
 
 export default function Payment() {
   const { t, locale } = useLocale()
@@ -20,6 +21,7 @@ export default function Payment() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
+      <Seo title={t('payment.title')} />
       <h1 className="text-3xl font-bold mb-3">{t('payment.title')}</h1>
       <p className="text-gray-600 mb-8">{t('payment.subtitle')}</p>
 

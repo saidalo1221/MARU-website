@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { forgotPassword } from '../api/auth'
 import { useLocale } from '../context/LocaleContext'
+import Seo from '../components/Seo'
 
 export default function ForgotPassword() {
   const { t } = useLocale()
@@ -25,6 +26,7 @@ export default function ForgotPassword() {
   if (sent) {
     return (
       <div className="max-w-sm mx-auto px-4 py-12 text-center">
+        <Seo title={t('forgotPassword.title')} noindex />
         <h1 className="text-2xl font-bold mb-4">{t('forgotPassword.title')}</h1>
         <p className="text-sm text-gray-600">{t('forgotPassword.sent')}</p>
         <Link to="/login" className="text-brand text-sm mt-4 inline-block">{t('login.title')}</Link>
@@ -34,6 +36,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="max-w-sm mx-auto px-4 py-12">
+      <Seo title={t('forgotPassword.title')} noindex />
       <h1 className="text-2xl font-bold mb-2">{t('forgotPassword.title')}</h1>
       <p className="text-sm text-gray-500 mb-6">{t('forgotPassword.subtitle')}</p>
       <form onSubmit={handleSubmit} className="space-y-3">

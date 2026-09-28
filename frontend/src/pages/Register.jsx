@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
 import PasswordInput from '../components/PasswordInput'
+import Seo from '../components/Seo'
 
 const emptyForm = { email: '', password: '', first_name: '', last_name: '', phone: '' }
 
@@ -35,6 +36,7 @@ export default function Register() {
 
   return (
     <div className="max-w-sm mx-auto px-4 py-12">
+      <Seo title={t('register.title')} noindex />
       <h1 className="text-2xl font-bold mb-6">{t('register.title')}</h1>
       <form onSubmit={handleSubmit} className="space-y-3">
         <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />

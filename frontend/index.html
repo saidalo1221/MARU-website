@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MARU</title>
+    <!--
+      Minimal static fallback for the brief window before React mounts (and
+      for any crawler that doesn't execute JS). Every page then overrides
+      this via the <Seo> component (src/components/Seo.jsx, react-helmet-
+      async). Deliberately just the title: react-helmet-async only ever
+      manages tags it created itself (looks for its own data-rh marker), so
+      it can safely replace the single <title> element, but it can't clean
+      up a static <meta> tag — one here would sit forever alongside
+      Helmet's, duplicated and possibly conflicting.
+    -->
+    <title>MARU — Plastic Food Containers</title>
   </head>
   <body>
     <div id="root"></div>

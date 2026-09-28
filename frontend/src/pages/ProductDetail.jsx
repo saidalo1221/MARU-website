@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import VariantSelector from '../components/product/VariantSelector'
 import QuantitySelector from '../components/product/QuantitySelector'
 import Reviews from '../components/product/Reviews'
+import Seo from '../components/Seo'
 
 export default function ProductDetail() {
   const { slug } = useParams()
@@ -92,8 +93,25 @@ export default function ProductDetail() {
     }
   }
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description || undefined,
+    image: variant?.photo_url || undefined,
+    offers: sku
+      ? {
+          '@type': 'Offer',
+          price: Number(sku.retail_price).toFixed(2),
+          priceCurrency: sku.currency,
+          availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        }
+      : undefined,
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
+      <Seo title={product.name} description={product.description} image={variant?.photo_url} type="product" jsonLd={jsonLd} />
       <nav className="text-xs text-gray-500 mb-4">{t('productDetail.breadcrumb', { name: product.name })}</nav>
 
       <div className="grid md:grid-cols-2 gap-8">

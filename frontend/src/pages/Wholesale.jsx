@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import { listProducts } from '../api/products'
 import ProductCard from '../components/product/ProductCard'
 import InquiryForm from '../components/forms/InquiryForm'
+import Seo from '../components/Seo'
 
 export default function Wholesale() {
   const { locale, t } = useLocale()
@@ -19,6 +20,7 @@ export default function Wholesale() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
+      <Seo title={t('wholesale.title')} description={t('wholesale.subtitle')} />
       <h1 className="text-3xl font-bold mb-3">{t('wholesale.title')}</h1>
       <p className="text-gray-600 mb-8">{t('wholesale.subtitle')}</p>
 

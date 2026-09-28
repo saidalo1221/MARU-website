@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
 import { listPageSections } from '../api/pageSections'
+import Seo from '../components/Seo'
 
 function FaqItem({ question, answer }) {
   const [open, setOpen] = useState(false)
@@ -29,6 +30,7 @@ export default function FAQ() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
+      <Seo title={t('faq.title')} />
       <h1 className="text-3xl font-bold mb-8">{t('faq.title')}</h1>
       <div>
         {sections.map((s) => (

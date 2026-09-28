@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getBlogPost } from '../api/blog'
 import { useLocale } from '../context/LocaleContext'
+import Seo from '../components/Seo'
 
 export default function BlogArticle() {
   const { slug } = useParams()
@@ -30,8 +31,19 @@ export default function BlogArticle() {
 
   const { post, related } = data
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.excerpt || undefined,
+    image: post.cover_image_url || undefined,
+    author: post.author_name ? { '@type': 'Person', name: post.author_name } : undefined,
+    datePublished: post.published_at || undefined,
+  }
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
+      <Seo title={post.title} description={post.excerpt} image={post.cover_image_url} type="article" jsonLd={jsonLd} />
       <Link to="/blog" className="text-xs text-gray-500 mb-2 inline-block">{t('blog.backToBlog')}</Link>
       <p className="text-xs text-gray-400 mb-1">{post.category.name}</p>
       <h1 className="text-2xl font-bold mb-2">{post.title}</h1>

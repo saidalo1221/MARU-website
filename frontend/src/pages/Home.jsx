@@ -1,10 +1,19 @@
 import { Link } from 'react-router-dom'
 import { useLocale } from '../context/LocaleContext'
+import Seo from '../components/Seo'
 
 export default function Home() {
   const { t } = useLocale()
   return (
     <section className="max-w-3xl mx-auto text-center px-4 py-16">
+      <Seo
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'MARU',
+          url: typeof window !== 'undefined' ? window.location.origin : undefined,
+        }}
+      />
       <h1 className="text-3xl md:text-4xl font-bold mb-4">
         {t('home.title')}
       </h1>

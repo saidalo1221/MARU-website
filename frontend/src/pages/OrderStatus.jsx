@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { cancelOrder, getOrder } from '../api/orders'
 import { useLocale } from '../context/LocaleContext'
+import Seo from '../components/Seo'
 
 const CANCELLABLE = new Set(['NEW', 'PAYMENT_PENDING', 'PAID', 'PROCESSING'])
 
@@ -40,6 +41,7 @@ export default function OrderStatus() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      <Seo title={t('orderStatus.title')} noindex />
       <h1 className="text-2xl font-bold mb-1">{t('orderStatus.title')}</h1>
       <p className="text-gray-500 mb-6">{t('orderStatus.orderNumber', { number: order.order_number })}</p>
 

@@ -1,8 +1,17 @@
-from fastapi import APIRouter, FastAPI
+from html import escape
+
+from fastapi import APIRouter, Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.database import get_db
+from app.models.blog_post import BlogPost
+from app.models.product import Product
+from app.models.product_variant import ProductVariant
+from app.models.sku import SKU
 
 from app.routers import (
     about_sections,
@@ -109,3 +118,49 @@ api_v1.include_router(site_settings.router)
 api_v1.include_router(wishlist.router)
 
 app.include_router(api_v1)
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap(db: Session = Depends(get_db)) -> Response:
+    """Dynamic XML sitemap for the storefront (frontend, not this API) —
+    static pages, every product with a purchasable SKU, and every published
+    blog post. Not versioned under /api/v1 since it's meant to be crawled at
+    the site root; a production reverse proxy fronting both this backend and
+    the frontend build needs to route /sitemap.xml here specifically (it
+    can't be a static file — the product/blog list changes)."""
+    base = settings.FRONTEND_URL.rstrip("/")
+    urls = [base] + [
+        f"{base}/{path}"
+        for path in (
+            "shop",
+            "blog",
+            "about",
+            "contact",
+            "delivery",
+            "payment",
+            "returns",
+            "faq",
+            "b2b",
+            "wholesale",
+            "distributor",
+        )
+    ]
+
+    product_slugs = db.execute(
+        select(Product.slug)
+        .join(Product.variants)
+        .join(ProductVariant.skus)
+        .where(ProductVariant.is_active.is_(True), SKU.is_active.is_(True))
+        .distinct()
+    ).scalars().all()
+    urls += [f"{base}/products/{slug}" for slug in product_slugs]
+
+    post_slugs = db.execute(
+        select(BlogPost.slug).where(BlogPost.is_published.is_(True), BlogPost.published_at.isnot(None))
+    ).scalars().all()
+    urls += [f"{base}/blog/{slug}" for slug in post_slugs]
+
+    body = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    body += [f"<url><loc>{escape(url)}</loc></url>" for url in urls]
+    body.append("</urlset>")
+    return Response("\n".join(body), media_type="application/xml")

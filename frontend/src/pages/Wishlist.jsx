@@ -5,6 +5,7 @@ import { useLocale } from '../context/LocaleContext'
 import { getWishlist, removeFromWishlist } from '../api/wishlist'
 import { useCart } from '../context/CartContext'
 import AccountNav from '../components/account/AccountNav'
+import Seo from '../components/Seo'
 
 export default function Wishlist() {
   const { user, loading: authLoading } = useAuth()
@@ -41,6 +42,7 @@ export default function Wishlist() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
+      <Seo title={t('wishlist.title')} noindex />
       <AccountNav />
       <h1 className="text-2xl font-bold mb-6">{t('wishlist.title')}</h1>
       {loading && <p>{t('wishlist.loading')}</p>}

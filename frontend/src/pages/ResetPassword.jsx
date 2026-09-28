@@ -4,6 +4,7 @@ import { resetPassword } from '../api/auth'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
 import PasswordInput from '../components/PasswordInput'
+import Seo from '../components/Seo'
 
 export default function ResetPassword() {
   const { t } = useLocale()
@@ -52,6 +53,7 @@ export default function ResetPassword() {
 
   return (
     <div className="max-w-sm mx-auto px-4 py-12">
+      <Seo title={t('resetPassword.title')} noindex />
       <h1 className="text-2xl font-bold mb-6">{t('resetPassword.title')}</h1>
       <form onSubmit={handleSubmit} className="space-y-3">
         <PasswordInput

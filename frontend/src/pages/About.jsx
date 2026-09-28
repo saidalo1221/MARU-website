@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
 import { getSiteSettings } from '../api/siteSettings'
 import { listAboutSections } from '../api/aboutSections'
+import Seo from '../components/Seo'
 
 export default function About() {
   const { locale, t } = useLocale()
@@ -15,6 +16,7 @@ export default function About() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
+      <Seo title={settings?.about_title || t('about.title')} description={settings?.about_body} />
       <h1 className="text-3xl font-bold mb-3">{settings?.about_title || t('about.title')}</h1>
       <p className="text-gray-600 mb-10">{settings?.about_body || t('about.subtitle')}</p>
 

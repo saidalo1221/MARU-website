@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useLocale } from '../../context/LocaleContext'
 import { AdminCurrencyProvider } from '../../context/AdminCurrencyContext'
 import AdminAccessGate from '../../components/admin/AdminAccessGate'
+import Seo from '../../components/Seo'
 
 const navLinkClass = ({ isActive }) =>
   `block px-3 py-1.5 rounded text-sm ${isActive ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100'}`
@@ -59,8 +60,10 @@ export default function AdminLayout() {
   ]
 
   return (
-    <AdminAccessGate>
-      <AdminCurrencyProvider>
+    <>
+      <Seo title="Admin" noindex />
+      <AdminAccessGate>
+        <AdminCurrencyProvider>
         <div className="max-w-7xl mx-auto px-4 py-6 md:grid md:grid-cols-[210px_1fr] md:gap-8">
           <aside className="mb-6 md:mb-0 space-y-4">
             {sections.map((section, i) => (
@@ -80,7 +83,8 @@ export default function AdminLayout() {
             <Outlet />
           </div>
         </div>
-      </AdminCurrencyProvider>
-    </AdminAccessGate>
+        </AdminCurrencyProvider>
+      </AdminAccessGate>
+    </>
   )
 }

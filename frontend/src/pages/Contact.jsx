@@ -4,6 +4,7 @@ import { getSiteSettings } from '../api/siteSettings'
 import { listPageSections } from '../api/pageSections'
 import InquiryForm from '../components/forms/InquiryForm'
 import MapPicker from '../components/MapPicker'
+import Seo from '../components/Seo'
 
 export default function Contact() {
   const { locale, t } = useLocale()
@@ -20,6 +21,7 @@ export default function Contact() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
+      <Seo title={t('contact.title')} />
       <h1 className="text-3xl font-bold mb-3">{t('contact.title')}</h1>
       <p className="text-gray-600 mb-8">{t('contact.subtitle')}</p>
 

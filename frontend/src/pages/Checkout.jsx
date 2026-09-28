@@ -10,6 +10,7 @@ import { errorMessage } from '../api/client'
 import StripePaymentForm from '../components/checkout/StripePaymentForm'
 import PayPalButton from '../components/checkout/PayPalButton'
 import MapPicker from '../components/MapPicker'
+import Seo from '../components/Seo'
 
 const NEW_ADDRESS = 'new'
 
@@ -200,6 +201,7 @@ export default function Checkout() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
+      <Seo title={t('checkout.title')} noindex />
       <h1 className="text-2xl font-bold mb-4">{t('checkout.title')}</h1>
 
       <div className="md:grid md:grid-cols-[1fr_320px] md:gap-8">

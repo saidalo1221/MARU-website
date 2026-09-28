@@ -4,6 +4,7 @@ import { verifyEmail } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
+import Seo from '../components/Seo'
 
 export default function VerifyEmail() {
   const { t } = useLocale()
@@ -40,6 +41,7 @@ export default function VerifyEmail() {
   if (status === 'verifying') {
     return (
       <div className="max-w-sm mx-auto px-4 py-12 text-center">
+        <Seo title={t('verifyEmail.title')} noindex />
         <p className="text-sm text-gray-600">{t('verifyEmail.verifying')}</p>
       </div>
     )

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { listMyOrders } from '../api/orders'
 import AccountNav from '../components/account/AccountNav'
+import Seo from '../components/Seo'
 
 export default function OrdersHistory() {
   const { t } = useLocale()
@@ -21,6 +22,7 @@ export default function OrdersHistory() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
+      <Seo title={t('ordersHistory.title')} noindex />
       <AccountNav />
       <h1 className="text-2xl font-bold mb-6">{t('ordersHistory.title')}</h1>
       {loading && <p>{t('ordersHistory.loading')}</p>}
