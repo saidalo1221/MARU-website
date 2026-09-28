@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '../../context/LocaleContext'
 import { listShippingCountries } from '../../api/shipping'
+import { listProducts } from '../../api/products'
 import { createQuote } from '../../api/quotes'
 import { errorMessage } from '../../api/client'
 
@@ -12,7 +13,6 @@ const emptyForm = {
   city: '',
   email: '',
   phone: '',
-  products: '',
   quantity: '',
   comment: '',
 }
@@ -24,18 +24,25 @@ const emptyForm = {
 // lockType hides the type selector for pages where it's implied by context
 // (e.g. the Distributor page always submits request_type="distributor").
 export default function InquiryForm({ defaultType = 'quote', lockType = false, ctaKey = 'quoteRequest.submit' }) {
-  const { t } = useLocale()
+  const { locale, t } = useLocale()
   const [form, setForm] = useState({ ...emptyForm, request_type: defaultType })
   const [countries, setCountries] = useState([])
+  const [products, setProducts] = useState([])
+  const [selectedProducts, setSelectedProducts] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)
 
   useEffect(() => {
     listShippingCountries().then(setCountries).catch(() => {})
-  }, [])
+    listProducts(locale).then(setProducts).catch(() => {})
+  }, [locale])
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
+
+  const toggleProduct = (name) => {
+    setSelectedProducts((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -47,7 +54,7 @@ export default function InquiryForm({ defaultType = 'quote', lockType = false, c
         company: form.company || null,
         city: form.city || null,
         phone: form.phone || null,
-        products: form.products || null,
+        products: selectedProducts.length ? selectedProducts.join(', ') : null,
         quantity: form.quantity || null,
         comment: form.comment || null,
       }
@@ -89,7 +96,18 @@ export default function InquiryForm({ defaultType = 'quote', lockType = false, c
       </div>
       <input required type="email" placeholder={t('checkout.email')} value={form.email} onChange={update('email')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
       <input type="tel" placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-      <textarea placeholder={t('quoteRequest.products')} value={form.products} onChange={update('products')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" rows={2} />
+      <div>
+        <p className="text-sm text-gray-600 mb-1">{t('quoteRequest.products')}</p>
+        <div className="border border-gray-300 rounded px-3 py-2 max-h-40 overflow-y-auto space-y-1">
+          {products.length === 0 && <p className="text-sm text-gray-400">{t('quoteRequest.productsLoading')}</p>}
+          {products.map((p) => (
+            <label key={p.id} className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={selectedProducts.includes(p.name)} onChange={() => toggleProduct(p.name)} />
+              {p.name}
+            </label>
+          ))}
+        </div>
+      </div>
       <input placeholder={t('quoteRequest.quantity')} value={form.quantity} onChange={update('quantity')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
       <textarea placeholder={t('quoteRequest.comment')} value={form.comment} onChange={update('comment')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" rows={3} />
       {error && <p className="text-sm text-red-600">{error}</p>}

@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import { checkout, confirmPayment, getPaymentMethods } from '../api/orders'
+import { listAddresses } from '../api/addresses'
 import { listShippingCountries, listShippingMethods } from '../api/shipping'
 import { errorMessage } from '../api/client'
 import StripePaymentForm from '../components/checkout/StripePaymentForm'
 import PayPalButton from '../components/checkout/PayPalButton'
 import MapPicker from '../components/MapPicker'
+
+const NEW_ADDRESS = 'new'
 
 const emptyForm = {
   order_type: 'individual',
@@ -29,6 +33,7 @@ const emptyForm = {
 }
 
 export default function Checkout() {
+  const { user } = useAuth()
   const { cart, refresh } = useCart()
   const { t } = useLocale()
   const navigate = useNavigate()
@@ -43,10 +48,46 @@ export default function Checkout() {
   const [checkoutResult, setCheckoutResult] = useState(null)
   const [paymentError, setPaymentError] = useState(null)
 
+  const [savedAddresses, setSavedAddresses] = useState([])
+  const [selectedAddressId, setSelectedAddressId] = useState(NEW_ADDRESS)
+
   useEffect(() => {
     listShippingCountries().then(setCountries).catch(() => {})
     getPaymentMethods().then(setPaymentMethods).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    listAddresses()
+      .then((addresses) => {
+        setSavedAddresses(addresses)
+        const preferred = addresses.find((a) => a.is_default) || addresses[0]
+        if (preferred) selectAddress(preferred.id, addresses)
+      })
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
+  const selectAddress = (id, addresses = savedAddresses) => {
+    if (id === NEW_ADDRESS) {
+      setSelectedAddressId(NEW_ADDRESS)
+      return
+    }
+    const address = addresses.find((a) => a.id === id)
+    if (!address) return
+    setSelectedAddressId(id)
+    setPin(address.latitude != null && address.longitude != null ? { latitude: address.latitude, longitude: address.longitude } : null)
+    setForm((f) => ({
+      ...f,
+      first_name: address.first_name,
+      last_name: address.last_name,
+      phone: address.phone,
+      country: address.country,
+      city: address.city,
+      address_line: address.address_line,
+      postal_code: address.postal_code,
+    }))
+  }
 
   useEffect(() => {
     if (!form.country) {
@@ -76,6 +117,15 @@ export default function Checkout() {
   }
 
   const enabledPaymentMethods = paymentMethods.filter((m) => m.enabled)
+
+  // Delivery methods come from the admin-configured ShippingRate table
+  // (free-text, not an enum) — translate the known values, fall back to the
+  // raw string for anything an admin names later.
+  const methodLabel = (m) => {
+    const key = `checkout.method.${m.toLowerCase()}`
+    const resolved = t(key)
+    return resolved === key ? m : resolved
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -194,30 +244,53 @@ export default function Checkout() {
 
           <fieldset className="grid grid-cols-2 gap-3">
             <legend className="font-semibold mb-2 col-span-2">{t('checkout.shippingAddress')}</legend>
-            <div className="col-span-2">
-              <MapPicker
-                latitude={pin?.latitude}
-                longitude={pin?.longitude}
-                onChange={setPin}
-                onReverseGeocode={({ country, city, addressLine, postalCode }) => {
-                  const matchedCountry = countries.find((c) => c.toLowerCase() === country.toLowerCase())
-                  setForm((f) => ({
-                    ...f,
-                    country: matchedCountry || f.country,
-                    city: city || f.city,
-                    address_line: addressLine || f.address_line,
-                    postal_code: postalCode || f.postal_code,
-                  }))
-                }}
-              />
-            </div>
-            <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
-              <option value="">{t('checkout.selectCountry')}</option>
-              {countries.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <input required placeholder={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input placeholder={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+
+            {savedAddresses.length > 0 && (
+              <div className="col-span-2 space-y-2 mb-2">
+                {savedAddresses.map((a) => (
+                  <label key={a.id} className="flex items-start gap-2 text-sm border border-gray-200 rounded px-3 py-2 cursor-pointer">
+                    <input type="radio" name="saved_address" checked={selectedAddressId === a.id} onChange={() => selectAddress(a.id)} className="mt-1" />
+                    <span>
+                      {a.label && <span className="font-medium">{a.label} · </span>}
+                      {a.first_name} {a.last_name} · {a.address_line}, {a.city}, {a.country} {a.postal_code}
+                    </span>
+                  </label>
+                ))}
+                <label className="flex items-center gap-2 text-sm border border-gray-200 rounded px-3 py-2 cursor-pointer">
+                  <input type="radio" name="saved_address" checked={selectedAddressId === NEW_ADDRESS} onChange={() => selectAddress(NEW_ADDRESS)} />
+                  {t('checkout.useNewAddress')}
+                </label>
+              </div>
+            )}
+
+            {selectedAddressId === NEW_ADDRESS && (
+              <>
+                <div className="col-span-2">
+                  <MapPicker
+                    latitude={pin?.latitude}
+                    longitude={pin?.longitude}
+                    onChange={setPin}
+                    onReverseGeocode={({ country, city, addressLine, postalCode }) => {
+                      const matchedCountry = countries.find((c) => c.toLowerCase() === country.toLowerCase())
+                      setForm((f) => ({
+                        ...f,
+                        country: matchedCountry || f.country,
+                        city: city || f.city,
+                        address_line: addressLine || f.address_line,
+                        postal_code: postalCode || f.postal_code,
+                      }))
+                    }}
+                  />
+                </div>
+                <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
+                  <option value="">{t('checkout.selectCountry')}</option>
+                  {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <input required placeholder={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+                <input placeholder={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+                <input required placeholder={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+              </>
+            )}
           </fieldset>
 
           <fieldset>
@@ -232,7 +305,7 @@ export default function Checkout() {
               <option value="">
                 {form.country ? t('checkout.selectDeliveryMethod') : t('checkout.selectCountryFirst')}
               </option>
-              {methods.map((m) => <option key={m} value={m}>{m}</option>)}
+              {methods.map((m) => <option key={m} value={m}>{methodLabel(m)}</option>)}
             </select>
           </fieldset>
 

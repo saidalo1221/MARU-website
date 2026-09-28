@@ -38,6 +38,7 @@ import AdminBlogPosts from './pages/admin/AdminBlogPosts'
 import AdminBlogPostDetail from './pages/admin/AdminBlogPostDetail'
 import AdminBlogCategories from './pages/admin/AdminBlogCategories'
 import AdminSiteSettings from './pages/admin/AdminSiteSettings'
+import AdminAboutSections from './pages/admin/AdminAboutSections'
 import AdminAdmins from './pages/admin/AdminAdmins'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductDetail from './pages/admin/AdminProductDetail'
@@ -96,6 +97,7 @@ export default function App() {
             <Route path="blog/posts/:postId" element={<AdminBlogPostDetail />} />
             <Route path="blog/categories" element={<AdminBlogCategories />} />
             <Route path="site-settings" element={<AdminSiteSettings />} />
+            <Route path="about-sections" element={<AdminAboutSections />} />
             <Route path="admins" element={<AdminAdmins />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/:productId" element={<AdminProductDetail />} />

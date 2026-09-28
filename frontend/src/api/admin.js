@@ -231,6 +231,29 @@ export function adminListAnalyticsEvents(eventName) {
   return apiRequest(`/admin/analytics-events/${qs}`)
 }
 
+// About sections
+export function adminListAboutSections() {
+  return apiRequest('/admin/about-sections')
+}
+export function adminCreateAboutSection(payload) {
+  return apiRequest('/admin/about-sections', { method: 'POST', body: payload })
+}
+export function adminUpdateAboutSection(sectionId, payload) {
+  return apiRequest(`/admin/about-sections/${sectionId}`, { method: 'PATCH', body: payload })
+}
+export function adminDeleteAboutSection(sectionId) {
+  return apiRequest(`/admin/about-sections/${sectionId}`, { method: 'DELETE' })
+}
+export function adminMoveAboutSection(sectionId, direction) {
+  return apiRequest(`/admin/about-sections/${sectionId}/move`, { method: 'POST', body: { direction } })
+}
+export function adminListAboutSectionTranslations(sectionId) {
+  return apiRequest(`/admin/about-sections/${sectionId}/translations`)
+}
+export function adminUpsertAboutSectionTranslation(sectionId, locale, payload) {
+  return apiRequest(`/admin/about-sections/${sectionId}/translations/${locale}`, { method: 'PUT', body: payload })
+}
+
 // Blog categories
 export function adminListBlogCategories() {
   return apiRequest('/admin/blog/categories')

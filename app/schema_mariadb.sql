@@ -591,3 +591,24 @@ CREATE TABLE site_settings_translations (
 	CONSTRAINT uq_site_settings_translations_settings_locale UNIQUE (site_settings_id, locale),
 	FOREIGN KEY(site_settings_id) REFERENCES site_settings (id) ON DELETE CASCADE
 )CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE about_sections (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	title VARCHAR(255) NOT NULL,
+	body TEXT NOT NULL,
+	sort_order INTEGER NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE about_section_translations (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	section_id BIGINT NOT NULL,
+	locale VARCHAR(10) NOT NULL,
+	title VARCHAR(255) NOT NULL,
+	body TEXT NOT NULL,
+	PRIMARY KEY (id),
+	CONSTRAINT uq_about_section_translations_section_locale UNIQUE (section_id, locale),
+	FOREIGN KEY(section_id) REFERENCES about_sections (id) ON DELETE CASCADE
+)CHARSET=utf8mb4 ENGINE=InnoDB;

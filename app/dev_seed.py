@@ -44,6 +44,8 @@ from app.models.blog_category import BlogCategory
 from app.models.blog_post import BlogPost
 from app.models.blog_post_translation import BlogPostTranslation
 from app.models.site_settings import SiteSettings
+from app.models.about_section import AboutSection
+from app.models.about_section_translation import AboutSectionTranslation
 from datetime import datetime, timedelta
 
 CATEGORIES_AND_PRODUCTS = [
@@ -148,6 +150,68 @@ BLOG_CATEGORIES_AND_POSTS = [
     ),
 ]
 
+# (title, body, {locale: (title, body)}) — the free-form About Us sections
+# (app/models/about_section.py), seeded with what used to be the hardcoded
+# History/Company/Production/Equipment/Quality/Products/Markets copy.
+ABOUT_SECTIONS = [
+    (
+        "History",
+        "MARU was founded to bring reliable, food-safe plastic packaging to local and regional markets.",
+        {
+            "ru": ("История", "MARU была основана, чтобы предложить надёжную, безопасную для пищевых продуктов упаковку на местном и региональном рынках."),
+            "uz": ("Tarix", "MARU mahalliy va mintaqaviy bozorlarga ishonchli, oziq-ovqat uchun xavfsiz plastik qadoqlashni yetkazib berish maqsadida tashkil etilgan."),
+        },
+    ),
+    (
+        "Company",
+        "We manufacture, package, and ship polypropylene food containers directly to businesses and individuals.",
+        {
+            "ru": ("Компания", "Мы производим, упаковываем и отправляем полипропиленовые контейнеры напрямую компаниям и частным клиентам."),
+            "uz": ("Kompaniya", "Biz polipropilen oziq-ovqat idishlarini ishlab chiqaramiz, qadoqlaymiz va to'g'ridan-to'g'ri kompaniyalar hamda yakka tartibdagi mijozlarga yetkazamiz."),
+        },
+    ),
+    (
+        "Production",
+        "Our containers are produced in-house, from raw polypropylene to the finished, packaged product.",
+        {
+            "ru": ("Производство", "Наши контейнеры производятся собственными силами — от сырого полипропилена до готовой упакованной продукции."),
+            "uz": ("Ishlab chiqarish", "Idishlarimiz xom polipropilendan tayyor, qadoqlangan mahsulotgacha o'zimizda ishlab chiqariladi."),
+        },
+    ),
+    (
+        "Equipment",
+        "We invest in modern injection-molding equipment to keep quality and output consistent.",
+        {
+            "ru": ("Оборудование", "Мы инвестируем в современное оборудование для литья под давлением, чтобы поддерживать стабильное качество и объёмы."),
+            "uz": ("Uskunalar", "Sifat va hajmni barqaror saqlash uchun zamonaviy quyma uskunalarga sarmoya kiritamiz."),
+        },
+    ),
+    (
+        "Quality",
+        "Every batch is checked for food-safety compliance before it reaches a customer.",
+        {
+            "ru": ("Качество", "Каждая партия проверяется на соответствие требованиям пищевой безопасности перед отправкой клиенту."),
+            "uz": ("Sifat", "Har bir partiya mijozga yetib borishidan oldin oziq-ovqat xavfsizligi talablariga muvofiqligi tekshiriladi."),
+        },
+    ),
+    (
+        "Products",
+        "Polypropylene containers from 350 ml to 1900 ml, in various shapes and colors.",
+        {
+            "ru": ("Продукция", "Полипропиленовые контейнеры от 350 до 1900 мл различных форм и цветов."),
+            "uz": ("Mahsulotlar", "350 ml dan 1900 ml gacha turli shakl va rangdagi polipropilen idishlar."),
+        },
+    ),
+    (
+        "Markets",
+        "Serving retail, wholesale, and distributor customers in Uzbekistan and beyond.",
+        {
+            "ru": ("Рынки", "Обслуживаем розничных, оптовых клиентов и дистрибьюторов в Узбекистане и за его пределами."),
+            "uz": ("Bozorlar", "O'zbekiston va undan tashqarida chakana, ulgurji va distribyutor mijozlarga xizmat ko'rsatamiz."),
+        },
+    ),
+]
+
 
 def run() -> None:
     Base.metadata.create_all(bind=engine)
@@ -230,6 +294,13 @@ def run() -> None:
             about_body="We manufacture polypropylene food containers in-house.",
         )
     )
+
+    for order, (title, body, translations) in enumerate(ABOUT_SECTIONS, start=1):
+        section = AboutSection(title=title, body=body, sort_order=order)
+        db.add(section)
+        db.flush()
+        for locale, (t_title, t_body) in translations.items():
+            db.add(AboutSectionTranslation(section_id=section.id, locale=locale, title=t_title, body=t_body))
 
     db.commit()
     print("Seeded dev catalog.")

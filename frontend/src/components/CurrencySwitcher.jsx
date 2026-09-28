@@ -1,14 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import { ApiError } from '../api/client'
+import { listExchangeRates } from '../api/exchangeRates'
 
-const CANDIDATE_CURRENCIES = ['USD', 'UZS', 'EUR', 'KZT', 'AED']
-
+// USD is the implicit base currency (app/services/currency.py) and never
+// has its own ExchangeRate row, so it's always offered even if the admin
+// hasn't configured any rates yet.
 export default function CurrencySwitcher() {
   const { cart, setCurrency } = useCart()
   const { t } = useLocale()
   const [error, setError] = useState(null)
+  const [currencies, setCurrencies] = useState(['USD'])
+
+  useEffect(() => {
+    listExchangeRates()
+      .then((rates) => setCurrencies(['USD', ...rates.map((r) => r.currency)]))
+      .catch(() => {})
+  }, [])
 
   if (!cart) return null
 
@@ -30,7 +39,7 @@ export default function CurrencySwitcher() {
         className="bg-transparent text-sm border border-gray-300 rounded px-2 py-1"
         aria-label={t('currency.ariaLabel')}
       >
-        {CANDIDATE_CURRENCIES.map((code) => (
+        {currencies.map((code) => (
           <option key={code} value={code}>
             {code}
           </option>

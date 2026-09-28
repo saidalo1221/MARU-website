@@ -5,6 +5,8 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 
 from app.routers import (
+    about_sections,
+    admin_about_sections,
     admin_analytics_events,
     admin_audit,
     admin_blog,
@@ -64,6 +66,8 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # breaking change, per §101's deprecation-not-immediate-removal policy.
 api_v1 = APIRouter(prefix="/api/v1")
 
+api_v1.include_router(about_sections.router)
+api_v1.include_router(admin_about_sections.router)
 api_v1.include_router(admin_analytics_events.router)
 api_v1.include_router(admin_audit.router)
 api_v1.include_router(admin_blog.router)

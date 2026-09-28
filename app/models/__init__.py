@@ -37,6 +37,8 @@ from app.models.blog_post_translation import BlogPostTranslation
 from app.models.admin_login_code import AdminLoginCode
 from app.models.site_settings import SiteSettings
 from app.models.site_settings_translation import SiteSettingsTranslation
+from app.models.about_section import AboutSection
+from app.models.about_section_translation import AboutSectionTranslation
 
 __all__ = [
     "Category",
@@ -87,4 +89,6 @@ __all__ = [
     "AdminLoginCode",
     "SiteSettings",
     "SiteSettingsTranslation",
+    "AboutSection",
+    "AboutSectionTranslation",
 ]
