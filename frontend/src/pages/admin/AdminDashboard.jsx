@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-1">{t('admin.nav.dashboard')}</h1>
-      <p className="text-sm text-gray-500 mb-6">{t('admin.signedInAs', { email: user.email, role: user.role })}</p>
+      <p className="text-sm text-gray-500 mb-6">{t('admin.signedInAs', { email: user?.email, role: user?.role })}</p>
       <div className="grid sm:grid-cols-2 gap-4">
         {cards.map(([to, title, desc]) => (
           <Link key={to} to={to} className="border border-gray-200 rounded-lg p-4 hover:border-brand">

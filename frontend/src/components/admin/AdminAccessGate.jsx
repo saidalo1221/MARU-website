@@ -70,7 +70,12 @@ export default function AdminAccessGate({ children }) {
 
   if (phase === 'checking') return null
 
-  if (phase === 'granted') return children
+  // Guard against the one-render gap between `user` turning null (e.g. on
+  // logout) and this component's effect reacting to it and resetting phase
+  // away from 'granted' — without this, admin subpages that read `user.*`
+  // unguarded (assuming AdminAccessGate already excluded a logged-out state)
+  // crash the whole tree to a blank screen for that render.
+  if (phase === 'granted' && user) return children
 
   return (
     <div className="max-w-sm mx-auto px-4 py-16">
