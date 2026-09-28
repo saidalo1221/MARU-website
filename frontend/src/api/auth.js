@@ -37,3 +37,11 @@ export function forgotPassword(email) {
 export function resetPassword(token, newPassword) {
   return apiRequest('/auth/reset-password', { method: 'POST', body: { token, new_password: newPassword } })
 }
+
+export function verifyEmail(token) {
+  return apiRequest('/auth/verify-email', { method: 'POST', body: { token } })
+}
+
+export function resendVerification() {
+  return apiRequest('/auth/resend-verification', { method: 'POST' })
+}

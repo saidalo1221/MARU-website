@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
+import EmailVerifyBanner from './components/layout/EmailVerifyBanner'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
@@ -14,6 +15,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import VerifyEmail from './pages/VerifyEmail'
 import OrdersHistory from './pages/OrdersHistory'
 import Wishlist from './pages/Wishlist'
 import Addresses from './pages/Addresses'
@@ -58,6 +60,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <EmailVerifyBanner />
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -73,6 +76,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/account/orders" element={<OrdersHistory />} />
           <Route path="/account/wishlist" element={<Wishlist />} />
           <Route path="/account/addresses" element={<Addresses />} />
