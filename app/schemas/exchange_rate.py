@@ -6,7 +6,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 class ExchangeRateCreate(BaseModel):
     currency: str = Field(min_length=3, max_length=3)
-    units_per_usd: Decimal = Field(gt=0)
+    # Optional: when omitted, the rate is fetched live from the FX provider
+    # (app/services/fx_provider.py) instead of requiring the admin to type
+    # one in. Still accepted for currencies the provider doesn't support.
+    units_per_usd: Decimal | None = Field(default=None, gt=0)
 
     @field_validator("currency")
     @classmethod
@@ -15,6 +18,11 @@ class ExchangeRateCreate(BaseModel):
         if v == "USD":
             raise ValueError("USD is the implicit base currency and doesn't need a rate")
         return v
+
+
+class CurrencyOption(BaseModel):
+    code: str
+    name: str
 
 
 class ExchangeRateUpdate(BaseModel):

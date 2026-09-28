@@ -52,6 +52,10 @@ CREATE TABLE page_sections (
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
+-- Warehouse location, for the admin map picker.
+ALTER TABLE warehouses ADD COLUMN latitude FLOAT;
+ALTER TABLE warehouses ADD COLUMN longitude FLOAT;
+
 CREATE TABLE page_section_translations (
 	id BIGINT NOT NULL AUTO_INCREMENT,
 	section_id BIGINT NOT NULL,

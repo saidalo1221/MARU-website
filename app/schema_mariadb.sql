@@ -156,12 +156,14 @@ CREATE TABLE login_device_codes (
 CREATE TABLE warehouses (
 	id BIGINT NOT NULL AUTO_INCREMENT, 
 	name VARCHAR(255) NOT NULL, 
-	country VARCHAR(100) NOT NULL, 
-	address TEXT, 
-	priority INTEGER NOT NULL, 
-	is_active BOOL NOT NULL, 
-	created_at DATETIME NOT NULL DEFAULT now(), 
-	updated_at DATETIME NOT NULL DEFAULT now(), 
+	country VARCHAR(100) NOT NULL,
+	address TEXT,
+	latitude FLOAT,
+	longitude FLOAT,
+	priority INTEGER NOT NULL,
+	is_active BOOL NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 

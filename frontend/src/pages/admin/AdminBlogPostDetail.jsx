@@ -6,6 +6,7 @@ import {
   adminListBlogCategories,
   adminListBlogPostTranslations,
   adminUpdateBlogPost,
+  adminUploadImage,
   adminUpsertBlogPostTranslation,
 } from '../../api/admin'
 import { errorMessage } from '../../api/client'
@@ -26,6 +27,8 @@ export default function AdminBlogPostDetail() {
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState(null)
 
   const [activeLocale, setActiveLocale] = useState('ru')
   const [translations, setTranslations] = useState({})
@@ -92,6 +95,22 @@ export default function AdminBlogPostDetail() {
     }
   }
 
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const { url } = await adminUploadImage(file)
+      setForm((f) => ({ ...f, cover_image_url: url }))
+    } catch (err) {
+      setUploadError(errorMessage(err, t('admin.blog.uploadFailed')))
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
   const handleDelete = async () => {
     try {
       await adminDeleteBlogPost(postId)
@@ -135,7 +154,15 @@ export default function AdminBlogPostDetail() {
         <input placeholder={t('admin.common.name')} value={form.title} onChange={update('title')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
         <input placeholder={t('admin.blog.slug')} value={form.slug} onChange={update('slug')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
         <input placeholder={t('admin.blog.authorName')} value={form.author_name} onChange={update('author_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input placeholder={t('admin.blog.coverImageUrl')} value={form.cover_image_url} onChange={update('cover_image_url')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+        <div className="flex items-center gap-2">
+          <input placeholder={t('admin.blog.coverImageUrl')} value={form.cover_image_url} onChange={update('cover_image_url')} className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs w-28" />
+        </div>
+        {uploading && <p className="col-span-2 text-xs text-gray-500">{t('admin.blog.uploading')}</p>}
+        {uploadError && <p className="col-span-2 text-xs text-red-600">{uploadError}</p>}
+        {form.cover_image_url && (
+          <img src={form.cover_image_url} alt="" className="col-span-2 h-24 object-cover rounded border border-gray-200" />
+        )}
         <textarea placeholder={t('admin.blog.excerpt')} value={form.excerpt} onChange={update('excerpt')} rows={2} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
         <textarea placeholder={t('admin.blog.content')} value={form.content} onChange={update('content')} rows={8} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
         <label className="flex items-center gap-2 text-sm">

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { adminCreateWarehouse, adminListWarehouses, adminUpdateWarehouse } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import MapPicker from '../../components/MapPicker'
 
-const emptyForm = { name: '', country: '', address: '', priority: 100, is_active: true }
+const emptyForm = { name: '', country: '', address: '', latitude: null, longitude: null, priority: 100, is_active: true }
 
 export default function AdminWarehouses() {
   const { t } = useLocale()
@@ -26,7 +27,20 @@ export default function AdminWarehouses() {
   }
 
   const openNew = () => { setEditingId(null); setForm(emptyForm); setFormError(null); setFormOpen(true) }
-  const openEdit = (w) => { setEditingId(w.id); setForm({ name: w.name, country: w.country, address: w.address || '', priority: w.priority, is_active: w.is_active }); setFormError(null); setFormOpen(true) }
+  const openEdit = (w) => {
+    setEditingId(w.id)
+    setForm({
+      name: w.name,
+      country: w.country,
+      address: w.address || '',
+      latitude: w.latitude,
+      longitude: w.longitude,
+      priority: w.priority,
+      is_active: w.is_active,
+    })
+    setFormError(null)
+    setFormOpen(true)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -60,6 +74,21 @@ export default function AdminWarehouses() {
           <input required placeholder={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
           <input required placeholder={t('admin.common.country')} value={form.country} onChange={update('country')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
           <input placeholder={t('admin.warehouses.address')} value={form.address} onChange={update('address')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">{t('admin.warehouses.location')}</label>
+            <MapPicker
+              latitude={form.latitude}
+              longitude={form.longitude}
+              onChange={({ latitude, longitude }) => setForm((f) => ({ ...f, latitude, longitude }))}
+              onReverseGeocode={({ country, addressLine }) => {
+                setForm((f) => ({
+                  ...f,
+                  country: country || f.country,
+                  address: addressLine || f.address,
+                }))
+              }}
+            />
+          </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">{t('admin.warehouses.priority')}</label>
             <input type="number" min="0" value={form.priority} onChange={update('priority')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />

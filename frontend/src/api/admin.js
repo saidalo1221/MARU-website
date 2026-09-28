@@ -194,6 +194,9 @@ export function adminUpdateExchangeRate(rateId, unitsPerUsd) {
 export function adminSyncExchangeRates() {
   return apiRequest('/admin/exchange-rates/sync', { method: 'POST' })
 }
+export function adminListAvailableCurrencies() {
+  return apiRequest('/admin/exchange-rates/available-currencies')
+}
 
 // Notification templates
 export function adminListNotificationTemplates(event) {

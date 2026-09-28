@@ -1,7 +1,77 @@
-import { useEffect, useState } from 'react'
-import { adminCreateExchangeRate, adminListExchangeRates, adminSyncExchangeRates, adminUpdateExchangeRate } from '../../api/admin'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  adminCreateExchangeRate,
+  adminListAvailableCurrencies,
+  adminListExchangeRates,
+  adminSyncExchangeRates,
+  adminUpdateExchangeRate,
+} from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+
+const MAX_SUGGESTIONS = 8
+
+// Type-to-filter picker over the FX provider's currency list, same
+// interaction shape as the storefront's product SearchBar — search box +
+// dropdown of matches, click to select.
+function CurrencyPicker({ onSelect }) {
+  const { t } = useLocale()
+  const [all, setAll] = useState([])
+  const [loadError, setLoadError] = useState(null)
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    adminListAvailableCurrencies()
+      .then(setAll)
+      .catch((err) => setLoadError(errorMessage(err, t('admin.exchangeRates.currenciesLoadFailed'))))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return all
+      .filter((c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q))
+      .slice(0, MAX_SUGGESTIONS)
+  }, [all, query])
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        placeholder={t('admin.exchangeRates.searchCurrency')}
+        value={query}
+        onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        className="border border-gray-300 rounded px-3 py-2 text-sm w-64"
+      />
+      {loadError && <p className="text-xs text-red-600 mt-1">{loadError}</p>}
+      {open && suggestions.length > 0 && (
+        <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-hidden max-h-64 overflow-y-auto">
+          {suggestions.map((c) => (
+            <li key={c.code}>
+              <button
+                type="button"
+                onClick={() => { onSelect(c); setQuery(''); setOpen(false) }}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+              >
+                <span className="font-medium">{c.code}</span> — {c.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 export default function AdminExchangeRates() {
   const { t } = useLocale()
@@ -11,9 +81,11 @@ export default function AdminExchangeRates() {
   const [syncing, setSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState(null)
 
-  const [newForm, setNewForm] = useState({ currency: '', units_per_usd: '' })
+  const [selectedCurrency, setSelectedCurrency] = useState(null)
   const [newOpen, setNewOpen] = useState(false)
   const [newError, setNewError] = useState(null)
+  const [adding, setAdding] = useState(false)
+  const [manualRate, setManualRate] = useState('')
 
   const load = () => adminListExchangeRates().then(setRates).catch((err) => setError(errorMessage(err, t('admin.exchangeRates.loadFailed')))).finally(() => setLoading(false))
   useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -41,17 +113,31 @@ export default function AdminExchangeRates() {
     }
   }
 
-  const addRate = async (e) => {
-    e.preventDefault()
+  const addCurrency = async (currency, rate) => {
     setNewError(null)
+    setAdding(true)
     try {
-      await adminCreateExchangeRate({ currency: newForm.currency, units_per_usd: Number(newForm.units_per_usd) })
-      setNewForm({ currency: '', units_per_usd: '' })
+      const payload = rate ? { currency, units_per_usd: Number(rate) } : { currency }
+      await adminCreateExchangeRate(payload)
+      setSelectedCurrency(null)
+      setManualRate('')
       setNewOpen(false)
       await load()
     } catch (err) {
       setNewError(errorMessage(err, t('admin.exchangeRates.addFailed')))
+    } finally {
+      setAdding(false)
     }
+  }
+
+  const handlePickCurrency = (currency) => {
+    setSelectedCurrency(currency)
+    addCurrency(currency.code)
+  }
+
+  const handleManualSave = (e) => {
+    e.preventDefault()
+    if (selectedCurrency) addCurrency(selectedCurrency.code, manualRate)
   }
 
   return (
@@ -71,13 +157,42 @@ export default function AdminExchangeRates() {
       {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
 
       {newOpen && (
-        <form onSubmit={addRate} className="border border-gray-200 rounded-lg p-4 mb-6 flex gap-2 items-start">
-          <input required placeholder={t('admin.exchangeRates.currency')} maxLength={3} value={newForm.currency} onChange={(e) => setNewForm((f) => ({ ...f, currency: e.target.value.toUpperCase() }))} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input required type="number" step="0.0001" min="0" placeholder={t('admin.exchangeRates.unitsPerUsd')} value={newForm.units_per_usd} onChange={(e) => setNewForm((f) => ({ ...f, units_per_usd: e.target.value }))} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <button type="submit" className="bg-brand text-white px-4 py-2 rounded text-sm">{t('admin.productDetail.add')}</button>
-          <button type="button" onClick={() => setNewOpen(false)} className="border border-gray-300 rounded px-4 py-2 text-sm">{t('admin.common.cancel')}</button>
-          {newError && <p className="text-red-600 text-sm">{newError}</p>}
-        </form>
+        <div className="border border-gray-200 rounded-lg p-4 mb-6">
+          <div className="flex gap-2 items-start">
+            <CurrencyPicker onSelect={handlePickCurrency} />
+            <button
+              type="button"
+              onClick={() => { setNewOpen(false); setSelectedCurrency(null); setNewError(null) }}
+              className="border border-gray-300 rounded px-4 py-2 text-sm"
+            >
+              {t('admin.common.cancel')}
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">{t('admin.exchangeRates.autoRateHint')}</p>
+          {adding && <p className="text-sm mt-2">{t('admin.exchangeRates.fetchingRate')}</p>}
+          {newError && (
+            <div className="mt-3">
+              <p className="text-red-600 text-sm mb-2">{newError}</p>
+              {selectedCurrency && (
+                <form onSubmit={handleManualSave} className="flex gap-2 items-start">
+                  <input
+                    required
+                    type="number"
+                    step="0.0001"
+                    min="0"
+                    placeholder={t('admin.exchangeRates.unitsPerUsd')}
+                    value={manualRate}
+                    onChange={(e) => setManualRate(e.target.value)}
+                    className="border border-gray-300 rounded px-3 py-2 text-sm"
+                  />
+                  <button type="submit" className="bg-brand text-white px-4 py-2 rounded text-sm">
+                    {t('admin.exchangeRates.saveManualRate', { currency: selectedCurrency.code })}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {!loading && (

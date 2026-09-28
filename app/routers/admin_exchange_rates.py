@@ -8,8 +8,8 @@ from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.exchange_rate import ExchangeRate
 from app.models.user import User
-from app.schemas.exchange_rate import ExchangeRateCreate, ExchangeRateOut, ExchangeRateUpdate
-from app.services.fx_provider import FxProviderError, sync_exchange_rates
+from app.schemas.exchange_rate import CurrencyOption, ExchangeRateCreate, ExchangeRateOut, ExchangeRateUpdate
+from app.services.fx_provider import FxProviderError, fetch_rate_for_currency, fetch_supported_currencies, sync_exchange_rates
 
 # Gated to Product Manager, who PRD section 34 assigns "Каталог и цены" (catalog and pricing).
 router = APIRouter(prefix="/admin/exchange-rates", tags=["admin-exchange-rates"])
@@ -29,13 +29,32 @@ def list_exchange_rates(
     return list(rates)
 
 
+@router.get("/available-currencies", response_model=list[CurrencyOption])
+def list_available_currencies(
+    user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
+) -> list[dict[str, str]]:
+    """Backs the searchable currency picker on "Add Currency" — every
+    code/name pair the FX provider supports, not just ones already added."""
+    try:
+        return fetch_supported_currencies()
+    except FxProviderError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+
+
 @router.post("/", response_model=ExchangeRateOut, status_code=status.HTTP_201_CREATED)
 def create_exchange_rate(
     payload: ExchangeRateCreate,
     user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
     db: Session = Depends(get_db),
 ) -> ExchangeRate:
-    rate = ExchangeRate(**payload.model_dump())
+    units_per_usd = payload.units_per_usd
+    if units_per_usd is None:
+        try:
+            units_per_usd = fetch_rate_for_currency(payload.currency)
+        except FxProviderError as exc:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+
+    rate = ExchangeRate(currency=payload.currency, units_per_usd=units_per_usd)
     db.add(rate)
     try:
         db.commit()

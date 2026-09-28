@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, Integer, String, Text, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, Integer, String, Text, func
 
 from app.database import Base
 
@@ -17,6 +17,8 @@ class Warehouse(Base):
     name = Column(String(255), nullable=False)
     country = Column(String(100), nullable=False)
     address = Column(Text, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     priority = Column(Integer, nullable=False, default=100)
     is_active = Column(Boolean, nullable=False, default=True)
 
