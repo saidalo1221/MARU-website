@@ -551,6 +551,7 @@ CREATE TABLE blog_post_translations (
 	id BIGINT NOT NULL AUTO_INCREMENT,
 	post_id BIGINT NOT NULL,
 	locale VARCHAR(10) NOT NULL,
+	slug VARCHAR(255),
 	title VARCHAR(255) NOT NULL,
 	excerpt TEXT,
 	content TEXT NOT NULL,

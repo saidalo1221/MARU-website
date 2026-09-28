@@ -4,6 +4,7 @@ import { requestAdminCode, verifyAdminCode } from '../../api/auth'
 import { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { useLocale } from '../../context/LocaleContext'
+import PasswordInput from '../PasswordInput'
 
 // Gates the admin panel behind the 2-step email login (password, then a code
 // emailed to that account) required by app/dependencies.py's require_role()
@@ -94,9 +95,8 @@ export default function AdminAccessGate({ children }) {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
           />
-          <input
+          <PasswordInput
             required
-            type="password"
             placeholder={t('admin.login.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}

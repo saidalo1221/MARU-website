@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { resetPassword } from '../api/auth'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
+import PasswordInput from '../components/PasswordInput'
 
 export default function ResetPassword() {
   const { t } = useLocale()
@@ -53,9 +54,8 @@ export default function ResetPassword() {
     <div className="max-w-sm mx-auto px-4 py-12">
       <h1 className="text-2xl font-bold mb-6">{t('resetPassword.title')}</h1>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <input
+        <PasswordInput
           required
-          type="password"
           minLength={8}
           placeholder={t('resetPassword.newPassword')}
           value={password}

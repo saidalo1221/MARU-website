@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.blog_category import BlogCategory
 from app.models.blog_post import BlogPost
+from app.models.blog_post_translation import BlogPostTranslation
 from app.schemas.blog import BlogCategoryOut, BlogPostDetail, BlogPostSummary, BlogPostWithRelated
 from app.services.i18n import get_blog_post_translation, get_blog_post_translations
 
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/blog", tags=["blog"])
 def _apply_translation(post: BlogPost, translation) -> dict:
     return {
         "id": post.id,
-        "slug": post.slug,
+        "slug": (translation.slug if translation and translation.slug else post.slug),
         "title": translation.title if translation else post.title,
         "excerpt": translation.excerpt if translation else post.excerpt,
         "content": translation.content if translation else post.content,
@@ -74,6 +75,19 @@ def get_blog_post(slug: str, lang: str | None = None, db: Session = Depends(get_
     )
     try:
         post = db.execute(stmt).unique().scalar_one_or_none()
+        # Not the base (default-language) slug — try a per-locale translated
+        # slug instead, so a post linked with its Russian/Uzbek slug still
+        # resolves regardless of which locale is currently selected.
+        if post is None:
+            translated_slug_post_id = db.execute(
+                select(BlogPostTranslation.post_id).where(BlogPostTranslation.slug == slug)
+            ).scalar_one_or_none()
+            if translated_slug_post_id is not None:
+                post = db.execute(
+                    select(BlogPost)
+                    .where(BlogPost.id == translated_slug_post_id, BlogPost.is_published.is_(True))
+                    .options(joinedload(BlogPost.category))
+                ).unique().scalar_one_or_none()
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to fetch blog post") from exc

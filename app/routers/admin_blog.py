@@ -213,6 +213,17 @@ def upsert_post_translation(
     if db.get(BlogPost, post_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
+    if payload.slug:
+        conflict = db.execute(
+            select(BlogPostTranslation.id).where(
+                BlogPostTranslation.locale == locale,
+                BlogPostTranslation.slug == payload.slug,
+                BlogPostTranslation.post_id != post_id,
+            )
+        ).scalar_one_or_none()
+        if conflict is not None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Slug already exists for this locale")
+
     try:
         translation = db.execute(
             select(BlogPostTranslation).where(

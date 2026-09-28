@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { ApiError } from '../api/client'
+import PasswordInput from '../components/PasswordInput'
 
 export default function Login() {
   const { login } = useAuth()
@@ -34,7 +35,7 @@ export default function Login() {
       <h1 className="text-2xl font-bold mb-6">{t('login.title')}</h1>
       <form onSubmit={handleSubmit} className="space-y-3">
         <input required type="email" placeholder={t('checkout.email')} value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input required type="password" placeholder={t('login.password')} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <PasswordInput required placeholder={t('login.password')} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <div className="text-right">
           <Link to="/forgot-password" className="text-xs text-brand">{t('forgotPassword.link')}</Link>
         </div>

@@ -12,7 +12,7 @@ import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 
 const LOCALES = ['ru', 'uz', 'en']
-const emptyTranslation = { title: '', excerpt: '', content: '' }
+const emptyTranslation = { slug: '', title: '', excerpt: '', content: '' }
 
 export default function AdminBlogPostDetail() {
   const { postId } = useParams()
@@ -58,7 +58,7 @@ export default function AdminBlogPostDetail() {
 
   useEffect(() => {
     const existing = translations[activeLocale]
-    setTranslationForm(existing ? { title: existing.title, excerpt: existing.excerpt || '', content: existing.content } : emptyTranslation)
+    setTranslationForm(existing ? { slug: existing.slug || '', title: existing.title, excerpt: existing.excerpt || '', content: existing.content } : emptyTranslation)
     setTranslationError(null)
   }, [activeLocale, translations])
 
@@ -108,7 +108,12 @@ export default function AdminBlogPostDetail() {
     setTranslationError(null)
     setTranslationSaving(true)
     try {
-      const payload = { title: translationForm.title, excerpt: translationForm.excerpt || null, content: translationForm.content }
+      const payload = {
+        slug: translationForm.slug || null,
+        title: translationForm.title,
+        excerpt: translationForm.excerpt || null,
+        content: translationForm.content,
+      }
       const saved = await adminUpsertBlogPostTranslation(postId, activeLocale, payload)
       setTranslations((t2) => ({ ...t2, [activeLocale]: saved }))
     } catch (err) {
@@ -159,6 +164,7 @@ export default function AdminBlogPostDetail() {
         ))}
       </div>
       <form onSubmit={handleTranslationSave} className="border border-gray-200 rounded-lg p-4 space-y-3">
+        <input placeholder={t('admin.blog.slugTranslated')} value={translationForm.slug} onChange={updateTranslation('slug')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <input required placeholder={t('admin.common.name')} value={translationForm.title} onChange={updateTranslation('title')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <textarea placeholder={t('admin.blog.excerpt')} value={translationForm.excerpt} onChange={updateTranslation('excerpt')} rows={2} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <textarea required placeholder={t('admin.blog.content')} value={translationForm.content} onChange={updateTranslation('content')} rows={8} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />

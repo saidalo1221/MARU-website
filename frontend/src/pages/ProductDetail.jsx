@@ -160,7 +160,7 @@ export default function ProductDetail() {
               <button
                 onClick={handleToggleWishlist}
                 aria-label={wishlisted ? t('wishlist.remove') : t('wishlist.add')}
-                className={`border rounded px-4 py-3 font-medium ${wishlisted ? 'border-red-400 text-red-500' : 'border-gray-300 text-gray-500'}`}
+                className={`border rounded px-4 py-3 font-medium text-xl leading-none ${wishlisted ? 'border-red-400 text-red-500' : 'border-gray-300 text-gray-500'}`}
               >
                 {wishlisted ? '♥' : '♡'}
               </button>

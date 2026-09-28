@@ -87,6 +87,7 @@ class BlogPostAdminOut(BaseModel):
 
 
 class BlogPostTranslationIn(BaseModel):
+    slug: str | None = Field(default=None, max_length=255)
     title: str = Field(min_length=1, max_length=255)
     excerpt: str | None = None
     content: str = Field(min_length=1)
@@ -97,6 +98,7 @@ class BlogPostTranslationOut(BaseModel):
 
     post_id: int
     locale: str
+    slug: str | None
     title: str
     excerpt: str | None
     content: str

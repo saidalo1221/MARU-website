@@ -23,7 +23,7 @@ export default function Header() {
         <div className="flex-1">
           <SearchBar />
         </div>
-        <Link to="/account/wishlist" className="px-2" aria-label={t('header.wishlist')}>
+        <Link to="/account/wishlist" className="px-2 text-lg" aria-label={t('header.wishlist')}>
           ♡
         </Link>
         <Link to="/cart" className="relative px-2" aria-label={t('header.cart')}>
@@ -72,7 +72,7 @@ export default function Header() {
               {t('header.login')}
             </Link>
           )}
-          <Link to="/account/wishlist" className="text-sm" aria-label={t('header.wishlist')}>
+          <Link to="/account/wishlist" className="text-lg" aria-label={t('header.wishlist')}>
             ♡
           </Link>
           <Link to="/cart" className="relative text-sm">

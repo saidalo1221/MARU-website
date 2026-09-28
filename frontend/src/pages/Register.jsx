@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
+import PasswordInput from '../components/PasswordInput'
 
 const emptyForm = { email: '', password: '', first_name: '', last_name: '', phone: '' }
 
@@ -40,7 +41,7 @@ export default function Register() {
         <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <input placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <input required type="email" placeholder={t('checkout.email')} value={form.email} onChange={update('email')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input required type="password" placeholder={t('login.password')} value={form.password} onChange={update('password')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <PasswordInput required placeholder={t('login.password')} value={form.password} onChange={update('password')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
           {submitting ? t('register.submitting') : t('register.submit')}
