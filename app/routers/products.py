@@ -23,6 +23,12 @@ def _apply_translation(product: Product, translation: ProductTranslation | None)
         out.name = translation.name
         if translation.description is not None:
             out.description = translation.description
+        if translation.shape is not None:
+            out.shape = translation.shape
+        if translation.purpose is not None:
+            out.purpose = translation.purpose
+        if translation.country_of_origin is not None:
+            out.country_of_origin = translation.country_of_origin
     return out
 
 

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import * as cartApi from '../api/cart'
 
 const CartContext = createContext(null)
@@ -8,11 +8,18 @@ export function CartProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const refresh = useCallback(async (opts) => {
+  // A promo code applied on the Cart page must survive later refresh() calls
+  // (e.g. Checkout re-pricing when the buyer picks a country/delivery
+  // method) or the discount silently disappears once checkout is reached.
+  // Kept in a ref rather than state so refresh's identity stays stable.
+  const promoCodeRef = useRef(null)
+
+  const refresh = useCallback(async (opts = {}) => {
+    if ('promoCode' in opts) promoCodeRef.current = opts.promoCode || null
     setLoading(true)
     setError(null)
     try {
-      const data = await cartApi.getCart(opts)
+      const data = await cartApi.getCart({ ...opts, promoCode: promoCodeRef.current })
       setCart(data)
       return data
     } catch (err) {

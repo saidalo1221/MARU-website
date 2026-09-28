@@ -5,7 +5,7 @@
 // whenever new user-facing copy is added anywhere in the app.
 export const translations = {
   en: {
-    header: { shop: 'Shop', login: 'Login', logout: 'Logout', account: 'Account', cart: 'Cart', openMenu: 'Open menu', admin: 'Admin' },
+    header: { shop: 'Shop', login: 'Login', logout: 'Logout', account: 'Account', cart: 'Cart', openMenu: 'Open menu', admin: 'Admin', orders: 'Orders', addresses: 'Addresses', wishlist: 'Wishlist' },
     footer: {
       tagline: 'Plastic food containers, made in-house.',
       orders: 'Orders',
@@ -833,7 +833,7 @@ export const translations = {
     },
   },
   ru: {
-    header: { shop: 'Магазин', login: 'Войти', logout: 'Выйти', account: 'Аккаунт', cart: 'Корзина', openMenu: 'Открыть меню', admin: 'Админка' },
+    header: { shop: 'Магазин', login: 'Войти', logout: 'Выйти', account: 'Аккаунт', cart: 'Корзина', openMenu: 'Открыть меню', admin: 'Админка', orders: 'Заказы', addresses: 'Адреса', wishlist: 'Избранное' },
     footer: {
       tagline: 'Пластиковые контейнеры для пищевых продуктов собственного производства.',
       orders: 'Заказы',
@@ -1661,7 +1661,7 @@ export const translations = {
     },
   },
   uz: {
-    header: { shop: "Do'kon", login: 'Kirish', logout: 'Chiqish', account: 'Kabinet', cart: 'Savat', openMenu: 'Menyuni ochish', admin: 'Admin panel' },
+    header: { shop: "Do'kon", login: 'Kirish', logout: 'Chiqish', account: 'Kabinet', cart: 'Savat', openMenu: 'Menyuni ochish', admin: 'Admin panel', orders: 'Buyurtmalar', addresses: 'Manzillar', wishlist: 'Sevimlilar' },
     footer: {
       tagline: "O'z ishlab chiqarishimizdagi oziq-ovqat uchun plastik idishlar.",
       orders: 'Buyurtmalar',

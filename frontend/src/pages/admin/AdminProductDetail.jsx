@@ -298,7 +298,7 @@ function VariantBlock({ variant, warehouses, onChanged }) {
 }
 
 const TRANSLATION_LOCALES = ['ru', 'uz', 'en']
-const emptyTranslation = { name: '', description: '' }
+const emptyTranslation = { name: '', description: '', shape: '', purpose: '', country_of_origin: '' }
 
 function ProductTranslations({ productId }) {
   const { t } = useLocale()
@@ -319,7 +319,17 @@ function ProductTranslations({ productId }) {
 
   useEffect(() => {
     const existing = translations[activeLocale]
-    setTranslationForm(existing ? { name: existing.name, description: existing.description || '' } : emptyTranslation)
+    setTranslationForm(
+      existing
+        ? {
+            name: existing.name,
+            description: existing.description || '',
+            shape: existing.shape || '',
+            purpose: existing.purpose || '',
+            country_of_origin: existing.country_of_origin || '',
+          }
+        : emptyTranslation
+    )
     setError(null)
   }, [activeLocale, translations])
 
@@ -330,7 +340,14 @@ function ProductTranslations({ productId }) {
     setError(null)
     setSaving(true)
     try {
-      const saved = await adminUpsertProductTranslation(productId, activeLocale, translationForm)
+      const payload = {
+        name: translationForm.name,
+        description: translationForm.description || null,
+        shape: translationForm.shape || null,
+        purpose: translationForm.purpose || null,
+        country_of_origin: translationForm.country_of_origin || null,
+      }
+      const saved = await adminUpsertProductTranslation(productId, activeLocale, payload)
       setTranslations((t2) => ({ ...t2, [activeLocale]: saved }))
     } catch (err) {
       setError(errorMessage(err, t('admin.productDetail.translationSaveFailed')))
@@ -359,6 +376,11 @@ function ProductTranslations({ productId }) {
       <form onSubmit={save} className="border border-gray-200 rounded-lg p-4 space-y-3">
         <input required placeholder={t('admin.common.name')} value={translationForm.name} onChange={update('name')} className={`${inputCls} w-full`} />
         <textarea placeholder={t('admin.products.description')} value={translationForm.description} onChange={update('description')} rows={3} className={`${inputCls} w-full`} />
+        <div className="grid grid-cols-3 gap-2">
+          <input placeholder={t('admin.products.shape')} value={translationForm.shape} onChange={update('shape')} className={inputCls} />
+          <input placeholder={t('admin.products.purpose')} value={translationForm.purpose} onChange={update('purpose')} className={inputCls} />
+          <input placeholder={t('admin.products.countryOfOrigin')} value={translationForm.country_of_origin} onChange={update('country_of_origin')} className={inputCls} />
+        </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={saving} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
           {saving ? t('admin.common.saving') : t('admin.common.save')}

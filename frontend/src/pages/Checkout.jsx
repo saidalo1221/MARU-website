@@ -135,7 +135,7 @@ export default function Checkout() {
     setError(null)
     setSubmitting(true)
     try {
-      const payload = { ...form }
+      const payload = { ...form, promo_code: cart.promo_code || null }
       if (form.order_type !== 'company') {
         delete payload.company_name
         delete payload.company_reg_number

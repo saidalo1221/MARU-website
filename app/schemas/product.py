@@ -150,6 +150,9 @@ class ProductUpdate(BaseModel):
 class ProductTranslationIn(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     description: str | None = None
+    shape: str | None = Field(default=None, max_length=100)
+    purpose: str | None = Field(default=None, max_length=255)
+    country_of_origin: str | None = Field(default=None, max_length=100)
 
 
 class ProductTranslationOut(BaseModel):
@@ -159,3 +162,6 @@ class ProductTranslationOut(BaseModel):
     locale: str
     name: str
     description: str | None
+    shape: str | None
+    purpose: str | None
+    country_of_origin: str | None

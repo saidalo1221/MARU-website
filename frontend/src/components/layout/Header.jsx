@@ -23,6 +23,9 @@ export default function Header() {
         <div className="flex-1">
           <SearchBar />
         </div>
+        <Link to="/account/wishlist" className="px-2" aria-label={t('header.wishlist')}>
+          ♡
+        </Link>
         <Link to="/cart" className="relative px-2" aria-label={t('header.cart')}>
           🛒
           {itemCount > 0 && (
@@ -41,6 +44,8 @@ export default function Header() {
         <Link to="/" className="font-bold text-xl text-brand">MARU</Link>
         <nav className="flex items-center gap-4 text-sm font-medium">
           <Link to="/shop">{t('header.shop')}</Link>
+          <Link to="/account/orders">{t('header.orders')}</Link>
+          <Link to="/account/addresses">{t('header.addresses')}</Link>
         </nav>
         <div className="flex-1 max-w-md">
           <SearchBar />
@@ -67,6 +72,9 @@ export default function Header() {
               {t('header.login')}
             </Link>
           )}
+          <Link to="/account/wishlist" className="text-sm" aria-label={t('header.wishlist')}>
+            ♡
+          </Link>
           <Link to="/cart" className="relative text-sm">
             {t('header.cart')}
             {itemCount > 0 && (

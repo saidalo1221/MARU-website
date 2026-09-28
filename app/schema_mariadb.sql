@@ -292,13 +292,16 @@ CREATE TABLE orders (
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
 CREATE TABLE product_translations (
-	id BIGINT NOT NULL AUTO_INCREMENT, 
-	product_id BIGINT NOT NULL, 
-	locale VARCHAR(10) NOT NULL, 
-	name VARCHAR(255) NOT NULL, 
-	description TEXT, 
-	PRIMARY KEY (id), 
-	CONSTRAINT uq_product_translations_product_locale UNIQUE (product_id, locale), 
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	product_id BIGINT NOT NULL,
+	locale VARCHAR(10) NOT NULL,
+	name VARCHAR(255) NOT NULL,
+	description TEXT,
+	shape VARCHAR(100),
+	purpose VARCHAR(255),
+	country_of_origin VARCHAR(100),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_product_translations_product_locale UNIQUE (product_id, locale),
 	FOREIGN KEY(product_id) REFERENCES products (id) ON DELETE CASCADE
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 

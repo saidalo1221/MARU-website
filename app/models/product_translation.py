@@ -17,3 +17,6 @@ class ProductTranslation(Base):
     locale = Column(String(10), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
+    shape = Column(String(100), nullable=True)
+    purpose = Column(String(255), nullable=True)
+    country_of_origin = Column(String(100), nullable=True)

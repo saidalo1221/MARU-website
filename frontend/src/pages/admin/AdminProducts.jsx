@@ -7,7 +7,8 @@ import Money from '../../components/admin/Money'
 
 const emptyForm = { category_id: '', name: '', slug: '', volume_ml: '', shape: '', purpose: '', description: '', country_of_origin: '', min_order_quantity: 1 }
 const TRANSLATION_LOCALES = ['ru', 'uz', 'en']
-const emptyTranslations = { ru: { name: '', description: '' }, uz: { name: '', description: '' }, en: { name: '', description: '' } }
+const emptyTranslationFields = { name: '', description: '', shape: '', purpose: '', country_of_origin: '' }
+const emptyTranslations = { ru: { ...emptyTranslationFields }, uz: { ...emptyTranslationFields }, en: { ...emptyTranslationFields } }
 
 function flattenCategories(nodes, depth = 0) {
   return nodes.flatMap((n) => [{ ...n, depth }, ...flattenCategories(n.children || [], depth + 1)])
@@ -67,7 +68,13 @@ export default function AdminProducts() {
       for (const locale of TRANSLATION_LOCALES) {
         const tr = translations[locale]
         if (tr.name.trim()) {
-          await adminUpsertProductTranslation(created.id, locale, { name: tr.name, description: tr.description || null })
+          await adminUpsertProductTranslation(created.id, locale, {
+            name: tr.name,
+            description: tr.description || null,
+            shape: tr.shape || null,
+            purpose: tr.purpose || null,
+            country_of_origin: tr.country_of_origin || null,
+          })
         }
       }
 
@@ -122,6 +129,9 @@ export default function AdminProducts() {
             <div className="grid grid-cols-2 gap-2">
               <input placeholder={t('admin.common.name')} value={translations[activeLocale].name} onChange={updateTranslation('name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
               <input placeholder={t('admin.products.description')} value={translations[activeLocale].description} onChange={updateTranslation('description')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('admin.products.shape')} value={translations[activeLocale].shape} onChange={updateTranslation('shape')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('admin.products.purpose')} value={translations[activeLocale].purpose} onChange={updateTranslation('purpose')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('admin.products.countryOfOrigin')} value={translations[activeLocale].country_of_origin} onChange={updateTranslation('country_of_origin')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
             </div>
           </div>
 
