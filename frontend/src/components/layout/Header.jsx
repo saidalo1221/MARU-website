@@ -6,6 +6,7 @@ import { useLocale } from '../../context/LocaleContext'
 import SearchBar from '../SearchBar'
 import CurrencySwitcher from '../CurrencySwitcher'
 import LanguageSwitcher from '../LanguageSwitcher'
+import DarkModeToggle from '../DarkModeToggle'
 import MobileMenu from './MobileMenu'
 
 export default function Header() {
@@ -23,6 +24,7 @@ export default function Header() {
         <div className="flex-1">
           <SearchBar />
         </div>
+        <DarkModeToggle />
         <Link to="/account/wishlist" className="px-2 text-lg" aria-label={t('header.wishlist')}>
           ♡
         </Link>
@@ -51,6 +53,7 @@ export default function Header() {
           <SearchBar />
         </div>
         <div className="flex items-center gap-3">
+          <DarkModeToggle />
           <LanguageSwitcher />
           <CurrencySwitcher />
           {user ? (

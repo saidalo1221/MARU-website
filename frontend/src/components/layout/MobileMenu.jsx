@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useLocale } from '../../context/LocaleContext'
 import LanguageSwitcher from '../LanguageSwitcher'
 import CurrencySwitcher from '../CurrencySwitcher'
+import DarkModeToggle from '../DarkModeToggle'
 
 export default function MobileMenu({ open, onClose }) {
   const { user, logout } = useAuth()
@@ -52,6 +53,7 @@ export default function MobileMenu({ open, onClose }) {
           </>
         )}
         <div className="flex items-center gap-3 py-4">
+          <DarkModeToggle />
           <LanguageSwitcher />
           <CurrencySwitcher />
         </div>

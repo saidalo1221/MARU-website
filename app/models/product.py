@@ -1,5 +1,6 @@
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     Column,
     DateTime,
@@ -28,6 +29,7 @@ class Product(Base):
             name="ck_products_volume_ml",
         ),
         CheckConstraint("material = 'polypropylene'", name="ck_products_material"),
+        CheckConstraint("badge_mode IN ('auto', 'manual')", name="ck_products_badge_mode"),
         {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4"},
     )
 
@@ -52,6 +54,15 @@ class Product(Base):
     description = Column(Text, nullable=True)
     country_of_origin = Column(String(100), nullable=True)
     min_order_quantity = Column(Integer, nullable=False, default=1)
+
+    # Product badges (New / Sale / Best Seller — see app/services/badges.py).
+    # "auto" computes them from created_at/SKU special_price/sales volume;
+    # "manual" uses the three override flags below instead. Out-of-stock is
+    # always computed live — it's a factual availability state, not marketing.
+    badge_mode = Column(String(10), nullable=False, default="auto", server_default="auto")
+    badge_new = Column(Boolean, nullable=True)
+    badge_sale = Column(Boolean, nullable=True)
+    badge_bestseller = Column(Boolean, nullable=True)
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

@@ -5,3 +5,65 @@
 html {
   overflow-x: hidden;
 }
+
+/* Dark mode (toggled via ThemeContext adding/removing `dark` on <html>,
+ * see tailwind.config.js's darkMode:'class'). The app was built with
+ * hardcoded light-mode utility classes throughout ~70 components rather
+ * than per-class `dark:` variants, so this retrofits dark colors globally
+ * by overriding those same utility classes under a `.dark` ancestor —
+ * `.dark .bg-white` (two classes) naturally outranks `.bg-white` (one
+ * class) in specificity, no !important needed. New components should
+ * still prefer this same set of gray/white/status utility classes so they
+ * pick up dark mode for free; only reach for `dark:` variants directly if
+ * a component needs a shade not covered here. */
+.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark .bg-white { background-color: #1e293b; }
+.dark .bg-gray-50 { background-color: #0f172a; }
+.dark .bg-gray-100 { background-color: #1e293b; }
+.dark .bg-gray-700 { background-color: #334155; }
+.dark .hover\:bg-white:hover { background-color: #1e293b; }
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover { background-color: #334155; }
+
+.dark .text-gray-400 { color: #94a3b8; }
+.dark .text-gray-500 { color: #94a3b8; }
+.dark .text-gray-600 { color: #cbd5e1; }
+.dark .text-gray-700 { color: #cbd5e1; }
+.dark .text-gray-800 { color: #e2e8f0; }
+.dark .text-gray-900 { color: #f1f5f9; }
+.dark .hover\:text-gray-600:hover,
+.dark .hover\:text-gray-800:hover { color: #f1f5f9; }
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 { border-color: #334155; }
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
+
+.dark .bg-amber-50 { background-color: #451a03; }
+.dark .border-amber-200 { border-color: #92400e; }
+.dark .text-amber-600,
+.dark .text-amber-700,
+.dark .text-amber-800 { color: #fbbf24; }
+
+.dark .bg-blue-50 { background-color: #172554; }
+.dark .border-blue-200 { border-color: #1e3a8a; }
+.dark .text-blue-700,
+.dark .text-blue-900 { color: #93c5fd; }
+
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
+}
+.dark .bg-transparent { background-color: transparent; }

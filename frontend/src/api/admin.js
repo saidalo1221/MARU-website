@@ -132,6 +132,20 @@ export function adminCreateSku(variantId, payload) {
   return apiRequest(`/admin/variants/${variantId}/skus`, { method: 'POST', body: payload })
 }
 
+// Variant image gallery
+export function adminAddVariantImage(variantId, imageUrl) {
+  return apiRequest(`/admin/variants/${variantId}/images`, { method: 'POST', body: { image_url: imageUrl } })
+}
+export function adminReorderVariantImage(variantId, imageId, sortOrder) {
+  return apiRequest(`/admin/variants/${variantId}/images/${imageId}`, {
+    method: 'PATCH',
+    body: { sort_order: sortOrder },
+  })
+}
+export function adminDeleteVariantImage(variantId, imageId) {
+  return apiRequest(`/admin/variants/${variantId}/images/${imageId}`, { method: 'DELETE' })
+}
+
 // SKUs
 export function adminUpdateSku(skuId, payload) {
   return apiRequest(`/admin/skus/${skuId}`, { method: 'PATCH', body: payload })

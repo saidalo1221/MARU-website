@@ -9,6 +9,8 @@ import { useAuth } from '../context/AuthContext'
 import VariantSelector from '../components/product/VariantSelector'
 import QuantitySelector from '../components/product/QuantitySelector'
 import Reviews from '../components/product/Reviews'
+import ProductGallery from '../components/product/ProductGallery'
+import ProductBadges from '../components/product/ProductBadges'
 import Seo from '../components/Seo'
 
 export default function ProductDetail() {
@@ -49,6 +51,7 @@ export default function ProductDetail() {
     [product, variantId]
   )
   const sku = variant?.skus.find((s) => s.is_active) ?? null
+  const coverImage = variant?.images?.[0]?.image_url || variant?.photo_url
 
   useEffect(() => {
     if (!user || !sku) return
@@ -98,7 +101,7 @@ export default function ProductDetail() {
     '@type': 'Product',
     name: product.name,
     description: product.description || undefined,
-    image: variant?.photo_url || undefined,
+    image: coverImage || undefined,
     offers: sku
       ? {
           '@type': 'Offer',
@@ -111,19 +114,16 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
-      <Seo title={product.name} description={product.description} image={variant?.photo_url} type="product" jsonLd={jsonLd} />
+      <Seo title={product.name} description={product.description} image={coverImage} type="product" jsonLd={jsonLd} />
       <nav className="text-xs text-gray-500 mb-4">{t('productDetail.breadcrumb', { name: product.name })}</nav>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-          {variant?.photo_url ? (
-            <img src={variant.photo_url} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-gray-400">{t('product.noImage')}</span>
-          )}
+        <div>
+          <ProductGallery variant={variant} alt={product.name} />
         </div>
 
         <div>
+          <ProductBadges badges={product.badges} className="mb-2" />
           <h1 className="text-2xl font-bold">{product.name}</h1>
           {sku && <p className="text-xs text-gray-500 mt-1">SKU: {sku.sku_code}</p>}
 

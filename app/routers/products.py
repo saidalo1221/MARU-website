@@ -5,10 +5,12 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, contains_eager
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models import Inventory, Product, ProductVariant, SKU
 from app.models.product_translation import ProductTranslation
 from app.schemas.product import ProductOut
+from app.services.badges import compute_badges, compute_badges_batch
 from app.services.currency import CurrencyError, convert_amount
 from app.services.i18n import get_product_translation, get_product_translations
 
@@ -48,7 +50,7 @@ def _convert_product_prices(db: Session, product: ProductOut, currency: str) -> 
             sku.currency = currency
 
 
-@router.get("/", response_model=list[ProductOut])
+@router.get("/", response_model=list[ProductOut], dependencies=[Depends(rate_limit("products_list", 120, 60))])
 def list_active_products(
     lang: str | None = None, currency: str | None = None, db: Session = Depends(get_db)
 ) -> list[ProductOut]:
@@ -77,7 +79,10 @@ def list_active_products(
         raise HTTPException(status_code=500, detail="Failed to fetch products") from exc
 
     translations = get_product_translations(db, [p.id for p in products], lang) if lang else {}
+    badges = compute_badges_batch(db, products)
     out = [_apply_translation(p, translations.get(p.id)) for p in products]
+    for product, product_out in zip(products, out):
+        product_out.badges = badges[product.id]
 
     if currency:
         try:
@@ -89,7 +94,7 @@ def list_active_products(
     return out
 
 
-@router.get("/{slug}", response_model=ProductOut)
+@router.get("/{slug}", response_model=ProductOut, dependencies=[Depends(rate_limit("products_detail", 120, 60))])
 def get_active_product(
     slug: str, lang: str | None = None, currency: str | None = None, db: Session = Depends(get_db)
 ) -> ProductOut:
@@ -119,6 +124,7 @@ def get_active_product(
 
     translation = get_product_translation(db, product.id, lang) if lang else None
     out = _apply_translation(product, translation)
+    out.badges = compute_badges(db, product)
 
     if currency:
         try:

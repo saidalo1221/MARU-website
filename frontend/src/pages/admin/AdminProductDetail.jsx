@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
-  adminAddInventory, adminCreateSku, adminCreateVariant, adminGetProduct, adminListInventory,
-  adminListProductTranslations, adminListWarehouses, adminUpdateInventory, adminUpdateProduct, adminUpdateSku,
-  adminUpdateVariant, adminUploadImage, adminUpsertProductTranslation,
+  adminAddInventory, adminAddVariantImage, adminCreateSku, adminCreateVariant, adminDeleteVariantImage,
+  adminGetProduct, adminListInventory, adminListProductTranslations, adminListWarehouses,
+  adminReorderVariantImage, adminUpdateInventory, adminUpdateProduct, adminUpdateSku, adminUpdateVariant,
+  adminUploadImage, adminUpsertProductTranslation,
 } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
@@ -190,6 +191,111 @@ function SkuBlock({ sku, warehouses, onChanged }) {
   )
 }
 
+function VariantImagesManager({ variant, onChanged }) {
+  const { t } = useLocale()
+  const [error, setError] = useState(null)
+  const [urlInput, setUrlInput] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const images = variant.images || []
+
+  const addByUrl = async (e) => {
+    e.preventDefault()
+    if (!urlInput.trim()) return
+    setError(null)
+    try {
+      await adminAddVariantImage(variant.id, urlInput.trim())
+      setUrlInput('')
+      await onChanged()
+    } catch (err) {
+      setError(errorMessage(err, t('admin.productDetail.imageAddFailed')))
+    }
+  }
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError(null)
+    setUploading(true)
+    try {
+      const { url } = await adminUploadImage(file)
+      await adminAddVariantImage(variant.id, url)
+      await onChanged()
+    } catch (err) {
+      setError(errorMessage(err, t('admin.productDetail.imageAddFailed')))
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  const move = async (image, direction) => {
+    const idx = images.findIndex((i) => i.id === image.id)
+    const swapWith = images[idx + direction]
+    if (!swapWith) return
+    setError(null)
+    try {
+      await adminReorderVariantImage(variant.id, image.id, swapWith.sort_order)
+      await adminReorderVariantImage(variant.id, swapWith.id, image.sort_order)
+      await onChanged()
+    } catch (err) {
+      setError(errorMessage(err, t('admin.productDetail.imageReorderFailed')))
+    }
+  }
+
+  const remove = async (image) => {
+    setError(null)
+    try {
+      await adminDeleteVariantImage(variant.id, image.id)
+      await onChanged()
+    } catch (err) {
+      setError(errorMessage(err, t('admin.productDetail.imageDeleteFailed')))
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('admin.productDetail.images')}</p>
+      {images.length > 0 && (
+        <div className="flex gap-2 flex-wrap mb-2">
+          {images.map((img, i) => (
+            <div key={img.id} className="relative border border-gray-200 rounded overflow-hidden">
+              <img src={img.image_url} alt="" className="w-16 h-16 object-cover" />
+              <div className="flex justify-between bg-white/90 text-[10px] px-0.5">
+                <button type="button" onClick={() => move(img, -1)} disabled={i === 0} className="disabled:opacity-20">
+                  {t('admin.productDetail.moveLeft')}
+                </button>
+                <button type="button" onClick={() => remove(img)} className="text-red-600">
+                  {t('admin.productDetail.deleteImage')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(img, 1)}
+                  disabled={i === images.length - 1}
+                  className="disabled:opacity-20"
+                >
+                  {t('admin.productDetail.moveRight')}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <form onSubmit={addByUrl} className="flex gap-2 items-center flex-wrap">
+        <input
+          placeholder={t('admin.productDetail.imageUrlPlaceholder')}
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          className={inputCls}
+        />
+        <button type="submit" className="text-sm text-brand">{t('admin.productDetail.addImageUrl')}</button>
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
+        {uploading && <span className="text-xs text-gray-400">{t('admin.productDetail.uploading')}</span>}
+      </form>
+      {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
+    </div>
+  )
+}
+
 function VariantBlock({ variant, warehouses, onChanged }) {
   const { t } = useLocale()
   const [expanded, setExpanded] = useState(false)
@@ -276,7 +382,9 @@ function VariantBlock({ variant, warehouses, onChanged }) {
           </form>
           {error && <p className="text-red-600 text-xs mb-2">{error}</p>}
 
-          <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('admin.productDetail.skus')}</p>
+          <VariantImagesManager variant={variant} onChanged={onChanged} />
+
+          <p className="text-xs font-semibold text-gray-500 uppercase mb-2 mt-3">{t('admin.productDetail.skus')}</p>
           {variant.skus.map((sku) => <SkuBlock key={sku.id} sku={sku} warehouses={warehouses} onChanged={onChanged} />)}
 
           {skuOpen ? (
@@ -409,6 +517,7 @@ export default function AdminProductDetail() {
     setForm({
       name: p.name, slug: p.slug, volume_ml: p.volume_ml, shape: p.shape || '', purpose: p.purpose || '',
       description: p.description || '', country_of_origin: p.country_of_origin || '', min_order_quantity: p.min_order_quantity,
+      badge_mode: p.badge_mode, badge_new: !!p.badge_new, badge_sale: !!p.badge_sale, badge_bestseller: !!p.badge_bestseller,
     })
   }).catch((err) => setError(errorMessage(err, t('admin.productDetail.loadFailed'))))
 
@@ -465,6 +574,42 @@ export default function AdminProductDetail() {
         <input placeholder={t('admin.products.purpose')} value={form.purpose} onChange={update('purpose')} className={inputCls} />
         <input placeholder={t('admin.products.countryOfOrigin')} value={form.country_of_origin} onChange={update('country_of_origin')} className={`${inputCls} col-span-2`} />
         <textarea placeholder={t('admin.products.description')} value={form.description} onChange={update('description')} rows={3} className={`${inputCls} col-span-2`} />
+
+        <div className="col-span-2 border-t border-gray-100 pt-3 mt-1">
+          <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('admin.productDetail.badges')}</p>
+          <div className="flex items-center gap-4 flex-wrap">
+            <label className="flex items-center gap-2 text-sm">
+              <span>{t('admin.productDetail.badgeMode')}</span>
+              <select
+                value={form.badge_mode}
+                onChange={(e) => setForm((f) => ({ ...f, badge_mode: e.target.value }))}
+                className={inputCls}
+              >
+                <option value="auto">{t('admin.productDetail.badgeModeAuto')}</option>
+                <option value="manual">{t('admin.productDetail.badgeModeManual')}</option>
+              </select>
+            </label>
+            {form.badge_mode === 'auto' ? (
+              <p className="text-xs text-gray-400">{t('admin.productDetail.badgeModeAutoHint')}</p>
+            ) : (
+              <>
+                <label className="flex items-center gap-1 text-sm">
+                  <input type="checkbox" checked={form.badge_new} onChange={(e) => setForm((f) => ({ ...f, badge_new: e.target.checked }))} />
+                  {t('admin.productDetail.badgeNew')}
+                </label>
+                <label className="flex items-center gap-1 text-sm">
+                  <input type="checkbox" checked={form.badge_sale} onChange={(e) => setForm((f) => ({ ...f, badge_sale: e.target.checked }))} />
+                  {t('admin.productDetail.badgeSale')}
+                </label>
+                <label className="flex items-center gap-1 text-sm">
+                  <input type="checkbox" checked={form.badge_bestseller} onChange={(e) => setForm((f) => ({ ...f, badge_bestseller: e.target.checked }))} />
+                  {t('admin.productDetail.badgeBestseller')}
+                </label>
+              </>
+            )}
+          </div>
+        </div>
+
         {saveError && <p className="text-red-600 text-sm col-span-2">{saveError}</p>}
         <button type="submit" disabled={saving} className="bg-brand text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-40 justify-self-start">
           {saving ? t('admin.common.saving') : t('admin.productDetail.saveProduct')}

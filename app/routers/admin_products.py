@@ -20,6 +20,7 @@ from app.schemas.product import (
     ProductVariantCreate,
     ProductVariantOut,
 )
+from app.services.badges import compute_badges, compute_badges_batch
 
 router = APIRouter(prefix="/admin/products", tags=["admin-products"])
 
@@ -35,11 +36,17 @@ def _load_product(db: Session, product_id: int) -> Product | None:
     return db.execute(stmt).unique().scalar_one_or_none()
 
 
+def _to_out(db: Session, product: Product) -> ProductOut:
+    out = ProductOut.model_validate(product)
+    out.badges = compute_badges(db, product)
+    return out
+
+
 @router.get("/", response_model=list[ProductOut])
 def list_products(
     user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
     db: Session = Depends(get_db),
-) -> list[Product]:
+) -> list[ProductOut]:
     """Admin catalog view: every product regardless of variant/SKU active status
     (unlike the public /products/ route, which only shows sellable ones)."""
     stmt = (
@@ -50,12 +57,16 @@ def list_products(
         .order_by(Product.id)
     )
     try:
-        products = db.execute(stmt).unique().scalars().all()
+        products = list(db.execute(stmt).unique().scalars().all())
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to fetch products") from exc
 
-    return list(products)
+    badges = compute_badges_batch(db, products)
+    out = [ProductOut.model_validate(p) for p in products]
+    for product, product_out in zip(products, out):
+        product_out.badges = badges[product.id]
+    return out
 
 
 @router.post("/", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
@@ -63,7 +74,7 @@ def create_product(
     payload: ProductCreate,
     user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
     db: Session = Depends(get_db),
-) -> Product:
+) -> ProductOut:
     if db.get(Category, payload.category_id) is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Category not found")
 
@@ -79,7 +90,7 @@ def create_product(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to create product") from exc
 
-    return _load_product(db, product.id)
+    return _to_out(db, _load_product(db, product.id))
 
 
 @router.get("/{product_id}", response_model=ProductOut)
@@ -87,7 +98,7 @@ def get_product(
     product_id: int,
     user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
     db: Session = Depends(get_db),
-) -> Product:
+) -> ProductOut:
     try:
         product = _load_product(db, product_id)
     except SQLAlchemyError as exc:
@@ -97,7 +108,7 @@ def get_product(
     if product is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-    return product
+    return _to_out(db, product)
 
 
 @router.patch("/{product_id}", response_model=ProductOut)
@@ -106,7 +117,7 @@ def update_product(
     payload: ProductUpdate,
     user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
     db: Session = Depends(get_db),
-) -> Product:
+) -> ProductOut:
     data = payload.model_dump(exclude_unset=True)
 
     if "category_id" in data and db.get(Category, data["category_id"]) is None:
@@ -128,7 +139,7 @@ def update_product(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update product") from exc
 
-    return _load_product(db, product_id)
+    return _to_out(db, _load_product(db, product_id))
 
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)

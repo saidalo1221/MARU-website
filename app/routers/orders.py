@@ -164,7 +164,11 @@ def get_order_for_customer(
     return order
 
 
-@router.post("/{order_id}/confirm-payment", response_model=OrderOut)
+@router.post(
+    "/{order_id}/confirm-payment",
+    response_model=OrderOut,
+    dependencies=[Depends(rate_limit("confirm_payment", 20, 60))],
+)
 def confirm_payment(
     order_id: int,
     order_token: str | None = Header(default=None, alias="X-Order-Token"),

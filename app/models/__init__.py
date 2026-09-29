@@ -1,6 +1,7 @@
 from app.models.category import Category
 from app.models.product import Product, ALLOWED_VOLUMES_ML
 from app.models.product_variant import ProductVariant
+from app.models.variant_image import VariantImage
 from app.models.sku import SKU
 from app.models.inventory import Inventory
 from app.models.warehouse import Warehouse
@@ -49,6 +50,7 @@ __all__ = [
     "Product",
     "ALLOWED_VOLUMES_ML",
     "ProductVariant",
+    "VariantImage",
     "SKU",
     "Inventory",
     "Warehouse",

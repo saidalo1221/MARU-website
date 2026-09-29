@@ -259,15 +259,20 @@ CREATE TABLE products (
 	width_mm INTEGER, 
 	height_mm INTEGER, 
 	weight_g INTEGER, 
-	description TEXT, 
-	country_of_origin VARCHAR(100), 
-	min_order_quantity INTEGER NOT NULL, 
-	created_at DATETIME NOT NULL DEFAULT now(), 
-	updated_at DATETIME NOT NULL DEFAULT now(), 
-	PRIMARY KEY (id), 
-	CONSTRAINT ck_products_volume_ml CHECK (volume_ml IN (350, 470, 800, 1000, 1900)), 
-	CONSTRAINT ck_products_material CHECK (material = 'polypropylene'), 
-	FOREIGN KEY(category_id) REFERENCES categories (id), 
+	description TEXT,
+	country_of_origin VARCHAR(100),
+	min_order_quantity INTEGER NOT NULL,
+	badge_mode VARCHAR(10) NOT NULL DEFAULT 'auto',
+	badge_new BOOLEAN,
+	badge_sale BOOLEAN,
+	badge_bestseller BOOLEAN,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT ck_products_volume_ml CHECK (volume_ml IN (350, 470, 800, 1000, 1900)),
+	CONSTRAINT ck_products_material CHECK (material = 'polypropylene'),
+	CONSTRAINT ck_products_badge_mode CHECK (badge_mode IN ('auto', 'manual')),
+	FOREIGN KEY(category_id) REFERENCES categories (id),
 	UNIQUE (slug)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
@@ -342,8 +347,18 @@ CREATE TABLE product_variants (
 	is_active BOOL NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
-	PRIMARY KEY (id), 
+	PRIMARY KEY (id),
 	FOREIGN KEY(product_id) REFERENCES products (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE variant_images (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	variant_id BIGINT NOT NULL,
+	image_url VARCHAR(500) NOT NULL,
+	sort_order INTEGER NOT NULL DEFAULT 0,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(variant_id) REFERENCES product_variants (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
 CREATE TABLE reviews (

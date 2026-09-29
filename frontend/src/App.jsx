@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import EmailVerifyBanner from './components/layout/EmailVerifyBanner'
+import CountryBanner from './components/layout/CountryBanner'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
@@ -61,6 +62,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <CountryBanner />
       <EmailVerifyBanner />
       <main className="flex-1">
         <Routes>

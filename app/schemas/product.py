@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -21,6 +22,15 @@ class SKUOut(BaseModel):
     available_quantity: int
 
 
+class VariantImageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    variant_id: int
+    image_url: str
+    sort_order: int
+
+
 class ProductVariantOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -31,6 +41,14 @@ class ProductVariantOut(BaseModel):
     photo_url: str | None
     is_active: bool
     skus: list[SKUOut]
+    images: list[VariantImageOut] = []
+
+
+class ProductBadges(BaseModel):
+    is_new: bool
+    is_sale: bool
+    is_bestseller: bool
+    is_out_of_stock: bool
 
 
 class ProductOut(BaseModel):
@@ -47,7 +65,12 @@ class ProductOut(BaseModel):
     description: str | None
     country_of_origin: str | None
     min_order_quantity: int
+    badge_mode: str
+    badge_new: bool | None
+    badge_sale: bool | None
+    badge_bestseller: bool | None
     variants: list[ProductVariantOut]
+    badges: ProductBadges | None = None
 
 
 class SKUCreate(BaseModel):
@@ -85,6 +108,14 @@ class SKUUpdate(BaseModel):
     is_active: bool | None = None
 
 
+class VariantImageCreate(BaseModel):
+    image_url: str = Field(min_length=1, max_length=500)
+
+
+class VariantImageReorder(BaseModel):
+    sort_order: int
+
+
 class ProductVariantCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     color: str = Field(min_length=1, max_length=100)
@@ -115,6 +146,10 @@ class ProductCreate(BaseModel):
     description: str | None = None
     country_of_origin: str | None = Field(default=None, max_length=100)
     min_order_quantity: int = Field(default=1, ge=1)
+    badge_mode: Literal["auto", "manual"] = "auto"
+    badge_new: bool | None = None
+    badge_sale: bool | None = None
+    badge_bestseller: bool | None = None
 
     @field_validator("volume_ml")
     @classmethod
@@ -138,6 +173,10 @@ class ProductUpdate(BaseModel):
     description: str | None = None
     country_of_origin: str | None = Field(default=None, max_length=100)
     min_order_quantity: int | None = Field(default=None, ge=1)
+    badge_mode: Literal["auto", "manual"] | None = None
+    badge_new: bool | None = None
+    badge_sale: bool | None = None
+    badge_bestseller: bool | None = None
 
     @field_validator("volume_ml")
     @classmethod
