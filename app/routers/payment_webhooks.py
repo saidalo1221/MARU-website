@@ -20,6 +20,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.config import settings
 from app.database import get_db
 from app.models.click_transaction import ClickTransaction
@@ -37,7 +38,12 @@ def _now_ms() -> int:
     return int(time.time() * 1000)
 
 
-@router.get("/methods", response_model=list[PaymentMethodOut], tags=["payments"])
+@router.get(
+    "/methods",
+    response_model=list[PaymentMethodOut],
+    tags=["payments"],
+    dependencies=[Depends(rate_limit("payment_methods", 120, 60))],
+)
 def payment_methods() -> list[dict]:
     """Frontend-safe capabilities list; secrets are never exposed."""
     return list_payment_methods()

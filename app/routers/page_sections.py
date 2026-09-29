@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.page_section import PageSection
 from app.schemas.page_section import PageKey, PageSectionOut
 from app.services.i18n import get_page_section_translations
 
-router = APIRouter(prefix="/page-sections", tags=["page-sections"])
+router = APIRouter(prefix="/page-sections", tags=["page-sections"], dependencies=[Depends(rate_limit("page_sections", 240, 60))])
 
 
 @router.get("", response_model=list[PageSectionOut])

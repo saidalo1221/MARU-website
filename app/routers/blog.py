@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.blog_category import BlogCategory
 from app.models.blog_post import BlogPost
@@ -10,7 +11,7 @@ from app.models.blog_post_translation import BlogPostTranslation
 from app.schemas.blog import BlogCategoryOut, BlogPostDetail, BlogPostSummary, BlogPostWithRelated
 from app.services.i18n import get_blog_post_translation, get_blog_post_translations
 
-router = APIRouter(prefix="/blog", tags=["blog"])
+router = APIRouter(prefix="/blog", tags=["blog"], dependencies=[Depends(rate_limit("blog", 240, 60))])
 
 
 def _apply_translation(post: BlogPost, translation) -> dict:

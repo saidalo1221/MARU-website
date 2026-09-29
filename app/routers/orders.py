@@ -119,7 +119,7 @@ def checkout(
     )
 
 
-@router.get("/me", response_model=list[OrderOut])
+@router.get("/me", response_model=list[OrderOut], dependencies=[Depends(rate_limit("orders_me", 60, 60))])
 def list_my_orders(user: User = Depends(get_current_user_required), db: Session = Depends(get_db)) -> list[Order]:
     try:
         orders = (
@@ -140,7 +140,7 @@ def list_my_orders(user: User = Depends(get_current_user_required), db: Session 
     return list(orders)
 
 
-@router.get("/me/{order_id}", response_model=OrderOut)
+@router.get("/me/{order_id}", response_model=OrderOut, dependencies=[Depends(rate_limit("orders_me", 60, 60))])
 def get_my_order(
     order_id: int, user: User = Depends(get_current_user_required), db: Session = Depends(get_db)
 ) -> Order:
@@ -150,7 +150,7 @@ def get_my_order(
     return order
 
 
-@router.get("/{order_id}", response_model=OrderOut)
+@router.get("/{order_id}", response_model=OrderOut, dependencies=[Depends(rate_limit("order_lookup", 30, 60))])
 def get_order_for_customer(
     order_id: int,
     order_token: str | None = Header(default=None, alias="X-Order-Token"),
@@ -213,7 +213,11 @@ def confirm_payment(
     return order
 
 
-@router.post("/{order_id}/cancel", response_model=OrderOut)
+@router.post(
+    "/{order_id}/cancel",
+    response_model=OrderOut,
+    dependencies=[Depends(rate_limit("order_cancel", 10, 60))],
+)
 def cancel_order(
     order_id: int,
     order_token: str | None = Header(default=None, alias="X-Order-Token"),

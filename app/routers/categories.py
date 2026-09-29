@@ -3,12 +3,13 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models import Category
 from app.schemas.category import CategoryOut
 from app.services.i18n import get_category_translations
 
-router = APIRouter(prefix="/categories", tags=["categories"])
+router = APIRouter(prefix="/categories", tags=["categories"], dependencies=[Depends(rate_limit("categories", 120, 60))])
 
 
 @router.get("/", response_model=list[CategoryOut])

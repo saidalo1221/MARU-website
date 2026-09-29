@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.about_section import AboutSection
 from app.schemas.about_section import AboutSectionOut
 from app.services.i18n import get_about_section_translations
 
-router = APIRouter(prefix="/about-sections", tags=["about-sections"])
+router = APIRouter(prefix="/about-sections", tags=["about-sections"], dependencies=[Depends(rate_limit("about_sections", 240, 60))])
 
 
 @router.get("", response_model=list[AboutSectionOut])

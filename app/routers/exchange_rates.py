@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.exchange_rate import ExchangeRate
 from app.schemas.exchange_rate import ExchangeRateOut
@@ -13,7 +14,7 @@ from app.schemas.exchange_rate import ExchangeRateOut
 # money into the header's selected currency, so this can't be role-gated to
 # just one of them. The rates themselves aren't sensitive — customers already
 # get their effect via /products?currency= and /cart/currency.
-router = APIRouter(prefix="/exchange-rates", tags=["exchange-rates"])
+router = APIRouter(prefix="/exchange-rates", tags=["exchange-rates"], dependencies=[Depends(rate_limit("exchange_rates", 120, 60))])
 
 
 @router.get("/", response_model=list[ExchangeRateOut])

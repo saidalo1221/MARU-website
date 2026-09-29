@@ -3,6 +3,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.dependencies import get_current_user_required
 from app.models import SKU, Product
@@ -24,7 +25,7 @@ def _get_product(db: Session, slug: str) -> Product:
     return product
 
 
-@router.get("/{slug}/reviews", response_model=ReviewSummary)
+@router.get("/{slug}/reviews", response_model=ReviewSummary, dependencies=[Depends(rate_limit("reviews_read", 120, 60))])
 def list_reviews(slug: str, db: Session = Depends(get_db)) -> ReviewSummary:
     product = _get_product(db, slug)
     reviews = list(
@@ -38,7 +39,12 @@ def list_reviews(slug: str, db: Session = Depends(get_db)) -> ReviewSummary:
     return ReviewSummary(average_rating=average, count=len(reviews), reviews=reviews)
 
 
-@router.post("/{slug}/reviews", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{slug}/reviews",
+    response_model=ReviewOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit("review_create", 10, 3600))],
+)
 def create_review(
     slug: str,
     payload: ReviewCreate,

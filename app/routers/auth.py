@@ -217,7 +217,7 @@ def verify_login_device(payload: VerifyDeviceRequest, db: Session = Depends(get_
     return Token(access_token=create_access_token(str(user.id)))
 
 
-@router.get("/me", response_model=UserOut)
+@router.get("/me", response_model=UserOut, dependencies=[Depends(rate_limit("auth_me", 240, 60))])
 def me(user: User = Depends(get_current_user_required)) -> User:
     return user
 
@@ -263,7 +263,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     return {"detail": "Password updated"}
 
 
-@router.post("/verify-email")
+@router.post("/verify-email", dependencies=[Depends(rate_limit("verify_email", 20, 3600))])
 def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)) -> dict:
     token_hash = hashlib.sha256(payload.token.encode()).hexdigest()
     record = db.execute(

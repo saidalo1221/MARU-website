@@ -37,7 +37,7 @@ from app.services.pricing import PromoCodeError, apply_promo, resolve_unit_price
 from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g
 from app.services.tax import calculate_tax
 
-router = APIRouter(prefix="/cart", tags=["cart"])
+router = APIRouter(prefix="/cart", tags=["cart"], dependencies=[Depends(rate_limit("cart", 300, 60))])
 
 
 def _resolve_customer_type(user: User | None) -> CustomerType:

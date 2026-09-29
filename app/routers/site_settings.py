@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.site_settings import SiteSettings
 from app.schemas.site_settings import SiteSettingsOut
 from app.services.i18n import get_site_settings_translation
 
-router = APIRouter(prefix="/site-settings", tags=["site-settings"])
+router = APIRouter(prefix="/site-settings", tags=["site-settings"], dependencies=[Depends(rate_limit("site_settings", 240, 60))])
 
 
 @router.get("", response_model=SiteSettingsOut)

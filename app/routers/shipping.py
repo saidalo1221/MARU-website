@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.shipping_rate import ANY, ShippingRate
 
-router = APIRouter(prefix="/shipping", tags=["shipping"])
+router = APIRouter(prefix="/shipping", tags=["shipping"], dependencies=[Depends(rate_limit("shipping", 120, 60))])
 
 
 @router.get("/countries", response_model=list[str])

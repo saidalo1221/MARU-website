@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.dependencies import get_current_user_required
 from app.models import SKU, Inventory
@@ -14,7 +15,7 @@ from app.services.analytics import record_event
 from app.services.currency import CurrencyError, convert_amount
 from app.services.i18n import get_product_translations
 
-router = APIRouter(prefix="/wishlist", tags=["wishlist"])
+router = APIRouter(prefix="/wishlist", tags=["wishlist"], dependencies=[Depends(rate_limit("wishlist", 120, 60))])
 
 
 def _to_out(item: WishlistItem, translation, currency: str | None, db: Session) -> WishlistItemOut:
