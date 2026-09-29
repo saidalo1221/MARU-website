@@ -9,6 +9,15 @@ export function getCart({ promoCode, country, deliveryMethod } = {}) {
   return apiRequest(`/cart/${qs}`)
 }
 
+export function getCartRecommendations({ lang, currency, limit } = {}) {
+  const params = new URLSearchParams()
+  if (lang) params.set('lang', lang)
+  if (currency) params.set('currency', currency)
+  if (limit) params.set('limit', limit)
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  return apiRequest(`/cart/recommendations${qs}`)
+}
+
 export function addCartItem(skuId, quantity) {
   return apiRequest('/cart/items', { method: 'POST', body: { sku_id: skuId, quantity } })
 }

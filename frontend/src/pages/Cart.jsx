@@ -1,17 +1,35 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
+import { getCartRecommendations } from '../api/cart'
+import ProductCard from '../components/product/ProductCard'
 import QuantitySelector from '../components/product/QuantitySelector'
 import { errorMessage } from '../api/client'
 import Seo from '../components/Seo'
 
 export default function Cart() {
   const { cart, loading, updateItem, removeItem, refresh } = useCart()
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const navigate = useNavigate()
   const [promoInput, setPromoInput] = useState('')
   const [promoError, setPromoError] = useState(null)
+  const [recs, setRecs] = useState(null)
+
+  // Advisory only: refetch when the cart's contents or currency change, and
+  // swallow any failure so a broken upsell can never get in the way of checkout.
+  const cartKey = cart ? `${cart.currency}:${cart.items.map((i) => i.sku_id).join(',')}` : null
+  useEffect(() => {
+    if (!cartKey) return
+    let cancelled = false
+    getCartRecommendations({ lang: locale, currency: cart.currency })
+      .then((data) => !cancelled && setRecs(data))
+      .catch(() => !cancelled && setRecs(null))
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartKey, locale])
 
   if (loading && !cart) return <p className="max-w-4xl mx-auto px-4 py-8">{t('cart.loading')}</p>
 
@@ -116,6 +134,19 @@ export default function Cart() {
           </button>
         </div>
       </div>
+
+      {recs && recs.products.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold mb-3">
+            {recs.based_on_orders ? t('cart.boughtTogether') : t('cart.mayAlsoLike')}
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {recs.products.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

@@ -1,20 +1,36 @@
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, contains_eager, joinedload
+
+from app.core.rate_limit import rate_limit
 
 from app.database import get_db
 from app.dependencies import get_current_user_optional, get_current_user_required, get_or_create_cart
 from app.models.cart import Cart
 from app.models.cart_item import CartItem
 from app.models.enums import CustomerType
+from app.models.inventory import Inventory
+from app.models.product import Product
+from app.models.product_variant import ProductVariant
 from app.models.promo_code import PromoCode
 from app.models.sku import SKU
 from app.models.user import User
-from app.schemas.cart import CartCurrencyUpdate, CartItemCreate, CartItemOut, CartItemUpdate, CartOut
+from app.schemas.cart import (
+    CartCurrencyUpdate,
+    CartItemCreate,
+    CartItemOut,
+    CartItemUpdate,
+    CartOut,
+    CartRecommendationsOut,
+)
+from app.routers.products import _apply_translation, _convert_product_prices
+from app.services.badges import compute_badges_batch
+from app.services.i18n import get_product_translations
 from app.services.order_service import available_stock
+from app.services.recommendations import recommended_product_ids
 from app.services.currency import CurrencyError, get_rate_to_usd
 from app.services.analytics import record_event
 from app.services.pricing import PromoCodeError, apply_promo, resolve_unit_price, validate_promo
@@ -113,6 +129,82 @@ def get_cart(
     return _build_cart_out(
         db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method
     )
+
+
+@router.get(
+    "/recommendations",
+    response_model=CartRecommendationsOut,
+    dependencies=[Depends(rate_limit("cart_recommendations", 60, 60))],
+)
+def get_cart_recommendations(
+    lang: str | None = None,
+    currency: str | None = None,
+    limit: int = Query(default=4, ge=1, le=12),
+    cart: Cart = Depends(get_or_create_cart),
+    db: Session = Depends(get_db),
+) -> CartRecommendationsOut:
+    """Upsell block shown on the cart page (PRD section 21). Advisory only -
+    never blocks checkout, so the frontend treats any failure as "no
+    recommendations"."""
+    try:
+        cart_product_ids = set(
+            db.execute(
+                select(ProductVariant.product_id)
+                .join(SKU, SKU.variant_id == ProductVariant.id)
+                .join(CartItem, CartItem.sku_id == SKU.id)
+                .where(CartItem.cart_id == cart.id)
+            ).scalars()
+        )
+        candidate_ids, co_count = recommended_product_ids(db, cart_product_ids, limit)
+        if not candidate_ids:
+            return CartRecommendationsOut(based_on_orders=False, products=[])
+
+        loaded = (
+            db.execute(
+                select(Product)
+                .join(Product.variants)
+                .join(ProductVariant.skus)
+                .where(
+                    Product.id.in_(candidate_ids),
+                    ProductVariant.is_active.is_(True),
+                    SKU.is_active.is_(True),
+                )
+                .options(
+                    contains_eager(Product.variants)
+                    .contains_eager(ProductVariant.skus)
+                    .joinedload(SKU.inventories)
+                    .joinedload(Inventory.warehouse)
+                )
+            )
+            .unique()
+            .scalars()
+            .all()
+        )
+        by_id = {p.id: p for p in loaded}
+        badges = compute_badges_batch(db, loaded)
+        products = [
+            by_id[pid] for pid in candidate_ids if pid in by_id and not badges[pid].is_out_of_stock
+        ][:limit]
+
+        translations = get_product_translations(db, [p.id for p in products], lang) if lang else {}
+        out = [_apply_translation(p, translations.get(p.id)) for p in products]
+        for product, product_out in zip(products, out):
+            product_out.badges = badges[product.id]
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to load recommendations") from exc
+
+    if currency:
+        try:
+            for product_out in out:
+                _convert_product_prices(db, product_out, currency)
+        except CurrencyError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    # Co-purchase results are ranked first, so "bought together" is only
+    # honest when the top surviving result (after stock filtering) is one.
+    based_on_orders = bool(products) and products[0].id in set(candidate_ids[:co_count])
+    return CartRecommendationsOut(based_on_orders=based_on_orders, products=out)
 
 
 @router.post("/items", response_model=CartOut, status_code=status.HTTP_201_CREATED)

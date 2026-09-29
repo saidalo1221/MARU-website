@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.product import ProductOut
+
 
 class CartItemCreate(BaseModel):
     sku_id: int
@@ -36,3 +38,11 @@ class CartOut(BaseModel):
     total: Decimal
     item_count: int
     promo_code: str | None = None
+
+
+class CartRecommendationsOut(BaseModel):
+    # True when at least one product was picked from real past-order
+    # co-purchase data (drives "Frequently bought together" vs the softer
+    # "You may also like" heading for best-seller/newest fill-ins).
+    based_on_orders: bool
+    products: list[ProductOut]
