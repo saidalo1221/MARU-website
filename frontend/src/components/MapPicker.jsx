@@ -73,7 +73,7 @@ export default function MapPicker({ latitude, longitude, onChange, onReverseGeoc
           {position && <Marker position={position} />}
         </MapContainer>
       </div>
-      {!readOnly && <p className="text-xs text-gray-400 mt-1">{geocoding ? t('map.geocoding') : t('map.clickHint')}</p>}
+      {!readOnly && <p className="text-xs text-gray-500 mt-1">{geocoding ? t('map.geocoding') : t('map.clickHint')}</p>}
     </div>
   )
 }

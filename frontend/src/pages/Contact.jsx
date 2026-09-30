@@ -46,7 +46,7 @@ export default function Contact() {
               <MapPicker latitude={settings.latitude} longitude={settings.longitude} readOnly />
             </div>
           ) : (
-            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm mb-6">
+            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 text-sm mb-6">
               {t('contact.mapPlaceholder')}
             </div>
           )}

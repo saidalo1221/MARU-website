@@ -60,7 +60,7 @@ export default function BlogHome() {
               <img src={p.cover_image_url} alt={p.title} className="w-full h-40 object-cover" />
             )}
             <div className="p-4">
-              <p className="text-xs text-gray-400 mb-1">{p.category.name}</p>
+              <p className="text-xs text-gray-500 mb-1">{p.category.name}</p>
               <h2 className="font-semibold mb-1">{p.title}</h2>
               {p.excerpt && <p className="text-sm text-gray-500 line-clamp-2">{p.excerpt}</p>}
             </div>

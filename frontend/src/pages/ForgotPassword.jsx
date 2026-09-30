@@ -43,7 +43,7 @@ export default function ForgotPassword() {
         <input
           required
           type="email"
-          placeholder={t('checkout.email')}
+          placeholder={t('checkout.email')} aria-label={t('checkout.email')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm"

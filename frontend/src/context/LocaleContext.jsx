@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { translations } from '../i18n/translations'
 
 export const LOCALES = ['ru', 'uz', 'en']
@@ -17,6 +17,12 @@ function interpolate(template, vars) {
 
 export function LocaleProvider({ children }) {
   const [locale, setLocaleState] = useState(() => localStorage.getItem(LOCALE_KEY) || 'ru')
+
+  // Keeps <html lang> in step with the UI language so screen readers pick the
+  // right voice/pronunciation (WCAG 3.1.1); index.html only carries the default.
+  useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
 
   const setLocale = (value) => {
     if (!LOCALES.includes(value)) return

@@ -13,7 +13,7 @@ function FaqItem({ question, answer }) {
         aria-expanded={open}
       >
         {question}
-        <span className="text-gray-400">{open ? '−' : '+'}</span>
+        <span className="text-gray-500">{open ? '−' : '+'}</span>
       </button>
       {open && <p className="text-sm text-gray-600 mt-2">{answer}</p>}
     </div>
@@ -37,7 +37,7 @@ export default function FAQ() {
           <FaqItem key={s.id} question={s.title} answer={s.body} />
         ))}
       </div>
-      {sections.length === 0 && <p className="text-gray-400 text-sm">{t('faq.empty')}</p>}
+      {sections.length === 0 && <p className="text-gray-500 text-sm">{t('faq.empty')}</p>}
     </div>
   )
 }

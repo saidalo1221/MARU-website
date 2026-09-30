@@ -26,7 +26,7 @@ export default function ProductCard({ product }) {
           {coverImage ? (
             <img src={coverImage} alt={product.name} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-gray-400 text-sm">{t('product.noImage')}</span>
+            <span className="text-gray-500 text-sm">{t('product.noImage')}</span>
           )}
         </div>
         <div className="p-3">

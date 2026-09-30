@@ -70,7 +70,7 @@ export default function Delivery() {
       )}
 
       {countries.length === 0 && (
-        <p className="text-sm text-gray-400 mt-6">{t('delivery.noCountries')}</p>
+        <p className="text-sm text-gray-500 mt-6">{t('delivery.noCountries')}</p>
       )}
     </div>
   )

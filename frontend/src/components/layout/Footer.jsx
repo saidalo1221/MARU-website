@@ -59,7 +59,7 @@ export default function Footer() {
           </nav>
         ))}
       </div>
-      <p className="max-w-7xl mx-auto mt-8 text-xs text-gray-400">
+      <p className="max-w-7xl mx-auto mt-8 text-xs text-gray-500">
         &copy; {new Date().getFullYear()} MARU
       </p>
     </footer>

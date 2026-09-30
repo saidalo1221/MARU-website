@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLocale } from '../../context/LocaleContext'
 import { useCart } from '../../context/CartContext'
@@ -16,6 +16,11 @@ export default function QuickViewModal({ product, onClose }) {
   const [variantId, setVariantId] = useState(product.variants[0]?.id ?? null)
   const [quantity, setQuantity] = useState(product.min_order_quantity || 1)
   const [status, setStatus] = useState(null)
+  const closeRef = useRef(null)
+
+  useEffect(() => {
+    closeRef.current?.focus()
+  }, [])
 
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
@@ -47,16 +52,18 @@ export default function QuickViewModal({ product, onClose }) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
+      aria-label={product.name}
     >
       <div
         className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
+          ref={closeRef}
           type="button"
           onClick={onClose}
           aria-label={t('product.quickViewClose')}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl leading-none"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-600 text-xl leading-none"
         >
           ✕
         </button>

@@ -5,6 +5,7 @@ import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
 import { rankProducts } from '../lib/search'
+import { ProductGridSkeleton } from '../components/Skeleton'
 
 export default function SearchResults() {
   const { locale, t } = useLocale()
@@ -36,6 +37,8 @@ export default function SearchResults() {
           <p className="text-sm text-gray-500">{t('search_results.tryDifferent')}</p>
         </div>
       )}
+
+      {loading && products.length === 0 && <ProductGridSkeleton />}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {results.map((p) => (

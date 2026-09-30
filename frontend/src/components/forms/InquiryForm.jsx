@@ -79,27 +79,27 @@ export default function InquiryForm({ defaultType = 'quote', lockType = false, c
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       {!lockType && (
-        <select value={form.request_type} onChange={update('request_type')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+        <select aria-label={t('quoteRequest.requestType')} value={form.request_type} onChange={update('request_type')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
           <option value="quote">{t('quoteRequest.typeQuote')}</option>
           <option value="wholesale">{t('quoteRequest.typeWholesale')}</option>
           <option value="distributor">{t('quoteRequest.typeDistributor')}</option>
         </select>
       )}
-      <input required placeholder={t('quoteRequest.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-      <input placeholder={t('checkout.companyName')} value={form.company} onChange={update('company')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+      <input required placeholder={t('quoteRequest.name')} aria-label={t('quoteRequest.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+      <input placeholder={t('checkout.companyName')} aria-label={t('checkout.companyName')} value={form.company} onChange={update('company')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
       <div className="grid grid-cols-2 gap-3">
-        <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm">
+        <select required aria-label={t('checkout.selectCountry')} value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm">
           <option value="">{t('checkout.selectCountry')}</option>
           {countries.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <input placeholder={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input placeholder={t('checkout.city')} aria-label={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
       </div>
-      <input required type="email" placeholder={t('checkout.email')} value={form.email} onChange={update('email')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-      <input type="tel" placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+      <input required type="email" placeholder={t('checkout.email')} aria-label={t('checkout.email')} value={form.email} onChange={update('email')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+      <input type="tel" placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
       <div>
         <p className="text-sm text-gray-600 mb-1">{t('quoteRequest.products')}</p>
         <div className="border border-gray-300 rounded px-3 py-2 max-h-40 overflow-y-auto space-y-1">
-          {products.length === 0 && <p className="text-sm text-gray-400">{t('quoteRequest.productsLoading')}</p>}
+          {products.length === 0 && <p className="text-sm text-gray-500">{t('quoteRequest.productsLoading')}</p>}
           {products.map((p) => (
             <label key={p.id} className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={selectedProducts.includes(p.name)} onChange={() => toggleProduct(p.name)} />
@@ -108,8 +108,8 @@ export default function InquiryForm({ defaultType = 'quote', lockType = false, c
           ))}
         </div>
       </div>
-      <input placeholder={t('quoteRequest.quantity')} value={form.quantity} onChange={update('quantity')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-      <textarea placeholder={t('quoteRequest.comment')} value={form.comment} onChange={update('comment')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" rows={3} />
+      <input placeholder={t('quoteRequest.quantity')} aria-label={t('quoteRequest.quantity')} value={form.quantity} onChange={update('quantity')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+      <textarea placeholder={t('quoteRequest.comment')} aria-label={t('quoteRequest.comment')} value={form.comment} onChange={update('comment')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" rows={3} />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-3 font-medium disabled:opacity-40">
         {submitting ? t('quoteRequest.submitting') : t(ctaKey)}

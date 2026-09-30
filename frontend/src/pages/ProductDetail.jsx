@@ -10,6 +10,7 @@ import VariantSelector from '../components/product/VariantSelector'
 import QuantitySelector from '../components/product/QuantitySelector'
 import Reviews from '../components/product/Reviews'
 import ProductGallery from '../components/product/ProductGallery'
+import { ProductDetailSkeleton } from '../components/Skeleton'
 import ProductBadges from '../components/product/ProductBadges'
 import Seo from '../components/Seo'
 
@@ -70,7 +71,7 @@ export default function ProductDetail() {
   }
 
   if (error) return <p className="max-w-3xl mx-auto px-4 py-8 text-red-600">{t('productDetail.notFound')}</p>
-  if (!product) return <p className="max-w-3xl mx-auto px-4 py-8">{t('productDetail.loading')}</p>
+  if (!product) return <ProductDetailSkeleton />
 
   const inStock = sku ? sku.available_quantity > 0 : false
   const maxQty = sku ? sku.available_quantity : undefined
@@ -194,6 +195,7 @@ export default function ProductDetail() {
           <div className="mt-6 border-t border-gray-200 pt-4">
             <p className="text-sm font-medium mb-2">{t('productDetail.delivery')}</p>
             <select
+              aria-label={t('productDetail.selectCountry')}
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full max-w-xs"

@@ -4,6 +4,7 @@ import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
 import Seo from '../components/Seo'
+import { ProductGridSkeleton } from '../components/Skeleton'
 
 function minPrice(product) {
   const prices = product.variants.flatMap((v) => v.skus.map((s) => Number(s.retail_price)))
@@ -66,6 +67,7 @@ export default function Catalog() {
       <div>
         <label className="block text-sm font-medium mb-1">{t('catalog.capacity')}</label>
         <select
+          aria-label={t('catalog.capacity')}
           value={volumeFilter}
           onChange={(e) => setVolumeFilter(e.target.value)}
           className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
@@ -101,6 +103,7 @@ export default function Catalog() {
           {t('catalog.filters')}
         </button>
         <select
+          aria-label={t('catalog.sortBy')}
           value={sort}
           onChange={(e) => setSort(e.target.value)}
           className="border border-gray-300 rounded px-2 py-1.5 text-sm"
@@ -137,6 +140,7 @@ export default function Catalog() {
         <div>
           <div className="hidden md:flex justify-end mb-4">
             <select
+              aria-label={t('catalog.sortBy')}
               value={sort}
               onChange={(e) => setSort(e.target.value)}
               className="border border-gray-300 rounded px-2 py-1.5 text-sm"
@@ -147,7 +151,7 @@ export default function Catalog() {
             </select>
           </div>
 
-          {loading && <p>{t('catalog.loading')}</p>}
+          {loading && products.length === 0 && <ProductGridSkeleton />}
           {error && <p className="text-red-600">{t('catalog.loadError')}</p>}
           {!loading && !error && visible.length === 0 && (
             <p className="text-gray-500">{t('catalog.noProducts')}</p>

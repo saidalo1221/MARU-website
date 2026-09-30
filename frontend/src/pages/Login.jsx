@@ -61,7 +61,7 @@ export default function Login() {
             required
             inputMode="numeric"
             pattern="[0-9]*"
-            placeholder={t('login.deviceCodePlaceholder')}
+            placeholder={t('login.deviceCodePlaceholder')} aria-label={t('login.deviceCodePlaceholder')}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm tracking-widest text-center text-lg"
@@ -87,7 +87,7 @@ export default function Login() {
       <Seo title={t('login.title')} noindex />
       <h1 className="text-2xl font-bold mb-6">{t('login.title')}</h1>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <input required type="email" placeholder={t('checkout.email')} value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input required type="email" placeholder={t('checkout.email')} aria-label={t('checkout.email')} value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <PasswordInput required placeholder={t('login.password')} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <div className="text-right">
           <Link to="/forgot-password" className="text-xs text-brand">{t('forgotPassword.link')}</Link>

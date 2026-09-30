@@ -30,7 +30,7 @@ export default function ProductGallery({ variant, alt }) {
   if (items.length === 0) {
     return (
       <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-        <span className="text-gray-400">{t('product.noImage')}</span>
+        <span className="text-gray-500">{t('product.noImage')}</span>
       </div>
     )
   }

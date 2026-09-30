@@ -107,10 +107,10 @@ export default function Addresses() {
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <input placeholder={t('addresses.label')} value={form.label || ''} onChange={update('label')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-            <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required type="tel" placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+            <input placeholder={t('addresses.label')} aria-label={t('addresses.label')} value={form.label || ''} onChange={update('label')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+            <input required placeholder={t('checkout.firstName')} aria-label={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required placeholder={t('checkout.lastName')} aria-label={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required type="tel" placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
             <div className="col-span-2">
               <MapPicker
                 latitude={form.latitude}
@@ -128,13 +128,13 @@ export default function Addresses() {
                 }}
               />
             </div>
-            <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
+            <select required aria-label={t('checkout.selectCountry')} value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
               <option value="">{t('checkout.selectCountry')}</option>
               {countries.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-            <input required placeholder={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input placeholder={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+            <input required placeholder={t('checkout.city')} aria-label={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input placeholder={t('checkout.postalCode')} aria-label={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required placeholder={t('checkout.address')} aria-label={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.is_default} onChange={update('is_default')} />

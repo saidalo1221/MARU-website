@@ -230,20 +230,20 @@ export default function Checkout() {
 
           <fieldset className="grid grid-cols-2 gap-3">
             <legend className="font-semibold mb-2 col-span-2">{t('checkout.contactInfo')}</legend>
-            <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required type="tel" placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required type="email" placeholder={t('checkout.email')} value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required placeholder={t('checkout.firstName')} aria-label={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required placeholder={t('checkout.lastName')} aria-label={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required type="tel" placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input required type="email" placeholder={t('checkout.email')} aria-label={t('checkout.email')} value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
           </fieldset>
 
           {form.order_type === 'company' && (
             <fieldset className="grid grid-cols-2 gap-3">
               <legend className="font-semibold mb-2 col-span-2">{t('checkout.companyDetails')}</legend>
-              <input required placeholder={t('checkout.companyName')} value={form.company_name} onChange={update('company_name')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-              <input placeholder={t('checkout.regNumber')} value={form.company_reg_number} onChange={update('company_reg_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder={t('checkout.taxNumber')} value={form.company_tax_number} onChange={update('company_tax_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder={t('checkout.companyAddress')} value={form.company_address} onChange={update('company_address')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-              <input placeholder={t('checkout.contactPerson')} value={form.contact_person} onChange={update('contact_person')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+              <input required placeholder={t('checkout.companyName')} aria-label={t('checkout.companyName')} value={form.company_name} onChange={update('company_name')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+              <input placeholder={t('checkout.regNumber')} aria-label={t('checkout.regNumber')} value={form.company_reg_number} onChange={update('company_reg_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('checkout.taxNumber')} aria-label={t('checkout.taxNumber')} value={form.company_tax_number} onChange={update('company_tax_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('checkout.companyAddress')} aria-label={t('checkout.companyAddress')} value={form.company_address} onChange={update('company_address')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+              <input placeholder={t('checkout.contactPerson')} aria-label={t('checkout.contactPerson')} value={form.contact_person} onChange={update('contact_person')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
             </fieldset>
           )}
 
@@ -287,13 +287,13 @@ export default function Checkout() {
                     }}
                   />
                 </div>
-                <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
+                <select required aria-label={t('checkout.selectCountry')} value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
                   <option value="">{t('checkout.selectCountry')}</option>
                   {countries.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <input required placeholder={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-                <input placeholder={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-                <input required placeholder={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+                <input required placeholder={t('checkout.city')} aria-label={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+                <input placeholder={t('checkout.postalCode')} aria-label={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+                <input required placeholder={t('checkout.address')} aria-label={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
               </>
             )}
           </fieldset>
@@ -302,6 +302,7 @@ export default function Checkout() {
             <legend className="font-semibold mb-2">{t('checkout.deliveryMethod')}</legend>
             <select
               required
+              aria-label={t('checkout.deliveryMethod')}
               value={form.delivery_method}
               onChange={update('delivery_method')}
               disabled={!form.country}

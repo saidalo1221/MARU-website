@@ -94,6 +94,7 @@ export default function Cart() {
               value={promoInput}
               onChange={(e) => setPromoInput(e.target.value)}
               placeholder={t('cart.promoPlaceholder')}
+              aria-label={t('cart.promoPlaceholder')}
               className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm"
             />
             <button onClick={applyPromo} className="border border-brand text-brand rounded px-3 text-sm">

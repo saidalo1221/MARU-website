@@ -45,7 +45,7 @@ export default function BlogArticle() {
     <div className="max-w-3xl mx-auto px-4 py-6">
       <Seo title={post.title} description={post.excerpt} image={post.cover_image_url} type="article" jsonLd={jsonLd} />
       <Link to="/blog" className="text-xs text-gray-500 mb-2 inline-block">{t('blog.backToBlog')}</Link>
-      <p className="text-xs text-gray-400 mb-1">{post.category.name}</p>
+      <p className="text-xs text-gray-500 mb-1">{post.category.name}</p>
       <h1 className="text-2xl font-bold mb-2">{post.title}</h1>
       {post.author_name && <p className="text-sm text-gray-500 mb-4">{t('blog.by', { name: post.author_name })}</p>}
       {post.cover_image_url && (

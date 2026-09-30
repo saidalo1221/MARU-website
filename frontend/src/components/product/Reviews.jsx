@@ -60,7 +60,7 @@ export default function Reviews({ slug }) {
       {user && !submitted && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-2">
           <p className="text-sm font-medium">{t('reviews.leaveReview')}</p>
-          <select value={rating} onChange={(e) => setRating(Number(e.target.value))} className="border border-gray-300 rounded px-2 py-1.5 text-sm">
+          <select aria-label={t('reviews.rating')} value={rating} onChange={(e) => setRating(Number(e.target.value))} className="border border-gray-300 rounded px-2 py-1.5 text-sm">
             {[5, 4, 3, 2, 1].map((n) => (
               <option key={n} value={n}>{'★'.repeat(n)}{'☆'.repeat(5 - n)}</option>
             ))}
@@ -69,6 +69,7 @@ export default function Reviews({ slug }) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={t('reviews.commentPlaceholder')}
+            aria-label={t('reviews.commentPlaceholder')}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
             rows={3}
           />

@@ -57,14 +57,22 @@ import AdminIntegrationLogs from './pages/admin/AdminIntegrationLogs'
 import AdminAuditLog from './pages/admin/AdminAuditLog'
 import AdminAnalyticsEvents from './pages/admin/AdminAnalyticsEvents'
 import NotFound from './pages/NotFound'
+import { useLocale } from './context/LocaleContext'
 
 export default function App() {
+  const { t } = useLocale()
   return (
     <div className="min-h-screen flex flex-col">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[70] focus:top-2 focus:left-2 focus:bg-white focus:text-brand focus:px-3 focus:py-2 focus:rounded focus:shadow"
+      >
+        {t('common.skipToContent')}
+      </a>
       <Header />
       <CountryBanner />
       <EmailVerifyBanner />
-      <main className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Catalog />} />
