@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
@@ -13,19 +13,19 @@ EmailStr = Annotated[
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    first_name: str | None = None
-    last_name: str | None = None
-    phone: str | None = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
     customer_type: CustomerType = CustomerType.RETAIL
 
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-    mfa_code: str | None = None
+    mfa_code: Optional[str] = None
     # Opaque per-browser token the frontend generates once and persists in
     # localStorage — lets login() recognize a device it already challenged.
-    device_id: str | None = None
+    device_id: Optional[str] = None
 
 
 class UserOut(BaseModel):
@@ -33,9 +33,9 @@ class UserOut(BaseModel):
 
     id: int
     email: str
-    first_name: str | None
-    last_name: str | None
-    phone: str | None
+    first_name: Optional[str]
+    last_name: Optional[str]
+    phone: Optional[str]
     role: UserRole
     customer_type: CustomerType
     is_active: bool
@@ -53,7 +53,7 @@ class LoginResult(BaseModel):
     or device_verification_required=True (a code was emailed; the frontend
     must then call /auth/login/verify-device)."""
 
-    access_token: str | None = None
+    access_token: Optional[str] = None
     token_type: str = "bearer"
     device_verification_required: bool = False
 

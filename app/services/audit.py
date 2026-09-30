@@ -1,3 +1,4 @@
+from typing import Optional
 import json
 
 from sqlalchemy.orm import Session
@@ -6,7 +7,7 @@ from app.models.audit_log import AuditLog
 from app.models.user import User
 
 
-def log_audit(db: Session, user: User | None, action: str, entity: str, entity_id, old=None, new=None) -> None:
+def log_audit(db: Session, user: Optional[User], action: str, entity: str, entity_id, old=None, new=None) -> None:
     """Add an audit row to the caller's transaction; the caller commits."""
     db.add(
         AuditLog(

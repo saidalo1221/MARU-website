@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
@@ -36,24 +36,24 @@ class CheckoutRequest(BaseModel):
     delivery_method: str
     payment_method: PaymentMethod
     source: OrderSource = "website"
-    promo_code: str | None = None
+    promo_code: Optional[str] = None
 
-    company_name: str | None = None
-    company_reg_number: str | None = None
-    company_tax_number: str | None = None
-    company_address: str | None = None
-    contact_person: str | None = None
+    company_name: Optional[str] = None
+    company_reg_number: Optional[str] = None
+    company_tax_number: Optional[str] = None
+    company_address: Optional[str] = None
+    contact_person: Optional[str] = None
 
 
 class OrderItemOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    sku_id: int | None
-    warehouse_id: int | None
+    sku_id: Optional[int]
+    warehouse_id: Optional[int]
     sku_code_snapshot: str
     product_name_snapshot: str
-    variant_name_snapshot: str | None
+    variant_name_snapshot: Optional[str]
     unit_price: Decimal
     quantity: int
     line_total: Decimal
@@ -63,15 +63,15 @@ class OrderItemOut(BaseModel):
 class OrderStatusHistoryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    from_status: OrderStatus | None
+    from_status: Optional[OrderStatus]
     to_status: OrderStatus
-    note: str | None
+    note: Optional[str]
     created_at: datetime
 
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
-    note: str | None = None
+    note: Optional[str] = None
 
 
 class OrderOut(BaseModel):
@@ -113,12 +113,12 @@ class CheckoutOut(OrderOut):
     access token. Neither is included in normal order-history responses."""
 
     payment: PaymentInitiationOut
-    guest_order_token: str | None = None
+    guest_order_token: Optional[str] = None
 
 
 class PaymentMethodOut(BaseModel):
     id: str
     display_name: str
     enabled: bool
-    reference_kind: PaymentReferenceKind | None = None
-    reason: str | None = None
+    reference_kind: Optional[PaymentReferenceKind] = None
+    reason: Optional[str] = None

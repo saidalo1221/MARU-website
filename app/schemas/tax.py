@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
@@ -13,8 +14,8 @@ class TaxRuleCreate(BaseModel):
 
 
 class TaxRuleUpdate(BaseModel):
-    rate: Decimal | None = Field(default=None, ge=0, le=100)
-    is_active: bool | None = None
+    rate: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    is_active: Optional[bool] = None
 
 
 class TaxRuleOut(BaseModel):

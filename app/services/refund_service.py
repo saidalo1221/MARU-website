@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -46,7 +47,7 @@ def total_refunded(db: Session, order_id: int) -> Decimal:
     return Decimal(result)
 
 
-def create_refund(db: Session, order: Order, amount: Decimal, reason: str | None, admin_user: User) -> Refund:
+def create_refund(db: Session, order: Order, amount: Decimal, reason: Optional[str], admin_user: User) -> Refund:
     """Refund part or all of a paid order (PRD ТЗ№3 §31/§67, ТЗ№4 §28).
     Raises RefundError for request-shape problems (bad amount, wrong order
     status) that never reach the provider. A provider-side failure is

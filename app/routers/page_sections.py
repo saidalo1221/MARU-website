@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/page-sections", tags=["page-sections"], dependencies
 
 
 @router.get("", response_model=list[PageSectionOut])
-def list_page_sections(page: PageKey, lang: str | None = None, db: Session = Depends(get_db)) -> list[PageSectionOut]:
+def list_page_sections(page: PageKey, lang: Optional[str] = None, db: Session = Depends(get_db)) -> list[PageSectionOut]:
     sections = list(
         db.execute(
             select(PageSection).where(PageSection.page == page).order_by(PageSection.sort_order, PageSection.id)

@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 from uuid import uuid4
 
@@ -17,9 +18,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=F
 
 
 def get_current_user_optional(
-    token: str | None = Depends(oauth2_scheme),
+    token: Optional[str] = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
-) -> User | None:
+) -> Optional[User]:
     if not token:
         return None
 
@@ -39,7 +40,7 @@ def get_current_user_optional(
 
 
 def get_current_user_required(
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
 ) -> User:
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
@@ -63,8 +64,8 @@ def require_role(*roles: UserRole):
 
 def get_or_create_cart(
     response: Response,
-    x_cart_token: str | None = Header(default=None, alias="X-Cart-Token"),
-    user: User | None = Depends(get_current_user_optional),
+    x_cart_token: Optional[str] = Header(default=None, alias="X-Cart-Token"),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> Cart:
     """Resolve the caller's active cart. Authenticated users are matched by

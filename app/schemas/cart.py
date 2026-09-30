@@ -1,3 +1,4 @@
+from typing import Optional
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
@@ -37,7 +38,7 @@ class CartOut(BaseModel):
     delivery: Decimal
     total: Decimal
     item_count: int
-    promo_code: str | None = None
+    promo_code: Optional[str] = None
 
 
 class CartRecommendationsOut(BaseModel):

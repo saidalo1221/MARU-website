@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from secrets import token_urlsafe
@@ -155,7 +156,7 @@ def generate_order_number() -> str:
     return f"MARU-{datetime.now(timezone.utc):%Y%m%d}-{uuid4().hex[:6].upper()}"
 
 
-def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: User | None) -> Order:
+def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optional[User]) -> Order:
     if not cart.items:
         raise OrderError("Cart is empty")
 
@@ -182,7 +183,7 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: User 
         subtotal += line_total
         line_data.append((item, unit_price, line_total))
 
-    promo: PromoCode | None = None
+    promo: Optional[PromoCode] = None
     if checkout.promo_code:
         try:
             promo = validate_promo(db, checkout.promo_code, subtotal)
@@ -284,8 +285,8 @@ def set_order_status(
     db: Session,
     order: Order,
     new_status: OrderStatus,
-    changed_by: User | None,
-    note: str | None = None,
+    changed_by: Optional[User],
+    note: Optional[str] = None,
 ) -> Order:
     old_status = order.status
     if old_status == new_status:
@@ -332,6 +333,14 @@ def set_order_status(
     return order
 
 
+def _lock_ordered_items(order: Order) -> list[OrderItem]:
+    """Items in a stable (sku_id) order. Inventory rows are locked one line at
+    a time (FOR UPDATE), so two concurrent orders touching the same SKUs in
+    opposite cart order would otherwise deadlock on InnoDB (MariaDB aborts one
+    with error 1213). SQLite serialises writers and never shows this."""
+    return sorted(order.items, key=lambda item: item.sku_id or 0)
+
+
 def _reserve_stock(db: Session, order: Order) -> None:
     """PRD ТЗ№3 §68: with multiple warehouses, picks exactly one warehouse
     per line — the highest-priority (lowest Warehouse.priority) active
@@ -341,7 +350,7 @@ def _reserve_stock(db: Session, order: Order) -> None:
     fulfillment, which this does not attempt. If no single warehouse can
     cover a line (even when the sum across warehouses could), this raises
     even though available_stock() might have looked sufficient."""
-    for item in order.items:
+    for item in _lock_ordered_items(order):
         if item.sku_id is None:
             continue
         candidates = db.execute(
@@ -359,7 +368,7 @@ def _reserve_stock(db: Session, order: Order) -> None:
 
 
 def _release_stock(db: Session, order: Order) -> None:
-    for item in order.items:
+    for item in _lock_ordered_items(order):
         if item.sku_id is None or item.warehouse_id is None:
             continue
         inventory = db.execute(

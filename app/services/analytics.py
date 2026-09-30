@@ -1,3 +1,4 @@
+from typing import Optional
 import json
 import logging
 
@@ -9,7 +10,7 @@ from app.models.user import User
 logger = logging.getLogger("maru.analytics")
 
 
-def record_event(db: Session, event_name: str, user: User | None = None, session_id: str | None = None, **properties) -> None:
+def record_event(db: Session, event_name: str, user: Optional[User] = None, session_id: Optional[str] = None, **properties) -> None:
     """Records one PRD ТЗ№4 §46 event. Never raises and never rolls back the
     caller's transaction — an analytics write failing must not fail the
     checkout/login/etc. it's describing (same isolation principle as

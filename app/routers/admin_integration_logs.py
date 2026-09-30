@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -16,8 +17,8 @@ router = APIRouter(prefix="/admin/integration-logs", tags=["admin-integration-lo
 
 @router.get("/", response_model=list[IntegrationLogOut])
 def list_integration_logs(
-    status_filter: IntegrationLogStatus | None = None,
-    integration: str | None = None,
+    status_filter: Optional[IntegrationLogStatus] = None,
+    integration: Optional[str] = None,
     user: User = Depends(require_role(UserRole.SUPER_ADMIN)),
     db: Session = Depends(get_db),
 ) -> list[IntegrationLog]:

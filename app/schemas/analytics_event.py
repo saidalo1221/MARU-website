@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -8,7 +9,7 @@ class AnalyticsEventOut(BaseModel):
 
     id: int
     event_name: str
-    user_id: int | None
-    session_id: str | None
-    properties: str | None
+    user_id: Optional[int]
+    session_id: Optional[str]
+    properties: Optional[str]
     created_at: datetime

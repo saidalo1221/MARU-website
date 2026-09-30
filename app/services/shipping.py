@@ -1,3 +1,4 @@
+from typing import Optional
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -16,7 +17,7 @@ def cart_weight_g(cart: Cart) -> int:
     return sum((item.sku.unit_weight_g or 0) * item.quantity for item in cart.items)
 
 
-def _find_rate(db: Session, country: str, delivery_method: str) -> ShippingRate | None:
+def _find_rate(db: Session, country: str, delivery_method: str) -> Optional[ShippingRate]:
     """Looks up the most specific configured rate first, falling back to
     wildcards so admins don't have to enumerate every country x method
     combination (PRD section 17)."""

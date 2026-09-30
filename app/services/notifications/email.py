@@ -1,3 +1,4 @@
+from typing import Optional
 import logging
 import smtplib
 from email.mime.text import MIMEText
@@ -38,7 +39,7 @@ class EmailNotifier(NotificationBase):
         except (smtplib.SMTPException, OSError):
             logger.exception("Failed to send email: %s -> %s", subject, to_email)
 
-    def email_verification(self, to_email: str, token: str, db: Session | None = None) -> None:
+    def email_verification(self, to_email: str, token: str, db: Optional[Session] = None) -> None:
         link = f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?token={token}"
         context = {"link": link, "to_email": to_email}
         rendered = render_template(db, "email_verification", context)
@@ -52,7 +53,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
-    def password_reset(self, to_email: str, token: str, db: Session | None = None) -> None:
+    def password_reset(self, to_email: str, token: str, db: Optional[Session] = None) -> None:
         link = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?token={token}"
         context = {"link": link, "to_email": to_email}
         rendered = render_template(db, "password_reset", context)
@@ -66,7 +67,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
-    def admin_login_code(self, to_email: str, code: str, db: Session | None = None) -> None:
+    def admin_login_code(self, to_email: str, code: str, db: Optional[Session] = None) -> None:
         context = {"code": code, "to_email": to_email}
         rendered = render_template(db, "admin_login_code", context)
         if rendered:
@@ -79,7 +80,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
-    def device_login_code(self, to_email: str, code: str, db: Session | None = None) -> None:
+    def device_login_code(self, to_email: str, code: str, db: Optional[Session] = None) -> None:
         context = {"code": code, "to_email": to_email}
         rendered = render_template(db, "device_login_code", context)
         if rendered:
@@ -93,7 +94,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
-    def order_created(self, order: Order, db: Session | None = None) -> None:
+    def order_created(self, order: Order, db: Optional[Session] = None) -> None:
         context = {
             "order_number": order.order_number,
             "first_name": order.first_name,
@@ -112,7 +113,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(order.email, subject, body)
 
-    def order_status_changed(self, order: Order, old_status: str, new_status: str, db: Session | None = None) -> None:
+    def order_status_changed(self, order: Order, old_status: str, new_status: str, db: Optional[Session] = None) -> None:
         context = {
             "order_number": order.order_number,
             "first_name": order.first_name,

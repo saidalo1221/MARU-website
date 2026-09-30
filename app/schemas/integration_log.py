@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -14,9 +15,9 @@ class IntegrationLogOut(BaseModel):
     direction: str
     internal_entity: str
     internal_id: int
-    external_id: str | None
+    external_id: Optional[str]
     status: IntegrationLogStatus
-    error_message: str | None
+    error_message: Optional[str]
     attempt: int
     created_at: datetime
-    completed_at: datetime | None
+    completed_at: Optional[datetime]

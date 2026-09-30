@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -28,7 +29,7 @@ def get_category_translations(db: Session, category_ids: list[int], locale: str)
     return {row.category_id: row.name for row in rows}
 
 
-def get_product_translation(db: Session, product_id: int, locale: str) -> ProductTranslation | None:
+def get_product_translation(db: Session, product_id: int, locale: str) -> Optional[ProductTranslation]:
     return db.execute(
         select(ProductTranslation).where(
             ProductTranslation.product_id == product_id, ProductTranslation.locale == locale
@@ -51,7 +52,7 @@ def get_product_translations(db: Session, product_ids: list[int], locale: str) -
     return {row.product_id: row for row in rows}
 
 
-def get_blog_post_translation(db: Session, post_id: int, locale: str) -> BlogPostTranslation | None:
+def get_blog_post_translation(db: Session, post_id: int, locale: str) -> Optional[BlogPostTranslation]:
     return db.execute(
         select(BlogPostTranslation).where(
             BlogPostTranslation.post_id == post_id, BlogPostTranslation.locale == locale
@@ -74,7 +75,7 @@ def get_blog_post_translations(db: Session, post_ids: list[int], locale: str) ->
     return {row.post_id: row for row in rows}
 
 
-def get_site_settings_translation(db: Session, site_settings_id: int, locale: str) -> SiteSettingsTranslation | None:
+def get_site_settings_translation(db: Session, site_settings_id: int, locale: str) -> Optional[SiteSettingsTranslation]:
     return db.execute(
         select(SiteSettingsTranslation).where(
             SiteSettingsTranslation.site_settings_id == site_settings_id, SiteSettingsTranslation.locale == locale
@@ -82,7 +83,7 @@ def get_site_settings_translation(db: Session, site_settings_id: int, locale: st
     ).scalar_one_or_none()
 
 
-def get_about_section_translation(db: Session, section_id: int, locale: str) -> AboutSectionTranslation | None:
+def get_about_section_translation(db: Session, section_id: int, locale: str) -> Optional[AboutSectionTranslation]:
     return db.execute(
         select(AboutSectionTranslation).where(
             AboutSectionTranslation.section_id == section_id, AboutSectionTranslation.locale == locale
@@ -105,7 +106,7 @@ def get_about_section_translations(db: Session, section_ids: list[int], locale: 
     return {row.section_id: row for row in rows}
 
 
-def get_page_section_translation(db: Session, section_id: int, locale: str) -> PageSectionTranslation | None:
+def get_page_section_translation(db: Session, section_id: int, locale: str) -> Optional[PageSectionTranslation]:
     return db.execute(
         select(PageSectionTranslation).where(
             PageSectionTranslation.section_id == section_id, PageSectionTranslation.locale == locale

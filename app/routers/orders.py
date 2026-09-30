@@ -1,3 +1,4 @@
+from typing import Optional
 import requests
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select
@@ -39,7 +40,7 @@ def _load_cart_with_items(db: Session, cart_id: int) -> Cart:
     return db.execute(stmt).unique().scalar_one()
 
 
-def _load_order(db: Session, order_id: int) -> Order | None:
+def _load_order(db: Session, order_id: int) -> Optional[Order]:
     stmt = (
         select(Order)
         .where(Order.id == order_id)
@@ -48,7 +49,7 @@ def _load_order(db: Session, order_id: int) -> Order | None:
     return db.execute(stmt).unique().scalar_one_or_none()
 
 
-def _require_order_access(order: Order, user: User | None, order_token: str | None) -> None:
+def _require_order_access(order: Order, user: Optional[User], order_token: Optional[str]) -> None:
     """Protect customer orders without requiring an account for guest checkout."""
     if order.user_id is not None:
         allowed = user is not None and order.user_id == user.id
@@ -71,7 +72,7 @@ def _require_order_access(order: Order, user: User | None, order_token: str | No
 def checkout(
     payload: CheckoutRequest,
     cart: Cart = Depends(get_or_create_cart),
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CheckoutOut:
     cart = _load_cart_with_items(db, cart.id)
@@ -148,8 +149,8 @@ def get_my_order(
 @router.get("/{order_id}", response_model=OrderOut, dependencies=[Depends(rate_limit("order_lookup", 30, 60))])
 def get_order_for_customer(
     order_id: int,
-    order_token: str | None = Header(default=None, alias="X-Order-Token"),
-    user: User | None = Depends(get_current_user_optional),
+    order_token: Optional[str] = Header(default=None, alias="X-Order-Token"),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> Order:
     order = _load_order(db, order_id)
@@ -166,8 +167,8 @@ def get_order_for_customer(
 )
 def confirm_payment(
     order_id: int,
-    order_token: str | None = Header(default=None, alias="X-Order-Token"),
-    user: User | None = Depends(get_current_user_optional),
+    order_token: Optional[str] = Header(default=None, alias="X-Order-Token"),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> Order:
     """For Stripe/PayPal, polls the gateway for a completed payment. Payme and
@@ -215,8 +216,8 @@ def confirm_payment(
 )
 def cancel_order(
     order_id: int,
-    order_token: str | None = Header(default=None, alias="X-Order-Token"),
-    user: User | None = Depends(get_current_user_optional),
+    order_token: Optional[str] = Header(default=None, alias="X-Order-Token"),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> Order:
     order = _load_order(db, order_id)

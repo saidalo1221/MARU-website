@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,7 +27,7 @@ crm = Bitrix24Connector()
 )
 def create_quote(
     payload: QuoteCreate,
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> QuoteRequest:
     """Public Request a Quote / wholesale / distributor form (PRD ТЗ№2 §32-33)."""

@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -18,7 +19,7 @@ from app.services.i18n import get_product_translations
 router = APIRouter(prefix="/wishlist", tags=["wishlist"], dependencies=[Depends(rate_limit("wishlist", 120, 60))])
 
 
-def _to_out(item: WishlistItem, translation, currency: str | None, db: Session) -> WishlistItemOut:
+def _to_out(item: WishlistItem, translation, currency: Optional[str], db: Session) -> WishlistItemOut:
     sku = item.sku
     product = sku.variant.product
     available = sku.available_quantity
@@ -39,7 +40,7 @@ def _to_out(item: WishlistItem, translation, currency: str | None, db: Session) 
     )
 
 
-def _list(db: Session, user: User, lang: str | None, currency: str | None) -> list[WishlistItemOut]:
+def _list(db: Session, user: User, lang: Optional[str], currency: Optional[str]) -> list[WishlistItemOut]:
     stmt = (
         select(WishlistItem)
         .where(WishlistItem.user_id == user.id)
@@ -67,8 +68,8 @@ def _list(db: Session, user: User, lang: str | None, currency: str | None) -> li
 
 @router.get("/", response_model=list[WishlistItemOut])
 def get_wishlist(
-    lang: str | None = None,
-    currency: str | None = None,
+    lang: Optional[str] = None,
+    currency: Optional[str] = None,
     user: User = Depends(get_current_user_required),
     db: Session = Depends(get_db),
 ):
@@ -80,8 +81,8 @@ def get_wishlist(
 @router.post("/{sku_id}", response_model=list[WishlistItemOut], status_code=status.HTTP_201_CREATED)
 def add_to_wishlist(
     sku_id: int,
-    lang: str | None = None,
-    currency: str | None = None,
+    lang: Optional[str] = None,
+    currency: Optional[str] = None,
     user: User = Depends(get_current_user_required),
     db: Session = Depends(get_db),
 ):
@@ -103,8 +104,8 @@ def add_to_wishlist(
 @router.delete("/{sku_id}", response_model=list[WishlistItemOut])
 def remove_from_wishlist(
     sku_id: int,
-    lang: str | None = None,
-    currency: str | None = None,
+    lang: Optional[str] = None,
+    currency: Optional[str] = None,
     user: User = Depends(get_current_user_required),
     db: Session = Depends(get_db),
 ):

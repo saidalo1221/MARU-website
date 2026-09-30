@@ -66,10 +66,12 @@ Needs a decision/access from the user (do not guess):
    no consent step — privacy decision before launch.
 
 Deployment blockers:
-10. Production server has only Python 3.9; code uses 3.10+ syntax (`X | None`)
-    and will not import there.
-11. MariaDB never tested — every migration through
-    `app/migration_2026_session8.sql` and `schema_mariadb.sql` was SQLite-only.
+10. Production server has only Python 3.9. `X | None` annotations were
+    rewritten to `Optional[...]` (static checks pass) but it has **not** been
+    run on a real 3.9 — see `MARIADB_PREFLIGHT.md` for the server-side check.
+11. MariaDB never run. SQL files match the models (static diff), one
+    InnoDB-only deadlock risk was fixed; the first-deploy checklist is in
+    `MARIADB_PREFLIGHT.md`. PRD coverage is in `PRD_AUDIT.md`.
 12. Rate limits key on `request.client.host`: behind a reverse proxy run
     uvicorn with `--proxy-headers --forwarded-allow-ips=<proxy>` or all users
     share one bucket. Route `/sitemap.xml` to the backend too.

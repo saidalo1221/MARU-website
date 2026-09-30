@@ -1,5 +1,5 @@
 import json
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel, Field, field_validator
@@ -22,7 +22,7 @@ class ClientEventIn(BaseModel):
     # (purchase, add_to_cart, ...) are recorded by their own routers and must
     # not be forgeable from this public endpoint.
     event_name: Literal["view_item", "view_item_list", "search", "view_cart", "add_payment_info", "select_variant", "begin_checkout"]
-    session_id: str | None = Field(default=None, max_length=64)
+    session_id: Optional[str] = Field(default=None, max_length=64)
     properties: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("properties")
@@ -39,7 +39,7 @@ class ClientEventIn(BaseModel):
 @router.post("/events", status_code=status.HTTP_204_NO_CONTENT)
 def ingest_client_event(
     payload: ClientEventIn,
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> Response:
     """Public browser-side analytics ingest (PRD ТЗ№4 §46). Capture only;

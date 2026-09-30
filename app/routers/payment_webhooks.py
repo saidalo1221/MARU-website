@@ -10,6 +10,7 @@ provider's test environment, and re-check error codes against their current
 merchant docs, before processing real payments.
 """
 
+from typing import Optional
 import base64
 import hmac
 import hashlib
@@ -100,7 +101,7 @@ async def payme_webhook(request: Request, db: Session = Depends(get_db)) -> dict
     return handler(db, rpc_id, params)
 
 
-def _payme_order(db: Session, params: dict) -> Order | None:
+def _payme_order(db: Session, params: dict) -> Optional[Order]:
     order_id = params.get("account", {}).get("order_id")
     if order_id is None:
         return None

@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -39,8 +40,8 @@ def list_blog_categories(db: Session = Depends(get_db)) -> list[BlogCategory]:
 
 @router.get("/posts", response_model=list[BlogPostSummary])
 def list_blog_posts(
-    category: str | None = None,
-    lang: str | None = None,
+    category: Optional[str] = None,
+    lang: Optional[str] = None,
     limit: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
 ) -> list[BlogPostSummary]:
@@ -68,7 +69,7 @@ def list_blog_posts(
 
 
 @router.get("/posts/{slug}", response_model=BlogPostWithRelated)
-def get_blog_post(slug: str, lang: str | None = None, db: Session = Depends(get_db)) -> BlogPostWithRelated:
+def get_blog_post(slug: str, lang: Optional[str] = None, db: Session = Depends(get_db)) -> BlogPostWithRelated:
     stmt = (
         select(BlogPost)
         .where(BlogPost.slug == slug, BlogPost.is_published.is_(True))

@@ -1,3 +1,4 @@
+from typing import Optional
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
@@ -40,7 +41,7 @@ from app.services.tax import calculate_tax
 router = APIRouter(prefix="/cart", tags=["cart"], dependencies=[Depends(rate_limit("cart", 300, 60))])
 
 
-def _resolve_customer_type(user: User | None) -> CustomerType:
+def _resolve_customer_type(user: Optional[User]) -> CustomerType:
     return user.customer_type if user is not None else CustomerType.RETAIL
 
 
@@ -48,9 +49,9 @@ def _build_cart_out(
     db: Session,
     cart: Cart,
     customer_type: CustomerType,
-    promo_code: str | None,
-    country: str | None = None,
-    delivery_method: str | None = None,
+    promo_code: Optional[str],
+    country: Optional[str] = None,
+    delivery_method: Optional[str] = None,
 ) -> CartOut:
     items: list[CartItemOut] = []
     subtotal = Decimal("0")
@@ -74,7 +75,7 @@ def _build_cart_out(
 
     # Promo validity (min order amount, expiry, usage cap) depends on the
     # subtotal, so it can only be checked once item prices are resolved.
-    promo: PromoCode | None = None
+    promo: Optional[PromoCode] = None
     if promo_code:
         try:
             promo = validate_promo(db, promo_code, subtotal)
@@ -119,11 +120,11 @@ def _load_cart_with_items(db: Session, cart_id: int) -> Cart:
 
 @router.get("/", response_model=CartOut)
 def get_cart(
-    promo_code: str | None = None,
-    country: str | None = None,
-    delivery_method: str | None = None,
+    promo_code: Optional[str] = None,
+    country: Optional[str] = None,
+    delivery_method: Optional[str] = None,
     cart: Cart = Depends(get_or_create_cart),
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CartOut:
     return _build_cart_out(
@@ -137,8 +138,8 @@ def get_cart(
     dependencies=[Depends(rate_limit("cart_recommendations", 60, 60))],
 )
 def get_cart_recommendations(
-    lang: str | None = None,
-    currency: str | None = None,
+    lang: Optional[str] = None,
+    currency: Optional[str] = None,
     limit: int = Query(default=4, ge=1, le=12),
     cart: Cart = Depends(get_or_create_cart),
     db: Session = Depends(get_db),
@@ -211,7 +212,7 @@ def get_cart_recommendations(
 def add_item(
     payload: CartItemCreate,
     cart: Cart = Depends(get_or_create_cart),
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CartOut:
     try:
@@ -253,7 +254,7 @@ def update_item(
     sku_id: int,
     payload: CartItemUpdate,
     cart: Cart = Depends(get_or_create_cart),
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CartOut:
     try:
@@ -282,7 +283,7 @@ def update_item(
 def remove_item(
     sku_id: int,
     cart: Cart = Depends(get_or_create_cart),
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CartOut:
     try:
@@ -306,7 +307,7 @@ def remove_item(
 def set_cart_currency(
     payload: CartCurrencyUpdate,
     cart: Cart = Depends(get_or_create_cart),
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CartOut:
     """Lets the customer pick a display/checkout currency (PRD section 14).
@@ -330,7 +331,7 @@ def set_cart_currency(
 
 @router.post("/merge", response_model=CartOut)
 def merge_guest_cart(
-    x_cart_token: str | None = Header(default=None, alias="X-Cart-Token"),
+    x_cart_token: Optional[str] = Header(default=None, alias="X-Cart-Token"),
     user: User = Depends(get_current_user_required),
     db: Session = Depends(get_db),
 ) -> CartOut:

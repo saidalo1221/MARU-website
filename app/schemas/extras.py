@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
@@ -13,38 +14,38 @@ from app.services.i18n import ALLOWED_LOCALES
 class QuoteCreate(BaseModel):
     request_type: str = Field(default="quote", pattern="^(quote|wholesale|distributor)$")
     name: str = Field(min_length=1, max_length=200)
-    company: str | None = Field(default=None, max_length=255)
+    company: Optional[str] = Field(default=None, max_length=255)
     country: str = Field(min_length=1, max_length=100)
-    city: str | None = Field(default=None, max_length=100)
+    city: Optional[str] = Field(default=None, max_length=100)
     email: EmailStr
-    phone: str | None = Field(default=None, max_length=30)
-    products: str | None = None
-    quantity: str | None = Field(default=None, max_length=100)
-    comment: str | None = None
+    phone: Optional[str] = Field(default=None, max_length=30)
+    products: Optional[str] = None
+    quantity: Optional[str] = Field(default=None, max_length=100)
+    comment: Optional[str] = None
 
 
 class QuoteOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    rfq_number: str | None
+    rfq_number: Optional[str]
     request_type: str
     status: QuoteStatus
     name: str
-    company: str | None
+    company: Optional[str]
     country: str
-    city: str | None
+    city: Optional[str]
     email: str
-    phone: str | None
-    products: str | None
-    quantity: str | None
-    comment: str | None
-    proposed_price: Decimal | None
-    currency: str | None
-    valid_until: datetime | None
-    manager_notes: str | None
-    crm_lead_id: str | None
-    order_id: int | None
+    phone: Optional[str]
+    products: Optional[str]
+    quantity: Optional[str]
+    comment: Optional[str]
+    proposed_price: Optional[Decimal]
+    currency: Optional[str]
+    valid_until: Optional[datetime]
+    manager_notes: Optional[str]
+    crm_lead_id: Optional[str]
+    order_id: Optional[int]
     created_at: datetime
 
 
@@ -54,8 +55,8 @@ class ConvertQuoteToOrderRequest(BaseModel):
     to a naive split of QuoteRequest.name (first word / remainder) when
     omitted — pass them explicitly if that split would be wrong."""
 
-    first_name: str | None = Field(default=None, max_length=100)
-    last_name: str | None = Field(default=None, max_length=100)
+    first_name: Optional[str] = Field(default=None, max_length=100)
+    last_name: Optional[str] = Field(default=None, max_length=100)
     address_line: str = Field(min_length=1, max_length=255)
     postal_code: str = Field(min_length=1, max_length=20)
     delivery_method: str = Field(default="*", max_length=50)
@@ -65,11 +66,11 @@ class ConvertQuoteToOrderRequest(BaseModel):
 
 
 class QuoteUpdate(BaseModel):
-    status: QuoteStatus | None = None
-    proposed_price: Decimal | None = Field(default=None, gt=0)
-    currency: str | None = Field(default=None, min_length=3, max_length=3)
-    valid_until: datetime | None = None
-    manager_notes: str | None = None
+    status: Optional[QuoteStatus] = None
+    proposed_price: Optional[Decimal] = Field(default=None, gt=0)
+    currency: Optional[str] = Field(default=None, min_length=3, max_length=3)
+    valid_until: Optional[datetime] = None
+    manager_notes: Optional[str] = None
 
 
 class WishlistItemOut(BaseModel):
@@ -84,7 +85,7 @@ class WishlistItemOut(BaseModel):
 
 
 class AddressIn(BaseModel):
-    label: str | None = Field(default=None, max_length=50)
+    label: Optional[str] = Field(default=None, max_length=50)
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     phone: str = Field(min_length=1, max_length=30)
@@ -93,8 +94,8 @@ class AddressIn(BaseModel):
     address_line: str = Field(min_length=1, max_length=255)
     postal_code: str = Field(min_length=1, max_length=20)
     is_default: bool = False
-    latitude: float | None = None
-    longitude: float | None = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 class AddressOut(AddressIn):
@@ -105,7 +106,7 @@ class AddressOut(AddressIn):
 
 class ReviewCreate(BaseModel):
     rating: int = Field(ge=1, le=5)
-    content: str | None = Field(default=None, max_length=5000)
+    content: Optional[str] = Field(default=None, max_length=5000)
 
 
 class ReviewOut(BaseModel):
@@ -114,13 +115,13 @@ class ReviewOut(BaseModel):
     id: int
     product_id: int
     rating: int
-    content: str | None
+    content: Optional[str]
     status: ReviewStatus
     created_at: datetime
 
 
 class ReviewSummary(BaseModel):
-    average_rating: float | None
+    average_rating: Optional[float]
     count: int
     reviews: list[ReviewOut]
 
@@ -133,18 +134,18 @@ class AuditLogOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    user_id: int | None
+    user_id: Optional[int]
     action: str
     entity: str
-    entity_id: str | None
-    old_value: str | None
-    new_value: str | None
+    entity_id: Optional[str]
+    old_value: Optional[str]
+    new_value: Optional[str]
     created_at: datetime
 
 
 class RefundCreate(BaseModel):
     amount: Decimal = Field(gt=0)
-    reason: str | None = None
+    reason: Optional[str] = None
 
 
 class RefundOut(BaseModel):
@@ -154,13 +155,13 @@ class RefundOut(BaseModel):
     order_id: int
     amount: Decimal
     currency: str
-    reason: str | None
+    reason: Optional[str]
     status: RefundStatus
     provider: str
-    provider_refund_id: str | None
-    failure_reason: str | None
+    provider_refund_id: Optional[str]
+    failure_reason: Optional[str]
     created_at: datetime
-    completed_at: datetime | None
+    completed_at: Optional[datetime]
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -180,15 +181,15 @@ class NotificationTemplateIn(BaseModel):
     event: str = Field(min_length=1, max_length=50)
     locale: str = Field(pattern="^(" + "|".join(ALLOWED_LOCALES) + ")$")
     channel: str = Field(default="email", max_length=20)
-    subject: str | None = Field(default=None, max_length=255)
+    subject: Optional[str] = Field(default=None, max_length=255)
     body: str = Field(min_length=1)
     is_active: bool = True
 
 
 class NotificationTemplateUpdate(BaseModel):
-    subject: str | None = Field(default=None, max_length=255)
-    body: str | None = Field(default=None, min_length=1)
-    is_active: bool | None = None
+    subject: Optional[str] = Field(default=None, max_length=255)
+    body: Optional[str] = Field(default=None, min_length=1)
+    is_active: Optional[bool] = None
 
 
 class NotificationTemplateOut(BaseModel):
@@ -198,7 +199,7 @@ class NotificationTemplateOut(BaseModel):
     event: str
     locale: str
     channel: str
-    subject: str | None
+    subject: Optional[str]
     body: str
     is_active: bool
     updated_at: datetime

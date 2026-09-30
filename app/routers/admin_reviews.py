@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/admin/reviews", tags=["admin-reviews"])
 
 @router.get("/", response_model=list[ReviewOut])
 def list_reviews(
-    status_filter: ReviewStatus | None = None,
+    status_filter: Optional[ReviewStatus] = None,
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[Review]:

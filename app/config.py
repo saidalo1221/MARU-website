@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,23 +20,23 @@ class Settings(BaseSettings):
 
     # Payment providers (PRD section 13) — all optional; a gateway raises
     # PaymentConfigError at call time if its settings aren't filled in yet.
-    PAYME_MERCHANT_ID: str | None = None
-    PAYME_KEY: str | None = None
+    PAYME_MERCHANT_ID: Optional[str] = None
+    PAYME_KEY: Optional[str] = None
     # Payme's test/sandbox merchant endpoint is checkout.test.paycom.uz; production is checkout.paycom.uz.
     PAYME_CHECKOUT_URL: str = "https://checkout.paycom.uz"
 
-    CLICK_SERVICE_ID: str | None = None
-    CLICK_MERCHANT_ID: str | None = None
-    CLICK_SECRET_KEY: str | None = None
+    CLICK_SERVICE_ID: Optional[str] = None
+    CLICK_MERCHANT_ID: Optional[str] = None
+    CLICK_SECRET_KEY: Optional[str] = None
 
     # Uzum Pay intentionally has no settings yet: merchant API documentation
     # and sandbox credentials must be supplied before an integration is built.
 
-    STRIPE_SECRET_KEY: str | None = None
-    STRIPE_WEBHOOK_SECRET: str | None = None
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
 
-    PAYPAL_CLIENT_ID: str | None = None
-    PAYPAL_CLIENT_SECRET: str | None = None
+    PAYPAL_CLIENT_ID: Optional[str] = None
+    PAYPAL_CLIENT_SECRET: Optional[str] = None
     PAYPAL_API_BASE: str = "https://api-m.sandbox.paypal.com"  # switch to api-m.paypal.com for live
 
     # Base URL of the deployed frontend, used in password-reset links.
@@ -53,7 +54,7 @@ class Settings(BaseSettings):
     # Cache (PRD ТЗ№3 §11). Also backs rate limiting (app/core/rate_limit.py)
     # so limits are shared across worker processes, not per-process memory.
     # Leave unset to keep the old in-process limiter for local dev without Redis.
-    REDIS_URL: str | None = None
+    REDIS_URL: Optional[str] = None
 
     # Live FX feed (app/services/fx_provider.py) that populates the
     # admin-maintained ExchangeRate table (app/models/exchange_rate.py) — it
@@ -62,18 +63,18 @@ class Settings(BaseSettings):
     # free tier is 1,500 requests/month; sync on a daily schedule (see
     # app/tasks/sync_exchange_rates.py), never per-request, to stay well
     # under that with room to spare.
-    EXCHANGERATE_API_KEY: str | None = None
+    EXCHANGERATE_API_KEY: Optional[str] = None
     EXCHANGERATE_API_BASE: str = "https://v6.exchangerate-api.com/v6"
 
     # CRM (PRD section 26).
-    BITRIX24_WEBHOOK_URL: str | None = None
+    BITRIX24_WEBHOOK_URL: Optional[str] = None
 
     # Notifications (PRD section 38) — email only for now.
-    SMTP_HOST: str | None = None
+    SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
-    SMTP_USER: str | None = None
-    SMTP_PASSWORD: str | None = None
-    SMTP_FROM_EMAIL: str | None = None
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: Optional[str] = None
     SMTP_USE_TLS: bool = True
 
 

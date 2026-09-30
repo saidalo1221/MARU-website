@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/admin/quotes", tags=["admin-quotes"])
 
 @router.get("/", response_model=list[QuoteOut])
 def list_quotes(
-    status_filter: QuoteStatus | None = None,
+    status_filter: Optional[QuoteStatus] = None,
     user: User = Depends(require_role(UserRole.SALES_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[QuoteRequest]:

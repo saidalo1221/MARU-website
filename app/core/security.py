@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
@@ -22,7 +23,7 @@ def create_access_token(subject: str) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
-def decode_access_token(token: str) -> dict | None:
+def decode_access_token(token: str) -> Optional[dict]:
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -35,8 +35,8 @@ class PageSectionCreate(BaseModel):
 
 
 class PageSectionUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=255)
-    body: str | None = Field(default=None, min_length=1)
+    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    body: Optional[str] = Field(default=None, min_length=1)
 
 
 class PageSectionMove(BaseModel):

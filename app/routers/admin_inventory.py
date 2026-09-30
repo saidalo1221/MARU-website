@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -15,7 +16,7 @@ from app.schemas.inventory import InventoryCreate, InventoryOut, InventoryUpdate
 router = APIRouter(prefix="/admin/inventory", tags=["admin-inventory"])
 
 
-def _get_inventory_row(db: Session, sku_id: int, warehouse_id: int) -> Inventory | None:
+def _get_inventory_row(db: Session, sku_id: int, warehouse_id: int) -> Optional[Inventory]:
     return db.execute(
         select(Inventory).where(Inventory.sku_id == sku_id, Inventory.warehouse_id == warehouse_id)
     ).scalar_one_or_none()

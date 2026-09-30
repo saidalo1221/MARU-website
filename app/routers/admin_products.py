@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -25,7 +25,7 @@ from app.services.badges import compute_badges, compute_badges_batch
 router = APIRouter(prefix="/admin/products", tags=["admin-products"])
 
 
-def _load_product(db: Session, product_id: int) -> Product | None:
+def _load_product(db: Session, product_id: int) -> Optional[Product]:
     stmt = (
         select(Product)
         .outerjoin(Product.variants)

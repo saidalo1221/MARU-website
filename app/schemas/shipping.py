@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
@@ -14,10 +15,10 @@ class ShippingRateCreate(BaseModel):
 
 
 class ShippingRateUpdate(BaseModel):
-    currency: str | None = Field(default=None, min_length=3, max_length=3)
-    base_fee: Decimal | None = Field(default=None, ge=0)
-    per_kg_fee: Decimal | None = Field(default=None, ge=0)
-    is_active: bool | None = None
+    currency: Optional[str] = Field(default=None, min_length=3, max_length=3)
+    base_fee: Optional[Decimal] = Field(default=None, ge=0)
+    per_kg_fee: Optional[Decimal] = Field(default=None, ge=0)
+    is_active: Optional[bool] = None
 
 
 class ShippingRateOut(BaseModel):

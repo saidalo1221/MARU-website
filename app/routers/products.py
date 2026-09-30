@@ -1,3 +1,4 @@
+from typing import Optional
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/products", tags=["products"])
 _SKU_PRICE_FIELDS = ("retail_price", "wholesale_price", "distributor_price", "export_price", "special_price")
 
 
-def _apply_translation(product: Product, translation: ProductTranslation | None) -> ProductOut:
+def _apply_translation(product: Product, translation: Optional[ProductTranslation]) -> ProductOut:
     out = ProductOut.model_validate(product)
     if translation is not None:
         out.name = translation.name
@@ -44,7 +45,7 @@ def _convert_product_prices(db: Session, product: ProductOut, currency: str) -> 
             if sku.currency == currency:
                 continue
             for field in _SKU_PRICE_FIELDS:
-                value: Decimal | None = getattr(sku, field)
+                value: Optional[Decimal] = getattr(sku, field)
                 if value is not None:
                     setattr(sku, field, convert_amount(db, value, sku.currency, currency))
             sku.currency = currency
@@ -52,7 +53,7 @@ def _convert_product_prices(db: Session, product: ProductOut, currency: str) -> 
 
 @router.get("/", response_model=list[ProductOut], dependencies=[Depends(rate_limit("products_list", 120, 60))])
 def list_active_products(
-    lang: str | None = None, currency: str | None = None, db: Session = Depends(get_db)
+    lang: Optional[str] = None, currency: Optional[str] = None, db: Session = Depends(get_db)
 ) -> list[ProductOut]:
     """Fetch plastic containers that currently have at least one active
     variant with at least one active, sellable SKU (PRD section 61 MVP catalog).
@@ -96,7 +97,7 @@ def list_active_products(
 
 @router.get("/{slug}", response_model=ProductOut, dependencies=[Depends(rate_limit("products_detail", 120, 60))])
 def get_active_product(
-    slug: str, lang: str | None = None, currency: str | None = None, db: Session = Depends(get_db)
+    slug: str, lang: Optional[str] = None, currency: Optional[str] = None, db: Session = Depends(get_db)
 ) -> ProductOut:
     """Fetch a single active product by slug for the product card view (PRD section 30).
     Pass ?currency=UZS|EUR|KZT|AED to display prices converted from the SKU's

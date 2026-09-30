@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/about-sections", tags=["about-sections"], dependenci
 
 
 @router.get("", response_model=list[AboutSectionOut])
-def list_about_sections(lang: str | None = None, db: Session = Depends(get_db)) -> list[AboutSectionOut]:
+def list_about_sections(lang: Optional[str] = None, db: Session = Depends(get_db)) -> list[AboutSectionOut]:
     sections = (
         db.execute(select(AboutSection).order_by(AboutSection.sort_order, AboutSection.id)).scalars().all()
     )

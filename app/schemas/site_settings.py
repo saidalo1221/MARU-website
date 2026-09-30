@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,35 +8,35 @@ class SiteSettingsOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    phone: str | None
-    email: str | None
-    address: str | None
-    latitude: float | None
-    longitude: float | None
-    about_title: str | None
-    about_body: str | None
+    phone: Optional[str]
+    email: Optional[str]
+    address: Optional[str]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    about_title: Optional[str]
+    about_body: Optional[str]
 
 
 class SiteSettingsUpdate(BaseModel):
-    phone: str | None = Field(default=None, max_length=30)
-    email: str | None = Field(default=None, max_length=255)
-    address: str | None = Field(default=None, max_length=500)
-    latitude: float | None = None
-    longitude: float | None = None
-    about_title: str | None = Field(default=None, max_length=255)
-    about_body: str | None = None
+    phone: Optional[str] = Field(default=None, max_length=30)
+    email: Optional[str] = Field(default=None, max_length=255)
+    address: Optional[str] = Field(default=None, max_length=500)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    about_title: Optional[str] = Field(default=None, max_length=255)
+    about_body: Optional[str] = None
 
 
 class SiteSettingsTranslationIn(BaseModel):
-    address: str | None = Field(default=None, max_length=500)
-    about_title: str | None = Field(default=None, max_length=255)
-    about_body: str | None = None
+    address: Optional[str] = Field(default=None, max_length=500)
+    about_title: Optional[str] = Field(default=None, max_length=255)
+    about_body: Optional[str] = None
 
 
 class SiteSettingsTranslationOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     locale: str
-    address: str | None
-    about_title: str | None
-    about_body: str | None
+    address: Optional[str]
+    about_title: Optional[str]
+    about_body: Optional[str]

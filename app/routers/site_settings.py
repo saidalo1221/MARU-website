@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/site-settings", tags=["site-settings"], dependencies
 
 
 @router.get("", response_model=SiteSettingsOut)
-def get_site_settings(lang: str | None = None, db: Session = Depends(get_db)) -> SiteSettingsOut:
+def get_site_settings(lang: Optional[str] = None, db: Session = Depends(get_db)) -> SiteSettingsOut:
     settings_row = db.get(SiteSettings, 1)
     if settings_row is None:
         return SiteSettingsOut(

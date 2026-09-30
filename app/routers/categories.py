@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/categories", tags=["categories"], dependencies=[Depe
 
 
 @router.get("/", response_model=list[CategoryOut])
-def list_categories(lang: str | None = None, db: Session = Depends(get_db)) -> list[CategoryOut]:
+def list_categories(lang: Optional[str] = None, db: Session = Depends(get_db)) -> list[CategoryOut]:
     """Return the full category tree (PRD section 5: Category -> Series -> ...).
     Pass ?lang=ru|uz|en to get translated names (PRD section 15), falling back
     to the base name where no translation has been entered."""

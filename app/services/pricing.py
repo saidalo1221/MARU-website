@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -74,7 +75,7 @@ def compute_cart_totals(
     db: Session,
     cart: Cart,
     customer_type: CustomerType,
-    promo: PromoCode | None,
+    promo: Optional[PromoCode],
     delivery_amount: Decimal = Decimal("0"),
 ) -> tuple[Decimal, Decimal, Decimal, Decimal]:
     """Returns (subtotal, discount, delivery, total). Formula per PRD section 8:

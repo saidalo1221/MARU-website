@@ -1,3 +1,4 @@
+from typing import Optional
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.tax_rule import ANY, TaxRule
 
 
-def _find_rule(db: Session, country: str, customer_type: str, tax_type: str) -> TaxRule | None:
+def _find_rule(db: Session, country: str, customer_type: str, tax_type: str) -> Optional[TaxRule]:
     """Most-specific match first, same fallback shape as
     app/services/shipping.py._find_rate()."""
     candidates = [

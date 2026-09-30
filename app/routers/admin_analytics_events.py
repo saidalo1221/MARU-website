@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -15,8 +16,8 @@ router = APIRouter(prefix="/admin/analytics-events", tags=["admin-analytics-even
 
 @router.get("/", response_model=list[AnalyticsEventOut])
 def list_analytics_events(
-    event_name: str | None = None,
-    user_id: int | None = None,
+    event_name: Optional[str] = None,
+    user_id: Optional[int] = None,
     limit: int = 100,
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
