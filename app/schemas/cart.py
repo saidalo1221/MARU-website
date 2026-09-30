@@ -39,6 +39,11 @@ class CartOut(BaseModel):
     total: Decimal
     item_count: int
     promo_code: Optional[str] = None
+    # Not part of any total; shown in a separate "Saved for later" list.
+    saved_items: list[CartItemOut] = []
+    # Cart currency. Remaining is 0 once shipping is free; both None = no offer.
+    free_shipping_threshold: Optional[Decimal] = None
+    free_shipping_remaining: Optional[Decimal] = None
 
 
 class CartRecommendationsOut(BaseModel):

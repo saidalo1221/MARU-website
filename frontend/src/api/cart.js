@@ -30,6 +30,14 @@ export function removeCartItem(skuId) {
   return apiRequest(`/cart/items/${skuId}`, { method: 'DELETE' })
 }
 
+export function saveCartItemForLater(skuId) {
+  return apiRequest(`/cart/items/${skuId}/save-for-later`, { method: 'POST' })
+}
+
+export function moveSavedItemToCart(skuId) {
+  return apiRequest(`/cart/items/${skuId}/move-to-cart`, { method: 'POST' })
+}
+
 export function setCartCurrency(currency) {
   return apiRequest('/cart/currency', { method: 'PATCH', body: { currency } })
 }

@@ -11,6 +11,7 @@ export default function AccountNav() {
       <NavLink to="/account/orders" className={linkClass}>{t('footer.orders')}</NavLink>
       <NavLink to="/account/wishlist" className={linkClass}>{t('wishlist.title')}</NavLink>
       <NavLink to="/account/addresses" className={linkClass}>{t('addresses.title')}</NavLink>
+      <NavLink to="/account/privacy" className={linkClass}>{t('privacy.title')}</NavLink>
     </nav>
   )
 }

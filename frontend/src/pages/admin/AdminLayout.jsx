@@ -47,6 +47,7 @@ export default function AdminLayout() {
         ['/admin/page-sections', t('admin.nav.pageSections')],
         ['/admin/notification-templates', t('admin.nav.notificationTemplates')],
         ['/admin/analytics-events', t('admin.nav.analyticsEvents')],
+        ['/admin/newsletter', t('admin.nav.newsletter')],
       ],
     },
     {

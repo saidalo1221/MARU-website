@@ -19,6 +19,9 @@ import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import OrdersHistory from './pages/OrdersHistory'
 import TrackOrder from './pages/TrackOrder'
+import NewsletterAction from './pages/NewsletterAction'
+import AccountPrivacy from './pages/AccountPrivacy'
+import AdminNewsletter from './pages/admin/AdminNewsletter'
 import Wishlist from './pages/Wishlist'
 import Addresses from './pages/Addresses'
 import QuoteRequest from './pages/QuoteRequest'
@@ -85,6 +88,7 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders/:orderId" element={<OrderStatus />} />
           <Route path="/track" element={<TrackOrder />} />
+          <Route path="/newsletter/:action" element={<NewsletterAction />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -93,6 +97,7 @@ export default function App() {
           <Route path="/account/orders" element={<OrdersHistory />} />
           <Route path="/account/wishlist" element={<Wishlist />} />
           <Route path="/account/addresses" element={<Addresses />} />
+          <Route path="/account/privacy" element={<AccountPrivacy />} />
           <Route path="/quote" element={<QuoteRequest />} />
           <Route path="/b2b" element={<B2B />} />
           <Route path="/wholesale" element={<Wholesale />} />
@@ -129,6 +134,7 @@ export default function App() {
             <Route path="integration-logs" element={<AdminIntegrationLogs />} />
             <Route path="audit-log" element={<AdminAuditLog />} />
             <Route path="analytics-events" element={<AdminAnalyticsEvents />} />
+            <Route path="newsletter" element={<AdminNewsletter />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

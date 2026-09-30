@@ -95,6 +95,35 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
+    def newsletter_confirmation(self, to_email: str, token: str, db: Optional[Session] = None) -> None:
+        base = settings.FRONTEND_URL.rstrip("/")
+        context = {
+            "confirm_link": f"{base}/newsletter/confirm?token={token}",
+            "unsubscribe_link": f"{base}/newsletter/unsubscribe?token={token}",
+            "to_email": to_email,
+        }
+        rendered = render_template(db, "newsletter_confirmation", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = "Confirm your MARU newsletter subscription"
+            body = (
+                f"Confirm your subscription:\n{context['confirm_link']}\n\n"
+                "If you did not sign up, ignore this email - you will not be subscribed.\n\nMARU"
+            )
+        self._send(to_email, subject, body)
+
+    def back_in_stock(self, to_email: str, product_name: str, slug: str, db: Optional[Session] = None) -> None:
+        link = f"{settings.FRONTEND_URL.rstrip('/')}/products/{slug}"
+        context = {"product_name": product_name, "link": link, "to_email": to_email}
+        rendered = render_template(db, "back_in_stock", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = f"{product_name} is back in stock"
+            body = f"Good news - {product_name} is available again:\n{link}\n\nMARU"
+        self._send(to_email, subject, body)
+
     def order_created(self, order: Order, db: Optional[Session] = None) -> None:
         context = {
             "order_number": order.order_number,

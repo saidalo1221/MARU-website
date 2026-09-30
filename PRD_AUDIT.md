@@ -57,12 +57,13 @@ marked **n/a**, not missing.
   idempotent because same-status transitions are no-ops. Not checked: refund
   double-submit.
 - ~~**RFQ number**~~: already implemented (`RFQ-<year>-<id>`, `routers/quotes.py`).
-- **Attribution**: no UTM / landing page / referrer capture (TZ4 §18).
+- ~~**Attribution**~~ **done**: UTM/referrer/landing path stored on the order.
 - **Server-side ad tracking**: events are stored, not forwarded to GA4/Meta
   (needs your credentials).
-- **Structured logging / request ids**: request ids exist only in
-  `IntegrationLog`; there is no request-id middleware.
-- **Stock mismatch / reconciliation jobs** (TZ4 §26, §68-69): none.
+- ~~**Structured logging / request ids**~~ **done** (middleware + tagged log lines).
+  Not JSON-formatted and no Sentry yet.
+- ~~**Stock reconciliation**~~ **done** as a report (`reconcile_stock`, `--fix` opt-in).
+  No automatic alerting on top of it.
 - Not checked in depth: tax region/order-value inputs, promo edge cases,
   B2B minimum order enforcement.
 
@@ -75,14 +76,14 @@ marked **n/a**, not missing.
 - **ERP / 1C** integration and ID mapping table (TZ4 §6-13).
 - **Marketplace connectors** incl. Uzum as a marketplace (Uzum exists only as
   a payment method name).
-- **GDPR / privacy**: no cookie consent, data export or deletion (TZ3 §102).
+- **GDPR / privacy**: data export and self-service erasure **done** (orders/quotes
+  retained). Still no cookie-consent banner (tied to the `ipapi.co` decision).
 - ~~**Security headers**~~ **done for the API** (middleware in `main.py`);
   the reverse proxy must add them for the static frontend (see
   `OPS_RUNBOOK.md`). ~~Swagger UI on everywhere~~ now off unless
   `ENABLE_DOCS=true`.
-- **Wishlist "notify me when available"**, **save for later** in the cart,
-  **free-shipping threshold**, **delivery estimate on the product page**,
-  **newsletter signup** (TZ2 §20, §29, §43; TZ3 event list).
+- ~~Wishlist "notify me when available", save for later, free-shipping threshold,
+  delivery estimate, newsletter signup~~ all **done** (TZ2 §20, §29, §43).
 - **Webhook pipeline** as described in TZ4 §50 (queue between receipt and
   handler) and a **real queue/worker** (retries are cron sweeps).
 - **Integration health status + dashboard** beyond the log list.

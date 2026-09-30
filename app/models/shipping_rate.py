@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, DECIMAL, BigInteger, String, UniqueConstraint, func
+from sqlalchemy import Boolean, Column, DateTime, DECIMAL, BigInteger, Integer, String, UniqueConstraint, func
 
 from app.database import Base
 
@@ -26,6 +26,12 @@ class ShippingRate(Base):
     currency = Column(String(3), nullable=False, default="USD")
     base_fee = Column(DECIMAL(12, 2), nullable=False, default=0)
     per_kg_fee = Column(DECIMAL(12, 2), nullable=False, default=0)
+    # Shipping is free once the order's merchandise total (after discount) reaches
+    # this amount, expressed in `currency`. NULL = no free-shipping offer.
+    free_shipping_threshold = Column(DECIMAL(12, 2), nullable=True)
+    # Delivery time shown on the product page (PRD TZ2 s29). NULL = unknown.
+    min_delivery_days = Column(Integer, nullable=True)
+    max_delivery_days = Column(Integer, nullable=True)
 
     is_active = Column(Boolean, nullable=False, default=True)
 

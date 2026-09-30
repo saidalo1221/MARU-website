@@ -1,8 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, Literal, Optional
+import json
+from typing import Annotated, Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 
 from app.models.enums import OrderStatus
 from app.models.order import OrderType
@@ -38,6 +39,8 @@ class CheckoutRequest(BaseModel):
     payment_method: PaymentMethod
     source: OrderSource = "website"
     promo_code: Optional[str] = None
+    # Free-form on purpose: the service keeps only a whitelist of keys.
+    attribution: Optional[dict[str, Any]] = None
 
     company_name: Optional[str] = None
     company_reg_number: Optional[str] = None
@@ -99,6 +102,17 @@ class OrderOut(BaseModel):
     items: list[OrderItemOut]
     status_history: list[OrderStatusHistoryOut]
     shipments: list[ShipmentOut] = []
+    attribution: Optional[dict[str, str]] = None
+
+    @field_validator("attribution", mode="before")
+    @classmethod
+    def _parse_attribution(cls, value):
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except ValueError:
+                return None
+        return value if isinstance(value, dict) else None
 
 
 PaymentReferenceKind = Literal["redirect_url", "client_secret", "provider_order_id"]

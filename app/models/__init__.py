@@ -27,6 +27,8 @@ from app.models.review import Review, ReviewStatus
 from app.models.audit_log import AuditLog
 from app.models.password_reset_token import PasswordResetToken
 from app.models.refund import Refund
+from app.models.stock_alert import StockAlert
+from app.models.newsletter_subscriber import NewsletterSubscriber, NewsletterStatus
 from app.models.shipment import Shipment, ShipmentEvent
 from app.models.email_verification_token import EmailVerificationToken
 from app.models.notification_template import NotificationTemplate
@@ -84,6 +86,9 @@ __all__ = [
     "PasswordResetToken",
     "Refund",
     "RefundStatus",
+    "StockAlert",
+    "NewsletterSubscriber",
+    "NewsletterStatus",
     "ShipmentStatus",
     "Shipment",
     "ShipmentEvent",

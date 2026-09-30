@@ -79,6 +79,9 @@ class Order(Base):
     # pushes (status changes) update the same deal instead of duplicating it.
     crm_deal_id = Column(String(50), nullable=True)
     notes = Column(Text, nullable=True)
+    # JSON of first/last-touch marketing attribution captured by the storefront
+    # (utm_*, referrer, landing_page; PRD ТЗ№4 §18). See order_service.clean_attribution.
+    attribution = Column(Text, nullable=True)
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

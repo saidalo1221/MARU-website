@@ -8,6 +8,9 @@ import { CartProvider } from './context/CartContext.jsx'
 import { LocaleProvider } from './context/LocaleContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import './index.css'
+import { captureAttribution } from './lib/attribution'
+
+captureAttribution()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

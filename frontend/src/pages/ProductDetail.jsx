@@ -14,6 +14,8 @@ import ProductGallery from '../components/product/ProductGallery'
 import { ProductDetailSkeleton } from '../components/Skeleton'
 import ProductBadges from '../components/product/ProductBadges'
 import Seo from '../components/Seo'
+import DeliveryEstimate from '../components/product/DeliveryEstimate'
+import StockAlertForm from '../components/product/StockAlertForm'
 
 export default function ProductDetail() {
   const { slug } = useParams()
@@ -151,6 +153,8 @@ export default function ProductDetail() {
           <p className={`text-sm mt-1 ${inStock ? 'text-green-700' : 'text-red-600'}`}>
             {inStock ? t('productDetail.inStockCount', { n: sku.available_quantity }) : t('productDetail.outOfStock')}
           </p>
+          {sku && !inStock && <StockAlertForm key={sku.id} skuId={sku.id} />}
+          <DeliveryEstimate />
 
           {product.variants.length > 1 && (
             <div className="mt-4">

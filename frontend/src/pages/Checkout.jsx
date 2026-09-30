@@ -11,6 +11,7 @@ import StripePaymentForm from '../components/checkout/StripePaymentForm'
 import PayPalButton from '../components/checkout/PayPalButton'
 import MapPicker from '../components/MapPicker'
 import { trackEvent } from '../lib/analytics'
+import { getAttribution } from '../lib/attribution'
 import Seo from '../components/Seo'
 
 const NEW_ADDRESS = 'new'
@@ -154,7 +155,7 @@ export default function Checkout() {
     setError(null)
     setSubmitting(true)
     try {
-      const payload = { ...form, promo_code: cart.promo_code || null }
+      const payload = { ...form, promo_code: cart.promo_code || null, attribution: getAttribution() }
       if (form.order_type !== 'company') {
         delete payload.company_name
         delete payload.company_reg_number

@@ -55,6 +55,16 @@ email; manual carrier, no carrier API), **checkout `Idempotency-Key`**,
 security headers + `/docs` off unless `ENABLE_DOCS=true` (add that to your
 local `.env` if you want Swagger), upload magic-byte checks, `utcnow()`
 removed, `remove_from_cart`/`refund` events (already existed; now tested).
+Second pass (all tested, `pytest` green): **request-id middleware + tagged logs**,
+**UTM/referrer attribution** (`orders.attribution`, shown in admin), **free-shipping
+threshold + delivery-days per shipping rate** (cart progress message, product-page
+estimate with a country picker; admins fill both on the Shipping Rates page),
+**newsletter double opt-in** (footer form, `/newsletter/confirm|unsubscribe`, admin
+list), **back-in-stock alerts** (`stock_alerts`, cron `notify_back_in_stock`),
+**save for later** in the cart, **GDPR export + self-service account erasure**
+(`/account/privacy`; orders and quotes are kept - see question below), **stock
+reconciliation report** (`reconcile_stock`). New tables/columns are all in
+`migration_2026_session9.sql` and `schema_mariadb.sql`.
 Written but **never run**: `Dockerfile`, `.github/workflows/ci.yml`,
 `scripts/backup_db.sh`.
 
@@ -69,15 +79,22 @@ Buildable now:
    panel (add-by-YouTube-URL was verified), real phone, Safari/Firefox.
 4. ~~Shipments, security headers, idempotency, RFQ numbering (already
    existed), Dockerfile/CI/backups, `utcnow()`, upload byte checks~~ — done
-   (see State). Remaining from `PRD_AUDIT.md` that needs no decision:
-   proxy-side security headers (server config), request-id/structured
-   logging, UTM/referrer attribution, free-shipping threshold, delivery
-   estimate on the product page, newsletter signup, "notify me when
-   available", save-for-later, GDPR export/deletion, stock reconciliation job.
+   (see State). Also done: request-id logging, UTM attribution,
+   free-shipping threshold, delivery estimate, newsletter, back-in-stock,
+   save-for-later, GDPR export/erasure, stock reconciliation. What is left
+   that needs no decision: proxy-side security headers (server config) and
+   a cookie-consent banner (tied to item 10 below). Not browser-verified:
+   the newsletter/back-in-stock/privacy/save-for-later pages (API tests only
+   unless noted in the change log below).
 5. Native-speaker review of the ru/uz FAQ text (my draft). `dev.db` has it but
    is gitignored — a real DB needs it entered via admin "Support Pages Content".
 
 Needs a decision/access from the user (do not guess):
+0. **Account erasure keeps orders and B2B quotes** (accounting/contract
+   records, including the customer's name/address snapshot). Decide whether
+   that satisfies your legal basis or whether order PII must be scrubbed too.
+0b. Carrier choice and whether warehouse managers should handle shipments
+   (asked earlier, still open).
 6. GA4 / Meta forwarding (needs Measurement Protocol secret + Meta token).
 7. Object storage (S3-compatible): uploads are local-disk only.
 8. Keep or drop Stripe/PayPal. Vendors: shipping carrier, SMS/WhatsApp/

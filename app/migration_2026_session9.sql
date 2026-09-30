@@ -45,3 +45,42 @@ CREATE INDEX ix_shipment_events_shipment_id ON shipment_events (shipment_id);
 -- header returns the original order instead of failing on the used cart.
 ALTER TABLE orders ADD COLUMN idempotency_key VARCHAR(64) NULL;
 ALTER TABLE orders ADD CONSTRAINT uq_orders_idempotency_key UNIQUE (idempotency_key);
+
+-- Marketing attribution (utm_*, referrer, landing page) captured at checkout.
+ALTER TABLE orders ADD COLUMN attribution TEXT NULL;
+
+-- Free-shipping threshold and delivery-time window per shipping rate.
+ALTER TABLE shipping_rates ADD COLUMN free_shipping_threshold DECIMAL(12, 2) NULL;
+ALTER TABLE shipping_rates ADD COLUMN min_delivery_days INTEGER NULL;
+ALTER TABLE shipping_rates ADD COLUMN max_delivery_days INTEGER NULL;
+
+CREATE TABLE newsletter_subscribers (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	email VARCHAR(255) NOT NULL, 
+	locale VARCHAR(5) NOT NULL, 
+	status VARCHAR(20) NOT NULL, 
+	token VARCHAR(64) NOT NULL, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	confirmed_at DATETIME, 
+	unsubscribed_at DATETIME, 
+	PRIMARY KEY (id), 
+	UNIQUE (email), 
+	UNIQUE (token)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE stock_alerts (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	sku_id BIGINT NOT NULL, 
+	user_id BIGINT, 
+	email VARCHAR(255) NOT NULL, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	notified_at DATETIME, 
+	PRIMARY KEY (id), 
+	CONSTRAINT uq_stock_alerts_sku_email UNIQUE (sku_id, email), 
+	FOREIGN KEY(sku_id) REFERENCES skus (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_stock_alerts_sku_id ON stock_alerts (sku_id);
+
+-- Save for later (cart lines kept out of totals and checkout).
+ALTER TABLE cart_items ADD COLUMN saved_for_later BOOL NOT NULL DEFAULT false;

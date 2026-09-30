@@ -52,6 +52,18 @@ export function CartProvider({ children }) {
     return data
   }, [])
 
+  const saveForLater = useCallback(async (skuId) => {
+    const data = await cartApi.saveCartItemForLater(skuId)
+    setCart(data)
+    return data
+  }, [])
+
+  const moveToCart = useCallback(async (skuId) => {
+    const data = await cartApi.moveSavedItemToCart(skuId)
+    setCart(data)
+    return data
+  }, [])
+
   const setCurrency = useCallback(async (currency) => {
     const data = await cartApi.setCartCurrency(currency)
     setCart(data)
@@ -60,7 +72,7 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      value={{ cart, loading, error, refresh, addItem, updateItem, removeItem, setCurrency }}
+      value={{ cart, loading, error, refresh, addItem, updateItem, removeItem, saveForLater, moveToCart, setCurrency }}
     >
       {children}
     </CartContext.Provider>

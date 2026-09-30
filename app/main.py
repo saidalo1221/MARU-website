@@ -1,3 +1,4 @@
+import logging
 from html import escape
 
 from fastapi import APIRouter, Depends, FastAPI, Response
@@ -7,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.core.request_id import install_log_record_factory, new_request_id, request_id_var
 from app.database import get_db
 from app.models.blog_post import BlogPost
 from app.models.product import Product
@@ -23,6 +25,7 @@ from app.routers import (
     admin_exchange_rates,
     admin_integration_logs,
     admin_inventory,
+    admin_newsletter,
     admin_notification_templates,
     admin_orders,
     admin_page_sections,
@@ -45,14 +48,17 @@ from app.routers import (
     cart,
     categories,
     exchange_rates,
+    newsletter,
     orders,
     page_sections,
     payment_webhooks,
+    privacy,
     products,
     quotes,
     reviews,
     shipping,
     site_settings,
+    stock_alerts,
     wishlist,
 )
 
@@ -64,6 +70,24 @@ app = FastAPI(
 )
 
 _DOCS_PATHS = ("/docs", "/redoc", "/openapi.json")
+
+install_log_record_factory()
+# uvicorn only configures its own loggers; without this the app's `maru.*`
+# loggers would print bare messages (or nothing below WARNING).
+if not logging.getLogger().handlers:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(request_id)s] %(name)s: %(message)s")
+
+
+@app.middleware("http")
+async def request_id_middleware(request, call_next):
+    request_id = new_request_id(request.headers.get("X-Request-ID"))
+    token = request_id_var.set(request_id)
+    try:
+        response = await call_next(request)
+    finally:
+        request_id_var.reset(token)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 
 @app.middleware("http")
@@ -114,6 +138,7 @@ api_v1.include_router(admin_categories.router)
 api_v1.include_router(admin_exchange_rates.router)
 api_v1.include_router(admin_integration_logs.router)
 api_v1.include_router(admin_inventory.router)
+api_v1.include_router(admin_newsletter.router)
 api_v1.include_router(admin_notification_templates.router)
 api_v1.include_router(admin_orders.router)
 api_v1.include_router(admin_page_sections.router)
@@ -136,14 +161,17 @@ api_v1.include_router(blog.router)
 api_v1.include_router(cart.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(exchange_rates.router)
+api_v1.include_router(newsletter.router)
 api_v1.include_router(orders.router)
 api_v1.include_router(page_sections.router)
 api_v1.include_router(payment_webhooks.router)
+api_v1.include_router(privacy.router)
 api_v1.include_router(products.router)
 api_v1.include_router(quotes.router)
 api_v1.include_router(reviews.router)
 api_v1.include_router(shipping.router)
 api_v1.include_router(site_settings.router)
+api_v1.include_router(stock_alerts.router)
 api_v1.include_router(wishlist.router)
 
 app.include_router(api_v1)

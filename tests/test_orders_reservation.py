@@ -199,3 +199,37 @@ def test_malformed_idempotency_key_is_rejected(client, sku):
     for bad in ("short", "has space in it!", "x" * 65):
         r = client.post("/api/v1/orders/", headers={"Idempotency-Key": bad, **headers}, json=CHECKOUT_PAYLOAD)
         assert r.status_code == 400, bad
+
+
+def test_checkout_stores_whitelisted_attribution_only(client, sku, db_session):
+    from app.models.order import Order
+    from conftest import register
+
+    headers = register(client, "attr@example.com")
+    client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 1})
+    payload = {
+        **CHECKOUT_PAYLOAD,
+        "attribution": {
+            "utm_source": "instagram",
+            "utm_campaign": "x" * 400,
+            "referrer": "https://google.com/",
+            "evil": "<script>",
+            "utm_medium": "",
+        },
+    }
+    r = client.post("/api/v1/orders/", headers=headers, json=payload)
+    assert r.status_code == 201, r.text
+    attribution = r.json()["attribution"]
+    assert attribution["utm_source"] == "instagram"
+    assert len(attribution["utm_campaign"]) == 255
+    assert "evil" not in attribution and "utm_medium" not in attribution
+    assert db_session.query(Order).one().attribution.startswith("{")
+
+
+def test_checkout_without_attribution_leaves_it_empty(client, sku):
+    from conftest import register
+
+    headers = register(client, "noattr@example.com")
+    client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 1})
+    r = client.post("/api/v1/orders/", headers=headers, json=CHECKOUT_PAYLOAD)
+    assert r.status_code == 201 and r.json()["attribution"] is None

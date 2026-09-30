@@ -9,8 +9,46 @@ import { errorMessage } from '../api/client'
 import { trackEvent } from '../lib/analytics'
 import Seo from '../components/Seo'
 
+function SavedForLater({ cart, removeItem, moveToCart }) {
+  const { t } = useLocale()
+  const [error, setError] = useState(null)
+  if (!cart?.saved_items?.length) return null
+
+  const move = async (skuId) => {
+    setError(null)
+    try {
+      await moveToCart(skuId)
+    } catch (err) {
+      setError(errorMessage(err, t('cart.moveFailed')))
+    }
+  }
+
+  return (
+    <section className="mt-8" aria-labelledby="saved-for-later-heading">
+      <h2 id="saved-for-later-heading" className="font-semibold mb-2">
+        {t('cart.savedTitle', { n: cart.saved_items.length })}
+      </h2>
+      {error && <p role="alert" className="text-sm text-red-600 mb-2">{error}</p>}
+      <div className="divide-y divide-gray-200 border-t border-gray-200">
+        {cart.saved_items.map((item) => (
+          <div key={item.id} className="py-3 flex items-center gap-4 text-sm">
+            <div className="flex-1">
+              <p className="font-medium">{item.sku_code}</p>
+              <p className="text-xs text-gray-500">
+                {item.quantity} × {cart.currency} {Number(item.unit_price).toFixed(2)}
+              </p>
+            </div>
+            <button onClick={() => move(item.sku_id)} className="text-brand">{t('cart.moveToCart')}</button>
+            <button onClick={() => removeItem(item.sku_id)} className="text-red-600">{t('cart.remove')}</button>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export default function Cart() {
-  const { cart, loading, updateItem, removeItem, refresh } = useCart()
+  const { cart, loading, updateItem, removeItem, saveForLater, moveToCart, refresh } = useCart()
   const { t, locale } = useLocale()
   const navigate = useNavigate()
   const [promoInput, setPromoInput] = useState('')
@@ -52,6 +90,9 @@ export default function Cart() {
         <Link to="/shop" className="bg-brand text-white px-6 py-3 rounded font-medium">
           {t('cart.continueShopping')}
         </Link>
+        <div className="text-left">
+          <SavedForLater cart={cart} removeItem={removeItem} moveToCart={moveToCart} />
+        </div>
       </div>
     )
   }
@@ -87,6 +128,9 @@ export default function Cart() {
               <p className="w-20 text-right font-medium">
                 {cart.currency} {Number(item.line_total).toFixed(2)}
               </p>
+              <button onClick={() => saveForLater(item.sku_id)} className="text-brand text-sm">
+                {t('cart.saveForLater')}
+              </button>
               <button
                 onClick={() => removeItem(item.sku_id)}
                 className="text-red-600 text-sm"
@@ -96,6 +140,7 @@ export default function Cart() {
               </button>
             </div>
           ))}
+          <SavedForLater cart={cart} removeItem={removeItem} moveToCart={moveToCart} />
         </div>
 
         <div className="mt-6 md:mt-0 border border-gray-200 rounded-lg p-4 h-fit">
@@ -115,6 +160,14 @@ export default function Cart() {
           {promoError && <p role="alert" className="text-xs text-red-600 mb-2">{promoError}</p>}
           {cart.promo_code && (
             <p className="text-xs text-green-700 mb-2">{t('cart.promoApplied', { code: cart.promo_code })}</p>
+          )}
+
+          {cart.free_shipping_threshold != null && (
+            <p className="text-xs text-green-700 mb-2" role="status">
+              {Number(cart.free_shipping_remaining) > 0
+                ? t('cart.freeShippingRemaining', { amount: `${cart.currency} ${Number(cart.free_shipping_remaining).toFixed(2)}` })
+                : t('cart.freeShippingUnlocked')}
+            </p>
           )}
 
           <dl className="text-sm space-y-1">

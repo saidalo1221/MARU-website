@@ -4,7 +4,7 @@ Nothing here has been run against a real MariaDB: this machine cannot reach
 UzCloud and has no MariaDB server. Static checks only.
 
 ## What was checked statically
-- Compiled all 47 SQLAlchemy models with the MySQL dialect and compared them
+- Compiled all 49 SQLAlchemy models with the MySQL dialect and compared them
   with `app/schema_mariadb.sql` + `migration_new_tables.sql` +
   `migration_2026_session2..9.sql`: **every table and every column is
   present**; all named indexes and constraints appear in the SQL. (Column

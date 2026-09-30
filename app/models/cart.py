@@ -18,4 +18,18 @@ class Cart(Base):
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+    # Active lines only: every pricing/shipping/checkout consumer reads this, so
+    # saved-for-later lines are excluded from them automatically.
+    items = relationship(
+        "CartItem",
+        primaryjoin="and_(Cart.id == CartItem.cart_id, CartItem.saved_for_later.is_(False))",
+        back_populates="cart",
+        cascade="all, delete-orphan",
+        overlaps="saved_items",
+    )
+    saved_items = relationship(
+        "CartItem",
+        primaryjoin="and_(Cart.id == CartItem.cart_id, CartItem.saved_for_later.is_(True))",
+        viewonly=True,
+        overlaps="items,cart",
+    )

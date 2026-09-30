@@ -9,9 +9,15 @@ machine). Treat every step as "verify on staging first".
 | Expire unpaid reservations | `python -m app.tasks.expire_reservations` | every 5 min |
 | Retry failed CRM pushes | `python -m app.tasks.retry_integrations` | every 10 min |
 | Sync exchange rates | `python -m app.tasks.sync_exchange_rates` | daily |
+| Back-in-stock emails | `python -m app.tasks.notify_back_in_stock` | every 10-15 min |
+| Stock drift report | `python -m app.tasks.reconcile_stock` (add `--fix` only after reading the report; exit 1 = mismatches found) | nightly |
 | Database + uploads backup | `scripts/backup_db.sh` | daily, 02:15 |
 
 Run each from the project root with the production `.env` loaded.
+
+## Logs
+Every response carries `X-Request-ID` (a valid incoming one from the proxy is kept) and every log
+line is tagged `[request-id]`. Ask a customer for the id from a failed request (browser dev tools, Network tab) and grep the logs.
 
 ## Backups
 `scripts/backup_db.sh` writes `db-<stamp>.sql.gz` (consistent InnoDB snapshot

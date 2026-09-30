@@ -258,6 +258,11 @@ export function adminListAuditLogs(entity) {
 }
 
 // Analytics events
+export function adminListNewsletter(statusFilter) {
+  const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''
+  return apiRequest(`/admin/newsletter/${qs}`)
+}
+
 export function adminListAnalyticsEvents(eventName) {
   const qs = eventName ? `?event_name=${encodeURIComponent(eventName)}` : ''
   return apiRequest(`/admin/analytics-events/${qs}`)

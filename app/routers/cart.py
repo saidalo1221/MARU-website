@@ -4,7 +4,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, contains_eager, joinedload
+from sqlalchemy.orm import Session, contains_eager, joinedload, selectinload
 
 from app.core.rate_limit import rate_limit
 
@@ -35,7 +35,7 @@ from app.services.recommendations import recommended_product_ids
 from app.services.currency import CurrencyError, get_rate_to_usd
 from app.services.analytics import record_event
 from app.services.pricing import PromoCodeError, apply_promo, resolve_unit_price, validate_promo
-from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g
+from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g, free_shipping_progress
 from app.services.tax import calculate_tax
 
 router = APIRouter(prefix="/cart", tags=["cart"], dependencies=[Depends(rate_limit("cart", 300, 60))])
@@ -73,6 +73,23 @@ def _build_cart_out(
             )
         )
 
+    saved_items: list[CartItemOut] = []
+    for item in cart.saved_items:
+        try:
+            saved_price = resolve_unit_price(db, item.sku, customer_type, item.quantity, cart.currency)
+        except CurrencyError:
+            continue
+        saved_items.append(
+            CartItemOut(
+                id=item.id,
+                sku_id=item.sku_id,
+                sku_code=item.sku.sku_code,
+                quantity=item.quantity,
+                unit_price=saved_price,
+                line_total=saved_price * item.quantity,
+            )
+        )
+
     # Promo validity (min order amount, expiry, usage cap) depends on the
     # subtotal, so it can only be checked once item prices are resolved.
     promo: Optional[PromoCode] = None
@@ -93,11 +110,14 @@ def _build_cart_out(
     delivery = Decimal("0")
     if country and delivery_method:
         try:
-            delivery = calculate_shipping(db, country, delivery_method, cart_weight_g(cart))
+            delivery = calculate_shipping(
+                db, country, delivery_method, cart_weight_g(cart), subtotal - discount, cart.currency
+            )
         except ShippingError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     total = subtotal + delivery + tax - discount
+    threshold, remaining = free_shipping_progress(db, country, delivery_method, subtotal - discount, cart.currency)
 
     return CartOut(
         id=cart.id,
@@ -110,11 +130,21 @@ def _build_cart_out(
         total=total,
         item_count=sum(i.quantity for i in cart.items),
         promo_code=promo.code if promo is not None else None,
+        free_shipping_threshold=threshold,
+        free_shipping_remaining=remaining,
+        saved_items=saved_items,
     )
 
 
 def _load_cart_with_items(db: Session, cart_id: int) -> Cart:
-    stmt = select(Cart).where(Cart.id == cart_id).options(joinedload(Cart.items).joinedload(CartItem.sku))
+    stmt = (
+        select(Cart)
+        .where(Cart.id == cart_id)
+        .options(
+            joinedload(Cart.items).joinedload(CartItem.sku),
+            selectinload(Cart.saved_items).joinedload(CartItem.sku),
+        )
+    )
     return db.execute(stmt).unique().scalar_one()
 
 
@@ -237,6 +267,7 @@ def add_item(
 
         if existing is not None:
             existing.quantity += payload.quantity
+            existing.saved_for_later = False
         else:
             db.add(CartItem(cart_id=cart.id, sku_id=sku.id, quantity=payload.quantity))
 
@@ -276,6 +307,45 @@ def update_item(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update cart item") from exc
 
+    return _build_cart_out(db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), None)
+
+
+@router.post("/items/{sku_id}/save-for-later", response_model=CartOut)
+def save_item_for_later(
+    sku_id: int,
+    cart: Cart = Depends(get_or_create_cart),
+    user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+) -> CartOut:
+    return _set_saved(db, cart, user, sku_id, saved=True)
+
+
+@router.post("/items/{sku_id}/move-to-cart", response_model=CartOut)
+def move_saved_item_to_cart(
+    sku_id: int,
+    cart: Cart = Depends(get_or_create_cart),
+    user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+) -> CartOut:
+    return _set_saved(db, cart, user, sku_id, saved=False)
+
+
+def _set_saved(db: Session, cart: Cart, user: Optional[User], sku_id: int, saved: bool) -> CartOut:
+    try:
+        item = db.execute(
+            select(CartItem).where(CartItem.cart_id == cart.id, CartItem.sku_id == sku_id)
+        ).scalar_one_or_none()
+        if item is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not in cart")
+        if not saved and item.saved_for_later and item.quantity > available_stock(db, sku_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="INSUFFICIENT_STOCK: requested quantity exceeds available stock"
+            )
+        item.saved_for_later = saved
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to update cart") from exc
     return _build_cart_out(db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), None)
 
 
@@ -370,9 +440,18 @@ def merge_guest_cart(
                     )
                 ).scalar_one_or_none()
                 if existing is not None:
-                    existing.quantity += guest_item.quantity
+                    if not guest_item.saved_for_later:
+                        existing.quantity += guest_item.quantity
+                        existing.saved_for_later = False
                 else:
-                    db.add(CartItem(cart_id=user_cart.id, sku_id=guest_item.sku_id, quantity=guest_item.quantity))
+                    db.add(
+                        CartItem(
+                            cart_id=user_cart.id,
+                            sku_id=guest_item.sku_id,
+                            quantity=guest_item.quantity,
+                            saved_for_later=guest_item.saved_for_later,
+                        )
+                    )
 
             guest_cart.is_active = False
             db.commit()

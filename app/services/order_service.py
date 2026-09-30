@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -28,6 +29,19 @@ from app.services.tax import calculate_tax
 
 def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+ATTRIBUTION_KEYS = ("utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "referrer", "landing_page")
+
+
+def clean_attribution(raw: Optional[dict]) -> Optional[str]:
+    """Keeps only known string keys, each capped at 255 chars, as a JSON string
+    (or None when nothing usable was sent). Client-supplied, so never trusted
+    beyond being stored and displayed as text."""
+    if not raw:
+        return None
+    kept = {k: str(raw[k])[:255] for k in ATTRIBUTION_KEYS if raw.get(k) not in (None, "")}
+    return json.dumps(kept) if kept else None
 
 
 class OrderError(Exception):
@@ -196,7 +210,9 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     # itself is not taxed (PRD doesn't specify shipping being taxable).
     tax = calculate_tax(db, checkout.country, customer_type.value, subtotal - discount)
     try:
-        delivery = calculate_shipping(db, checkout.country, checkout.delivery_method, cart_weight_g(cart))
+        delivery = calculate_shipping(
+            db, checkout.country, checkout.delivery_method, cart_weight_g(cart), subtotal - discount, cart.currency
+        )
     except ShippingError as exc:
         raise OrderError(str(exc)) from exc
     total = subtotal + delivery + tax - discount
@@ -233,6 +249,7 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
         company_tax_number=checkout.company_tax_number,
         company_address=checkout.company_address,
         contact_person=checkout.contact_person,
+        attribution=clean_attribution(checkout.attribution),
     )
     db.add(order)
     db.flush()  # need order.id before inserting items/history
@@ -273,6 +290,14 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
 
     cart.is_active = False
     cart.converted_at = _now()
+    # Keep a signed-in customer's saved-for-later lines: they were not bought, so
+    # they move to a fresh active cart instead of staying on the converted one.
+    if cart.user_id is not None and cart.saved_items:
+        carried = Cart(user_id=cart.user_id, currency=cart.currency)
+        db.add(carried)
+        db.flush()
+        for saved in list(cart.saved_items):
+            saved.cart_id = carried.id
 
     # The caller creates the provider payment intent in the same transaction.
     # A configuration or provider failure can therefore roll everything back

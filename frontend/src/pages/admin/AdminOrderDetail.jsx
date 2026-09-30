@@ -87,6 +87,17 @@ export default function AdminOrderDetail() {
             <div className="flex justify-between font-semibold border-t border-gray-200 pt-1 mt-1"><dt>{t('admin.orderDetail.total')}</dt><dd><Money amount={order.total_amount} currency={order.currency} showOriginal /></dd></div>
           </dl>
 
+          {order.attribution && (
+            <>
+              <h2 className="font-semibold mt-6 mb-2">{t('admin.orderDetail.attribution')}</h2>
+              <dl className="text-xs text-gray-500 space-y-0.5">
+                {Object.entries(order.attribution).map(([k, v]) => (
+                  <div key={k} className="flex gap-2"><dt>{k}:</dt><dd className="text-gray-900 break-all">{v}</dd></div>
+                ))}
+              </dl>
+            </>
+          )}
+
           <h2 className="font-semibold mt-6 mb-2">{t('admin.orderDetail.history')}</h2>
           <ul className="text-xs text-gray-500 space-y-1">
             {order.status_history.map((h, i) => (

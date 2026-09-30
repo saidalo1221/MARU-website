@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useLocale } from '../../context/LocaleContext'
+import NewsletterForm from './NewsletterForm'
 
 export default function Footer() {
   const { t } = useLocale()
@@ -48,6 +49,7 @@ export default function Footer() {
         <div className="col-span-2 md:col-span-1">
           <p className="font-bold text-brand mb-1">MARU</p>
           <p>{t('footer.tagline')}</p>
+          <NewsletterForm />
         </div>
         {columns.map((col) => (
           <nav key={col.titleKey} aria-label={t(col.titleKey)}>

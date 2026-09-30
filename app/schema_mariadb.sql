@@ -88,6 +88,9 @@ CREATE TABLE shipping_rates (
 	currency VARCHAR(3) NOT NULL, 
 	base_fee DECIMAL(12, 2) NOT NULL, 
 	per_kg_fee DECIMAL(12, 2) NOT NULL, 
+	free_shipping_threshold DECIMAL(12, 2), 
+	min_delivery_days INTEGER, 
+	max_delivery_days INTEGER, 
 	is_active BOOL NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
@@ -314,6 +317,7 @@ CREATE TABLE orders (
 	payment_reference VARCHAR(255), 
 	crm_deal_id VARCHAR(50), 
 	notes TEXT, 
+	attribution TEXT, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -502,6 +506,20 @@ CREATE TABLE shipment_events (
 
 CREATE INDEX ix_shipment_events_shipment_id ON shipment_events (shipment_id);
 
+CREATE TABLE newsletter_subscribers (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	email VARCHAR(255) NOT NULL, 
+	locale VARCHAR(5) NOT NULL, 
+	status VARCHAR(20) NOT NULL, 
+	token VARCHAR(64) NOT NULL, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	confirmed_at DATETIME, 
+	unsubscribed_at DATETIME, 
+	PRIMARY KEY (id), 
+	UNIQUE (email), 
+	UNIQUE (token)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
 CREATE TABLE skus (
 	id BIGINT NOT NULL AUTO_INCREMENT, 
 	variant_id BIGINT NOT NULL, 
@@ -533,6 +551,7 @@ CREATE TABLE cart_items (
 	cart_id BIGINT NOT NULL, 
 	sku_id BIGINT NOT NULL, 
 	quantity INTEGER NOT NULL, 
+	saved_for_later BOOL NOT NULL DEFAULT false, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -717,3 +736,17 @@ CREATE TABLE about_section_translations (
 	CONSTRAINT uq_about_section_translations_section_locale UNIQUE (section_id, locale),
 	FOREIGN KEY(section_id) REFERENCES about_sections (id) ON DELETE CASCADE
 )CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE stock_alerts (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	sku_id BIGINT NOT NULL, 
+	user_id BIGINT, 
+	email VARCHAR(255) NOT NULL, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	notified_at DATETIME, 
+	PRIMARY KEY (id), 
+	CONSTRAINT uq_stock_alerts_sku_email UNIQUE (sku_id, email), 
+	FOREIGN KEY(sku_id) REFERENCES skus (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_stock_alerts_sku_id ON stock_alerts (sku_id);
