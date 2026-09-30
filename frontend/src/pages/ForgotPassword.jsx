@@ -57,7 +57,7 @@ export default function ForgotPassword() {
         </button>
       </form>
       <p className="text-sm text-gray-500 mt-4">
-        <Link to="/login" className="text-brand">{t('forgotPassword.backToLogin')}</Link>
+        <Link to="/login" className="text-brand underline">{t('forgotPassword.backToLogin')}</Link>
       </p>
     </div>
   )

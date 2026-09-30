@@ -110,7 +110,7 @@ export default function InquiryForm({ defaultType = 'quote', lockType = false, c
       </div>
       <input placeholder={t('quoteRequest.quantity')} aria-label={t('quoteRequest.quantity')} value={form.quantity} onChange={update('quantity')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
       <textarea placeholder={t('quoteRequest.comment')} aria-label={t('quoteRequest.comment')} value={form.comment} onChange={update('comment')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" rows={3} />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-3 font-medium disabled:opacity-40">
         {submitting ? t('quoteRequest.submitting') : t(ctaKey)}
       </button>

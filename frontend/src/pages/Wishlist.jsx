@@ -48,7 +48,7 @@ export default function Wishlist() {
       {loading && <p>{t('wishlist.loading')}</p>}
       {!loading && items.length === 0 && <p className="text-gray-500">{t('wishlist.empty')}</p>}
       {status && (
-        <p className={`text-sm mb-4 ${status.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+        <p role={status.type === 'success' ? 'status' : 'alert'} className={`text-sm mb-4 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
           {status.message}
         </p>
       )}
@@ -61,7 +61,7 @@ export default function Wishlist() {
               </Link>
               <p className="text-xs text-gray-500">{item.sku_code}</p>
               <p className="text-sm mt-1">{item.currency} {Number(item.price).toFixed(2)}</p>
-              <p className={`text-xs ${item.in_stock ? 'text-green-600' : 'text-red-500'}`}>
+              <p className={`text-xs ${item.in_stock ? 'text-green-700' : 'text-red-600'}`}>
                 {item.in_stock ? t('product.inStock') : t('product.outOfStock')}
               </p>
             </div>
@@ -73,7 +73,7 @@ export default function Wishlist() {
               >
                 {t('productDetail.addToCart')}
               </button>
-              <button onClick={() => handleRemove(item.sku_id)} className="text-red-500 text-sm">
+              <button onClick={() => handleRemove(item.sku_id)} className="text-red-600 text-sm">
                 {t('cart.remove')}
               </button>
             </div>

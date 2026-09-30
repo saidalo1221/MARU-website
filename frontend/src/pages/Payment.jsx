@@ -30,7 +30,7 @@ export default function Payment() {
           {enabled.map((m) => (
             <li key={m.id} className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
               <span className="font-medium">{m.display_name}</span>
-              <span className="text-xs text-green-600">{t('payment.available')}</span>
+              <span className="text-xs text-green-700">{t('payment.available')}</span>
             </li>
           ))}
         </ul>

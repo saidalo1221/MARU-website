@@ -66,7 +66,7 @@ export default function Login() {
             onChange={(e) => setCode(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm tracking-widest text-center text-lg"
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
             {submitting ? t('login.submitting') : t('login.deviceCodeVerify')}
           </button>
@@ -90,15 +90,15 @@ export default function Login() {
         <input required type="email" placeholder={t('checkout.email')} aria-label={t('checkout.email')} value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <PasswordInput required placeholder={t('login.password')} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <div className="text-right">
-          <Link to="/forgot-password" className="text-xs text-brand">{t('forgotPassword.link')}</Link>
+          <Link to="/forgot-password" className="text-xs text-brand underline">{t('forgotPassword.link')}</Link>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
           {submitting ? t('login.submitting') : t('login.submit')}
         </button>
       </form>
       <p className="text-sm text-gray-500 mt-4">
-        {t('login.noAccount')} <Link to={`/register?next=${encodeURIComponent(next)}`} className="text-brand">{t('login.register')}</Link>
+        {t('login.noAccount')} <Link to={`/register?next=${encodeURIComponent(next)}`} className="text-brand underline">{t('login.register')}</Link>
       </p>
     </div>
   )

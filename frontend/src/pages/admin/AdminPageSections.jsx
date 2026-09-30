@@ -71,9 +71,9 @@ function SectionTranslations({ sectionId }) {
         ))}
       </div>
       <form onSubmit={save} className="space-y-2">
-        <input required placeholder={t('admin.common.name')} value={form.title} onChange={update('title')} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
-        <textarea required placeholder={t('admin.pageSections.body')} value={form.body} onChange={update('body')} rows={3} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.title} onChange={update('title')} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
+        <textarea required placeholder={t('admin.pageSections.body')} aria-label={t('admin.pageSections.body')} value={form.body} onChange={update('body')} rows={3} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
+        {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
         <button type="submit" disabled={saving} className="bg-brand text-white px-3 py-1.5 rounded text-xs disabled:opacity-40">
           {saving ? t('admin.common.saving') : t('admin.common.save')}
         </button>
@@ -135,16 +135,16 @@ function SectionBlock({ section, isFirst, isLast, onChanged }) {
         <div className="flex items-center gap-2 text-sm">
           <button type="button" onClick={() => move('up')} disabled={isFirst} className="text-gray-500 disabled:opacity-30">&uarr;</button>
           <button type="button" onClick={() => move('down')} disabled={isLast} className="text-gray-500 disabled:opacity-30">&darr;</button>
-          <button type="button" onClick={remove} className="text-red-500">{t('admin.common.delete')}</button>
+          <button type="button" onClick={remove} className="text-red-600">{t('admin.common.delete')}</button>
         </div>
       </div>
 
       {expanded && (
         <>
           <form onSubmit={save} className="space-y-2 mt-3">
-            <input required placeholder={t('admin.common.name')} value={form.title} onChange={update('title')} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
-            <textarea required placeholder={t('admin.pageSections.body')} value={form.body} onChange={update('body')} rows={3} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.title} onChange={update('title')} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
+            <textarea required placeholder={t('admin.pageSections.body')} aria-label={t('admin.pageSections.body')} value={form.body} onChange={update('body')} rows={3} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
+            {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
             <button type="submit" disabled={saving} className="bg-brand text-white px-3 py-1.5 rounded text-xs disabled:opacity-40">
               {saving ? t('admin.common.saving') : t('admin.common.save')}
             </button>
@@ -219,9 +219,9 @@ export default function AdminPageSections() {
 
       {formOpen && (
         <form onSubmit={handleAdd} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
-          <input required placeholder={t('admin.common.name')} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <textarea required placeholder={t('admin.pageSections.body')} value={form.body} onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} rows={3} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <textarea required placeholder={t('admin.pageSections.body')} aria-label={t('admin.pageSections.body')} value={form.body} onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} rows={3} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          {formError && <p role="alert" className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.common.saving') : t('admin.common.save')}
@@ -232,7 +232,7 @@ export default function AdminPageSections() {
       )}
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
 
       {!loading && !error && sections.map((s, i) => (
         <SectionBlock key={s.id} section={s} isFirst={i === 0} isLast={i === sections.length - 1} onChanged={load} />

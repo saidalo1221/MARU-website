@@ -6,6 +6,7 @@ import ProductCard from '../components/product/ProductCard'
 import { trackEvent } from '../lib/analytics'
 import Seo from '../components/Seo'
 import { ProductGridSkeleton } from '../components/Skeleton'
+import useDialogFocus from '../lib/useDialogFocus'
 
 function minPrice(product) {
   const prices = product.variants.flatMap((v) => v.skus.map((s) => Number(s.retail_price)))
@@ -24,6 +25,8 @@ export default function Catalog() {
   const [sort, setSort] = useState('default')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const listTracked = useRef(false)
+  const filtersDialogRef = useRef(null)
+  useDialogFocus(filtersDialogRef, filtersOpen)
 
   useEffect(() => {
     if (!filtersOpen) return
@@ -127,7 +130,7 @@ export default function Catalog() {
         <aside className="hidden md:block">{FiltersPanel}</aside>
 
         {filtersOpen && (
-          <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label={t('catalog.filters')}>
+          <div ref={filtersDialogRef} className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label={t('catalog.filters')}>
             <div className="absolute inset-0 bg-black/40" onClick={() => setFiltersOpen(false)} />
             <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white p-4 shadow-xl">
               <div className="mx-auto mb-3 h-1 w-10 rounded bg-gray-300" aria-hidden="true" />
@@ -161,11 +164,12 @@ export default function Catalog() {
           </div>
 
           {loading && products.length === 0 && <ProductGridSkeleton />}
-          {error && <p className="text-red-600">{t('catalog.loadError')}</p>}
+          {error && <p role="alert" className="text-red-600">{t('catalog.loadError')}</p>}
           {!loading && !error && visible.length === 0 && (
             <p className="text-gray-500">{t('catalog.noProducts')}</p>
           )}
 
+          <h2 className="sr-only">{t('catalog.title')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {visible.map((p) => (
               <ProductCard key={p.id} product={p} />

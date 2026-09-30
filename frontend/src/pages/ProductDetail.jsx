@@ -87,7 +87,7 @@ export default function ProductDetail() {
     }
   }
 
-  if (error) return <p className="max-w-3xl mx-auto px-4 py-8 text-red-600">{t('productDetail.notFound')}</p>
+  if (error) return <p role="alert" className="max-w-3xl mx-auto px-4 py-8 text-red-600">{t('productDetail.notFound')}</p>
   if (!product) return <ProductDetailSkeleton />
 
   const inStock = sku ? sku.available_quantity > 0 : false
@@ -148,7 +148,7 @@ export default function ProductDetail() {
           <p className="text-2xl font-semibold mt-3">
             {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
           </p>
-          <p className={`text-sm mt-1 ${inStock ? 'text-green-600' : 'text-red-500'}`}>
+          <p className={`text-sm mt-1 ${inStock ? 'text-green-700' : 'text-red-600'}`}>
             {inStock ? t('productDetail.inStockCount', { n: sku.available_quantity }) : t('productDetail.outOfStock')}
           </p>
 
@@ -196,7 +196,7 @@ export default function ProductDetail() {
               <button
                 onClick={handleToggleWishlist}
                 aria-label={wishlisted ? t('wishlist.remove') : t('wishlist.add')}
-                className={`border rounded px-4 py-3 font-medium text-xl leading-none ${wishlisted ? 'border-red-400 text-red-500' : 'border-gray-300 text-gray-500'}`}
+                className={`border rounded px-4 py-3 font-medium text-xl leading-none ${wishlisted ? 'border-red-400 text-red-600' : 'border-gray-300 text-gray-500'}`}
               >
                 {wishlisted ? '♥' : '♡'}
               </button>
@@ -204,7 +204,7 @@ export default function ProductDetail() {
           </div>
 
           {status && (
-            <p className={`text-sm mt-2 ${status.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            <p role={status.type === 'success' ? 'status' : 'alert'} className={`text-sm mt-2 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
               {status.message}
             </p>
           )}

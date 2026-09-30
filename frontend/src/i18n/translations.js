@@ -5,7 +5,7 @@
 // whenever new user-facing copy is added anywhere in the app.
 export const translations = {
   en: {
-    header: { shop: 'Shop', login: 'Login', logout: 'Logout', account: 'Account', cart: 'Cart', openMenu: 'Open menu', admin: 'Admin', orders: 'Orders', addresses: 'Addresses', wishlist: 'Wishlist' },
+    header: { mainNav: 'Main', shop: 'Shop', login: 'Login', logout: 'Logout', account: 'Account', cart: 'Cart', openMenu: 'Open menu', admin: 'Admin', orders: 'Orders', addresses: 'Addresses', wishlist: 'Wishlist' },
     footer: {
       tagline: 'Plastic food containers, made in-house.',
       orders: 'Orders',
@@ -25,7 +25,7 @@ export const translations = {
       returns: 'Returns',
       faq: 'FAQ',
     },
-    mobileMenu: { myOrders: 'My Orders', logout: 'Log out', register: 'Register', closeMenu: 'Close menu' },
+    mobileMenu: { myOrders: 'My Orders', logout: 'Log out', register: 'Register', closeMenu: 'Close menu', title: 'Menu' },
     search: { placeholder: 'Search containers, SKU, volume...', button: 'Search', ariaLabel: 'Search products' },
     language: { ariaLabel: 'Language' },
     currency: { ariaLabel: 'Currency', notAvailable: 'That currency is not available yet' },
@@ -918,7 +918,7 @@ export const translations = {
     },
   },
   ru: {
-    header: { shop: 'Магазин', login: 'Войти', logout: 'Выйти', account: 'Аккаунт', cart: 'Корзина', openMenu: 'Открыть меню', admin: 'Админка', orders: 'Заказы', addresses: 'Адреса', wishlist: 'Избранное' },
+    header: { mainNav: 'Основное', shop: 'Магазин', login: 'Войти', logout: 'Выйти', account: 'Аккаунт', cart: 'Корзина', openMenu: 'Открыть меню', admin: 'Админка', orders: 'Заказы', addresses: 'Адреса', wishlist: 'Избранное' },
     footer: {
       tagline: 'Пластиковые контейнеры для пищевых продуктов собственного производства.',
       orders: 'Заказы',
@@ -938,7 +938,7 @@ export const translations = {
       returns: 'Возврат',
       faq: 'Вопросы и ответы',
     },
-    mobileMenu: { myOrders: 'Мои заказы', logout: 'Выйти', register: 'Регистрация', closeMenu: 'Закрыть меню' },
+    mobileMenu: { myOrders: 'Мои заказы', logout: 'Выйти', register: 'Регистрация', closeMenu: 'Закрыть меню', title: 'Меню' },
     search: { placeholder: 'Поиск контейнеров, SKU, объём...', button: 'Найти', ariaLabel: 'Поиск товаров' },
     language: { ariaLabel: 'Язык' },
     currency: { ariaLabel: 'Валюта', notAvailable: 'Эта валюта пока недоступна' },
@@ -1831,7 +1831,7 @@ export const translations = {
     },
   },
   uz: {
-    header: { shop: "Do'kon", login: 'Kirish', logout: 'Chiqish', account: 'Kabinet', cart: 'Savat', openMenu: 'Menyuni ochish', admin: 'Admin panel', orders: 'Buyurtmalar', addresses: 'Manzillar', wishlist: 'Sevimlilar' },
+    header: { mainNav: 'Asosiy', shop: "Do'kon", login: 'Kirish', logout: 'Chiqish', account: 'Kabinet', cart: 'Savat', openMenu: 'Menyuni ochish', admin: 'Admin panel', orders: 'Buyurtmalar', addresses: 'Manzillar', wishlist: 'Sevimlilar' },
     footer: {
       tagline: "O'z ishlab chiqarishimizdagi oziq-ovqat uchun plastik idishlar.",
       orders: 'Buyurtmalar',
@@ -1851,7 +1851,7 @@ export const translations = {
       returns: 'Qaytarish',
       faq: 'Savol-javob',
     },
-    mobileMenu: { myOrders: 'Mening buyurtmalarim', logout: 'Chiqish', register: "Ro'yxatdan o'tish", closeMenu: 'Menyuni yopish' },
+    mobileMenu: { myOrders: 'Mening buyurtmalarim', logout: 'Chiqish', register: "Ro'yxatdan o'tish", closeMenu: 'Menyuni yopish', title: 'Menyu' },
     search: { placeholder: 'Idish, SKU yoki hajm boʻyicha qidiring...', button: 'Qidirish', ariaLabel: 'Mahsulotlarni qidirish' },
     language: { ariaLabel: 'Til' },
     currency: { ariaLabel: 'Valyuta', notAvailable: 'Bu valyuta hozircha mavjud emas' },

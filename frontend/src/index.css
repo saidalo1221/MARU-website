@@ -68,3 +68,14 @@ html {
   color: #64748b;
 }
 .dark .bg-transparent { background-color: transparent; }
+
+/* Brand/status text colors: the light-mode shades are too dark on the dark
+ * surfaces above (axe color-contrast). */
+.dark .text-brand,
+.dark .hover\:text-brand:hover { color: #6ee7b7; }
+.dark .text-red-500,
+.dark .text-red-600 { color: #f87171; }
+.dark .text-green-700 { color: #4ade80; }
+
+/* Leaflet attribution links (#0078a8 on the translucent white bar) miss 4.5:1. */
+.leaflet-container .leaflet-control-attribution a { color: #00557a; }

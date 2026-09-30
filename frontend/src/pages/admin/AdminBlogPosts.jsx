@@ -59,21 +59,21 @@ export default function AdminBlogPosts() {
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 grid grid-cols-2 gap-3">
-          <select required value={form.category_id} onChange={update('category_id')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
+          <select required value={form.category_id} aria-label={t('admin.products.selectCategory')} onChange={update('category_id')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
             <option value="">{t('admin.blog.category')}</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <input required placeholder={t('admin.blog.post') + ' — ' + t('admin.common.name')} value={form.title} onChange={update('title')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input required placeholder={t('admin.blog.slug')} value={form.slug} onChange={update('slug')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input placeholder={t('admin.blog.authorName')} value={form.author_name} onChange={update('author_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input placeholder={t('admin.blog.coverImageUrl')} value={form.cover_image_url} onChange={update('cover_image_url')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <textarea placeholder={t('admin.blog.excerpt')} value={form.excerpt} onChange={update('excerpt')} rows={2} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-          <textarea required placeholder={t('admin.blog.content')} value={form.content} onChange={update('content')} rows={6} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-          {formError && <p className="text-sm text-red-600 col-span-2">{formError}</p>}
+          <input required placeholder={t('admin.blog.post') + ' — ' + t('admin.common.name')} aria-label={t('admin.blog.post') + ' — ' + t('admin.common.name')} value={form.title} onChange={update('title')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required placeholder={t('admin.blog.slug')} aria-label={t('admin.blog.slug')} value={form.slug} onChange={update('slug')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.blog.authorName')} aria-label={t('admin.blog.authorName')} value={form.author_name} onChange={update('author_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.blog.coverImageUrl')} aria-label={t('admin.blog.coverImageUrl')} value={form.cover_image_url} onChange={update('cover_image_url')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <textarea placeholder={t('admin.blog.excerpt')} aria-label={t('admin.blog.excerpt')} value={form.excerpt} onChange={update('excerpt')} rows={2} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+          <textarea required placeholder={t('admin.blog.content')} aria-label={t('admin.blog.content')} value={form.content} onChange={update('content')} rows={6} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+          {formError && <p role="alert" className="text-sm text-red-600 col-span-2">{formError}</p>}
           <div className="col-span-2 flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.common.saving') : t('admin.common.save')}

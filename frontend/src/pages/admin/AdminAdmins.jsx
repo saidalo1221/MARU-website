@@ -62,13 +62,13 @@ export default function AdminAdmins() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={t('admin.admins.emailPlaceholder')}
+            placeholder={t('admin.admins.emailPlaceholder')} aria-label={t('admin.admins.emailPlaceholder')}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
           />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">{t('admin.admins.role')}</label>
-          <select value={role} onChange={(e) => setRole(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm">
+          <select value={role} aria-label={t('admin.admins.role')} onChange={(e) => setRole(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm">
             {ROLES.map((r) => (
               <option key={r} value={r}>{t(`admin.admins.roles.${r}`)}</option>
             ))}
@@ -78,10 +78,10 @@ export default function AdminAdmins() {
           {submitting ? t('admin.common.saving') : t('admin.admins.add')}
         </button>
       </form>
-      {formError && <p className="text-sm text-red-600 mb-4">{formError}</p>}
+      {formError && <p role="alert" className="text-sm text-red-600 mb-4">{formError}</p>}
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
 
       {!loading && !error && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -100,7 +100,7 @@ export default function AdminAdmins() {
                   <td className="px-3 py-2 text-gray-500">{t(`admin.admins.roles.${a.role}`)}</td>
                   <td className="px-3 py-2 text-right">
                     {a.id !== currentUser.id && (
-                      <button onClick={() => handleDemote(a.id)} className="text-red-500">{t('admin.admins.revoke')}</button>
+                      <button onClick={() => handleDemote(a.id)} className="text-red-600">{t('admin.admins.revoke')}</button>
                     )}
                   </td>
                 </tr>

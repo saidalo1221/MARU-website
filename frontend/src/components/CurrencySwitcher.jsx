@@ -45,7 +45,7 @@ export default function CurrencySwitcher() {
           </option>
         ))}
       </select>
-      {error && <p className="absolute top-full left-0 text-xs text-red-600 whitespace-nowrap">{error}</p>}
+      {error && <p role="alert" className="absolute top-full left-0 text-xs text-red-600 whitespace-nowrap">{error}</p>}
     </div>
   )
 }

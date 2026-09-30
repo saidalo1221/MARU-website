@@ -47,7 +47,7 @@ export default function Cart() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <p className="text-lg mb-2">{t('cart.empty')}</p>
+        <h1 className="text-lg mb-2">{t('cart.empty')}</h1>
         <p className="text-sm text-gray-500 mb-6">{t('cart.emptySubtitle')}</p>
         <Link to="/shop" className="bg-brand text-white px-6 py-3 rounded font-medium">
           {t('cart.continueShopping')}
@@ -89,7 +89,7 @@ export default function Cart() {
               </p>
               <button
                 onClick={() => removeItem(item.sku_id)}
-                className="text-red-500 text-sm"
+                className="text-red-600 text-sm"
                 aria-label={t('cart.remove')}
               >
                 {t('cart.remove')}
@@ -112,9 +112,9 @@ export default function Cart() {
               {t('catalog.apply')}
             </button>
           </div>
-          {promoError && <p className="text-xs text-red-600 mb-2">{promoError}</p>}
+          {promoError && <p role="alert" className="text-xs text-red-600 mb-2">{promoError}</p>}
           {cart.promo_code && (
-            <p className="text-xs text-green-600 mb-2">{t('cart.promoApplied', { code: cart.promo_code })}</p>
+            <p className="text-xs text-green-700 mb-2">{t('cart.promoApplied', { code: cart.promo_code })}</p>
           )}
 
           <dl className="text-sm space-y-1">
@@ -123,7 +123,7 @@ export default function Cart() {
               <dd>{cart.currency} {Number(cart.subtotal).toFixed(2)}</dd>
             </div>
             {Number(cart.discount) > 0 && (
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-green-700">
                 <dt>{t('cart.discount')}</dt>
                 <dd>-{cart.currency} {Number(cart.discount).toFixed(2)}</dd>
               </div>

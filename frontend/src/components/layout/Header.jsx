@@ -45,7 +45,7 @@ export default function Header() {
       {/* Desktop header */}
       <div className="hidden md:flex items-center gap-6 px-6 py-3 max-w-7xl mx-auto">
         <Link to="/" className="font-bold text-xl text-brand">MARU</Link>
-        <nav className="flex items-center gap-4 text-sm font-medium">
+        <nav aria-label={t('header.mainNav')} className="flex items-center gap-4 text-sm font-medium">
           <Link to="/shop">{t('header.shop')}</Link>
           <Link to="/account/orders">{t('header.orders')}</Link>
           <Link to="/account/addresses">{t('header.addresses')}</Link>

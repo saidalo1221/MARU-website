@@ -64,19 +64,19 @@ export default function AdminCategories() {
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
-          <input required placeholder={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input required placeholder={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <select value={form.parent_id} onChange={update('parent_id')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+          <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required placeholder={t('admin.common.slug')} aria-label={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <select value={form.parent_id} aria-label={t('admin.categories.noParent')} onChange={update('parent_id')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
             <option value="">{t('admin.categories.noParent')}</option>
             {flat.filter((c) => c.id !== editingId).map((c) => (
               <option key={c.id} value={c.id}>{'  '.repeat(c.depth)}{c.name}</option>
             ))}
           </select>
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.common.saving') : t('admin.common.save')}
@@ -93,7 +93,7 @@ export default function AdminCategories() {
               <span>{c.name} <span className="text-gray-400">({c.slug})</span></span>
               <span className="flex gap-3">
                 <button onClick={() => openEdit(c)} className="text-brand">{t('admin.common.edit')}</button>
-                <button onClick={() => handleDelete(c.id)} className="text-red-500">{t('admin.common.delete')}</button>
+                <button onClick={() => handleDelete(c.id)} className="text-red-600">{t('admin.common.delete')}</button>
               </span>
             </li>
           ))}

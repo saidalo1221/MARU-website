@@ -27,7 +27,7 @@ export default function AdminOrderDetail() {
 
   useEffect(() => { load() }, [orderId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (error) return <p className="text-red-600 text-sm">{error}</p>
+  if (error) return <p role="alert" className="text-red-600 text-sm">{error}</p>
   if (!order) return <p>{t('admin.common.loading')}</p>
 
   const handleStatusUpdate = async (e) => {
@@ -98,11 +98,11 @@ export default function AdminOrderDetail() {
           <form onSubmit={handleStatusUpdate} className="border border-gray-200 rounded-lg p-4">
             <h2 className="font-semibold mb-3">{t('admin.orderDetail.updateStatus')}</h2>
             <p className="text-sm text-gray-500 mb-2">{t('admin.orderDetail.current', { status: order.status })}</p>
-            <select value={statusChoice} onChange={(e) => setStatusChoice(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2">
+            <select value={statusChoice} aria-label={t('admin.orderDetail.updateStatus')} onChange={(e) => setStatusChoice(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2">
               {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
-            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('admin.orderDetail.note')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
-            {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
+            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('admin.orderDetail.note')} aria-label={t('admin.orderDetail.note')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
+            {error && <p role="alert" className="text-sm text-red-600 mb-2">{error}</p>}
             <button type="submit" disabled={submitting} className="bg-brand text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.orderDetail.updating') : t('admin.orderDetail.updateButton')}
             </button>
@@ -110,9 +110,9 @@ export default function AdminOrderDetail() {
 
           <form onSubmit={handleRefund} className="border border-gray-200 rounded-lg p-4">
             <h2 className="font-semibold mb-3">{t('admin.orderDetail.refund')}</h2>
-            <input required type="number" step="0.01" min="0.01" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} placeholder={t('admin.orderDetail.amount', { currency: order.currency })} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
-            <input value={refundReason} onChange={(e) => setRefundReason(e.target.value)} placeholder={t('admin.orderDetail.reason')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
-            {refundError && <p className="text-sm text-red-600 mb-2">{refundError}</p>}
+            <input required type="number" step="0.01" min="0.01" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} placeholder={t('admin.orderDetail.amount', { currency: order.currency })} aria-label={t('admin.orderDetail.amount', { currency: order.currency })} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
+            <input value={refundReason} onChange={(e) => setRefundReason(e.target.value)} placeholder={t('admin.orderDetail.reason')} aria-label={t('admin.orderDetail.reason')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
+            {refundError && <p role="alert" className="text-sm text-red-600 mb-2">{refundError}</p>}
             <button type="submit" disabled={refundSubmitting} className="border border-red-400 text-red-600 rounded px-4 py-2 text-sm font-medium disabled:opacity-40">
               {refundSubmitting ? t('admin.orderDetail.processing') : t('admin.orderDetail.refundButton')}
             </button>

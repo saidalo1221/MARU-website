@@ -40,14 +40,14 @@ export default function AdminIntegrationLogs() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">{t('admin.integrationLogs.title')}</h1>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 rounded px-2 py-1.5 text-sm">
+        <select value={statusFilter} aria-label={t('admin.common.status')} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 rounded px-2 py-1.5 text-sm">
           <option value="">{t('admin.common.allStatuses')}</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {!loading && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -71,7 +71,7 @@ export default function AdminIntegrationLogs() {
                   <td className="px-3 py-2">{l.internal_entity} #{l.internal_id}</td>
                   <td className="px-3 py-2">{l.status}</td>
                   <td className="px-3 py-2">{l.attempt}</td>
-                  <td className="px-3 py-2 text-red-500 max-w-xs truncate" title={l.error_message || ''}>{l.error_message || '—'}</td>
+                  <td className="px-3 py-2 text-red-600 max-w-xs truncate" title={l.error_message || ''}>{l.error_message || '—'}</td>
                   <td className="px-3 py-2 text-right">
                     {l.status !== 'success' && (
                       <button onClick={() => retry(l.id)} disabled={retryingId === l.id} className="text-brand disabled:opacity-40">

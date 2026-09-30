@@ -1,25 +1,36 @@
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useLocale } from '../../context/LocaleContext'
 import LanguageSwitcher from '../LanguageSwitcher'
 import CurrencySwitcher from '../CurrencySwitcher'
 import DarkModeToggle from '../DarkModeToggle'
+import useDialogFocus from '../../lib/useDialogFocus'
 
 export default function MobileMenu({ open, onClose }) {
   const { user, logout } = useAuth()
   const { t } = useLocale()
+  const dialogRef = useRef(null)
+  useDialogFocus(dialogRef, open)
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (e) => e.key === 'Escape' && onClose()
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, onClose])
 
   if (!open) return null
 
   const linkClass = 'block py-3 border-b border-gray-100 text-base'
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+    <div ref={dialogRef} className="fixed inset-0 z-50 bg-white flex flex-col" role="dialog" aria-modal="true" aria-label={t('mobileMenu.title')}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <span className="font-bold text-brand">MARU</span>
         <button onClick={onClose} aria-label={t('mobileMenu.closeMenu')} className="text-xl">✕</button>
       </div>
-      <nav className="flex-1 overflow-y-auto px-4 py-2" onClick={onClose}>
+      <nav aria-label={t('mobileMenu.title')} className="flex-1 overflow-y-auto px-4 py-2" onClick={onClose}>
         <Link to="/shop" className={linkClass}>{t('header.shop')}</Link>
         <Link to="/b2b" className={linkClass}>{t('footer.b2b')}</Link>
         <Link to="/wholesale" className={linkClass}>{t('footer.wholesale')}</Link>

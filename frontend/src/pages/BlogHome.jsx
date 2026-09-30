@@ -50,7 +50,7 @@ export default function BlogHome() {
       </div>
 
       {loading && <p>{t('blog.loading')}</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p role="alert" className="text-red-600">{error}</p>}
       {!loading && !error && posts.length === 0 && <p className="text-gray-500">{t('blog.noPosts')}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

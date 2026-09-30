@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocale } from '../../context/LocaleContext'
 import { classifyMedia, youtubeEmbed, youtubeThumb } from '../../lib/media'
+import useDialogFocus from '../../lib/useDialogFocus'
 
 // Big viewer + clickable thumbnail strip + prev/next arrows. `variant` is a
 // ProductVariantOut: uses variant.images (the multi-item gallery) when
@@ -167,6 +168,8 @@ function Lightbox({ items, startIndex, alt, onIndexChange, onClose }) {
   const imageIndexes = items.map((it, i) => (it.kind === 'image' ? i : null)).filter((i) => i !== null)
   const [pos, setPos] = useState(Math.max(0, imageIndexes.indexOf(startIndex)))
   const closeRef = useRef(null)
+  const dialogRef = useRef(null)
+  useDialogFocus(dialogRef)
 
   const go = (delta) => {
     const nextPos = (pos + delta + imageIndexes.length) % imageIndexes.length
@@ -185,16 +188,20 @@ function Lightbox({ items, startIndex, alt, onIndexChange, onClose }) {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose()
-      else if (e.key === 'ArrowLeft' && imageIndexes.length > 1) go(-1)
+      if (e.key === 'Escape') {
+        // Capture phase + stop: don't also close a Quick View dialog underneath.
+        e.stopPropagation()
+        onClose()
+      } else if (e.key === 'ArrowLeft' && imageIndexes.length > 1) go(-1)
       else if (e.key === 'ArrowRight' && imageIndexes.length > 1) go(1)
     }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
   })
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"

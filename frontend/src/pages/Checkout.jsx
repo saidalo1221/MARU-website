@@ -195,7 +195,7 @@ export default function Checkout() {
           {t('checkout.order', { number: checkoutResult.order_number })} — {checkoutResult.currency}{' '}
           {Number(checkoutResult.total_amount).toFixed(2)}
         </p>
-        {paymentError && <p className="text-sm text-red-600 mb-3">{paymentError}</p>}
+        {paymentError && <p role="alert" className="text-sm text-red-600 mb-3">{paymentError}</p>}
         {checkoutResult.payment.reference_kind === 'client_secret' && (
           <StripePaymentForm
             clientSecret={checkoutResult.payment.reference}
@@ -352,7 +352,7 @@ export default function Checkout() {
             </div>
           </fieldset>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
 
           <button
             type="submit"
@@ -379,7 +379,7 @@ export default function Checkout() {
               <dd>{cart.currency} {Number(cart.subtotal).toFixed(2)}</dd>
             </div>
             {Number(cart.discount) > 0 && (
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-green-700">
                 <dt>{t('cart.discount')}</dt>
                 <dd>-{cart.currency} {Number(cart.discount).toFixed(2)}</dd>
               </div>

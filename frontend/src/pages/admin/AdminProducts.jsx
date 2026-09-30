@@ -95,22 +95,22 @@ export default function AdminProducts() {
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 grid grid-cols-2 gap-3">
-          <select required value={form.category_id} onChange={update('category_id')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
+          <select required value={form.category_id} aria-label={t('admin.products.selectCategory')} onChange={update('category_id')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
             <option value="">{t('admin.products.selectCategory')}</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{'  '.repeat(c.depth)}{c.name}</option>)}
           </select>
-          <input required placeholder={t('admin.common.name')} value={form.name} onChange={update('name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input required placeholder={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input required type="number" min="1" placeholder={t('admin.products.volumeMl')} value={form.volume_ml} onChange={update('volume_ml')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input type="number" min="1" placeholder={t('admin.products.minOrderQty')} value={form.min_order_quantity} onChange={update('min_order_quantity')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input placeholder={t('admin.products.shape')} value={form.shape} onChange={update('shape')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input placeholder={t('admin.products.purpose')} value={form.purpose} onChange={update('purpose')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input placeholder={t('admin.products.countryOfOrigin')} value={form.country_of_origin} onChange={update('country_of_origin')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-          <textarea placeholder={t('admin.products.description')} value={form.description} onChange={update('description')} rows={3} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+          <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.name} onChange={update('name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required placeholder={t('admin.common.slug')} aria-label={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required type="number" min="1" placeholder={t('admin.products.volumeMl')} aria-label={t('admin.products.volumeMl')} value={form.volume_ml} onChange={update('volume_ml')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="number" min="1" placeholder={t('admin.products.minOrderQty')} aria-label={t('admin.products.minOrderQty')} value={form.min_order_quantity} onChange={update('min_order_quantity')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.products.shape')} aria-label={t('admin.products.shape')} value={form.shape} onChange={update('shape')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.products.purpose')} aria-label={t('admin.products.purpose')} value={form.purpose} onChange={update('purpose')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.products.countryOfOrigin')} aria-label={t('admin.products.countryOfOrigin')} value={form.country_of_origin} onChange={update('country_of_origin')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+          <textarea placeholder={t('admin.products.description')} aria-label={t('admin.products.description')} value={form.description} onChange={update('description')} rows={3} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
 
           <div className="col-span-2 border-t border-gray-100 pt-3">
             <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('admin.blog.translations')}</p>
@@ -127,15 +127,15 @@ export default function AdminProducts() {
               ))}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <input placeholder={t('admin.common.name')} value={translations[activeLocale].name} onChange={updateTranslation('name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder={t('admin.products.description')} value={translations[activeLocale].description} onChange={updateTranslation('description')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder={t('admin.products.shape')} value={translations[activeLocale].shape} onChange={updateTranslation('shape')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder={t('admin.products.purpose')} value={translations[activeLocale].purpose} onChange={updateTranslation('purpose')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder={t('admin.products.countryOfOrigin')} value={translations[activeLocale].country_of_origin} onChange={updateTranslation('country_of_origin')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={translations[activeLocale].name} onChange={updateTranslation('name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('admin.products.description')} aria-label={t('admin.products.description')} value={translations[activeLocale].description} onChange={updateTranslation('description')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('admin.products.shape')} aria-label={t('admin.products.shape')} value={translations[activeLocale].shape} onChange={updateTranslation('shape')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('admin.products.purpose')} aria-label={t('admin.products.purpose')} value={translations[activeLocale].purpose} onChange={updateTranslation('purpose')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+              <input placeholder={t('admin.products.countryOfOrigin')} aria-label={t('admin.products.countryOfOrigin')} value={translations[activeLocale].country_of_origin} onChange={updateTranslation('country_of_origin')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
             </div>
           </div>
 
-          {formError && <p className="text-sm text-red-600 col-span-2">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-red-600 col-span-2">{formError}</p>}
           <div className="col-span-2 flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.common.saving') : t('admin.common.save')}
@@ -171,7 +171,7 @@ export default function AdminProducts() {
                     <td className="px-3 py-2">{sku ? <Money amount={sku.retail_price} currency={sku.currency} /> : '—'}</td>
                     <td className="px-3 py-2">{p.variants.length}</td>
                     <td className="px-3 py-2">
-                      <span className={visible ? 'text-green-600' : 'text-amber-600'}>
+                      <span className={visible ? 'text-green-700' : 'text-amber-600'}>
                         {visible ? t('admin.common.yes') : t('admin.products.notVisibleYet')}
                       </span>
                     </td>

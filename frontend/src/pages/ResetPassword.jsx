@@ -19,7 +19,7 @@ export default function ResetPassword() {
   if (!token) {
     return (
       <div className="max-w-sm mx-auto px-4 py-12 text-center">
-        <p className="text-red-600 text-sm mb-4">{t('resetPassword.missingToken')}</p>
+        <p role="alert" className="text-red-600 text-sm mb-4">{t('resetPassword.missingToken')}</p>
         <Link to="/forgot-password" className="text-brand text-sm">{t('resetPassword.requestNew')}</Link>
       </div>
     )
@@ -64,7 +64,7 @@ export default function ResetPassword() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={submitting}

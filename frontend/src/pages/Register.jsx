@@ -44,13 +44,13 @@ export default function Register() {
         <input placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <input required type="email" placeholder={t('checkout.email')} aria-label={t('checkout.email')} value={form.email} onChange={update('email')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
         <PasswordInput required placeholder={t('login.password')} value={form.password} onChange={update('password')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
           {submitting ? t('register.submitting') : t('register.submit')}
         </button>
       </form>
       <p className="text-sm text-gray-500 mt-4">
-        {t('register.haveAccount')} <Link to={`/login?next=${encodeURIComponent(next)}`} className="text-brand">{t('register.login')}</Link>
+        {t('register.haveAccount')} <Link to={`/login?next=${encodeURIComponent(next)}`} className="text-brand underline">{t('register.login')}</Link>
       </p>
     </div>
   )

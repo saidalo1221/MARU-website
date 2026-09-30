@@ -32,14 +32,14 @@ export default function AdminReviews() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">{t('admin.reviews.title')}</h1>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 rounded px-2 py-1.5 text-sm">
+        <select value={statusFilter} aria-label={t('admin.common.status')} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 rounded px-2 py-1.5 text-sm">
           <option value="">{t('admin.common.allStatuses')}</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
 
       {!loading && !error && (
         <ul className="space-y-3">
@@ -52,11 +52,11 @@ export default function AdminReviews() {
                   <p className="text-xs text-gray-400 mt-1">{t('admin.reviews.product', { id: r.product_id })} · {r.status}</p>
                 </div>
                 {r.status !== 'approved' && (
-                  <button onClick={() => moderate(r.id, 'approved')} className="text-green-600 text-sm">{t('admin.reviews.approve')}</button>
+                  <button onClick={() => moderate(r.id, 'approved')} className="text-green-700 text-sm">{t('admin.reviews.approve')}</button>
                 )}
               </div>
               {r.status !== 'rejected' && (
-                <button onClick={() => moderate(r.id, 'rejected')} className="text-red-500 text-sm mt-2">{t('admin.reviews.reject')}</button>
+                <button onClick={() => moderate(r.id, 'rejected')} className="text-red-600 text-sm mt-2">{t('admin.reviews.reject')}</button>
               )}
             </li>
           ))}

@@ -11,7 +11,7 @@ export default function ProductBadges({ badges, className = '' }) {
   const items = [
     badges.is_new && { key: 'new', label: t('product.badgeNew'), cls: 'bg-blue-600 text-white' },
     badges.is_sale && { key: 'sale', label: t('product.badgeSale'), cls: 'bg-red-600 text-white' },
-    badges.is_bestseller && { key: 'bestseller', label: t('product.badgeBestseller'), cls: 'bg-amber-500 text-white' },
+    badges.is_bestseller && { key: 'bestseller', label: t('product.badgeBestseller'), cls: 'bg-amber-700 text-white' },
     badges.is_out_of_stock && { key: 'oos', label: t('product.badgeOutOfStock'), cls: 'bg-gray-700 text-white' },
   ].filter(Boolean)
 

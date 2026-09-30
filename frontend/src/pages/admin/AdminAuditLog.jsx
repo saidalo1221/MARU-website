@@ -22,11 +22,11 @@ export default function AdminAuditLog() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">{t('admin.auditLog.title')}</h1>
-        <input value={entityFilter} onChange={(e) => setEntityFilter(e.target.value)} placeholder={t('admin.auditLog.filterPlaceholder')} className="border border-gray-300 rounded px-2 py-1.5 text-sm" />
+        <input value={entityFilter} onChange={(e) => setEntityFilter(e.target.value)} placeholder={t('admin.auditLog.filterPlaceholder')} aria-label={t('admin.auditLog.filterPlaceholder')} className="border border-gray-300 rounded px-2 py-1.5 text-sm" />
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {!loading && (
         <ul className="divide-y divide-gray-100 border border-gray-200 rounded-lg">

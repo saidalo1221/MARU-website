@@ -49,7 +49,7 @@ export default function Footer() {
           <p>{t('footer.tagline')}</p>
         </div>
         {columns.map((col) => (
-          <nav key={col.titleKey}>
+          <nav key={col.titleKey} aria-label={t(col.titleKey)}>
             <p className="font-semibold text-gray-900 mb-2">{t(col.titleKey)}</p>
             <ul className="space-y-1.5">
               {col.links.map(([to, key]) => (

@@ -73,13 +73,13 @@ export default function Reviews({ slug }) {
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
             rows={3}
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <button type="submit" disabled={submitting} className="border border-brand text-brand rounded px-4 py-2 text-sm disabled:opacity-40">
             {submitting ? t('reviews.submitting') : t('reviews.submit')}
           </button>
         </form>
       )}
-      {submitted && <p className="text-sm text-green-600 mt-3">{t('reviews.pendingModeration')}</p>}
+      {submitted && <p className="text-sm text-green-700 mt-3">{t('reviews.pendingModeration')}</p>}
     </div>
   )
 }

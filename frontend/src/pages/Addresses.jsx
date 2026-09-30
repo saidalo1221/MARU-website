@@ -140,7 +140,7 @@ export default function Addresses() {
             <input type="checkbox" checked={form.is_default} onChange={update('is_default')} />
             {t('addresses.setDefault')}
           </label>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('addresses.saving') : t('addresses.save')}
@@ -167,7 +167,7 @@ export default function Addresses() {
             </div>
             <div className="flex gap-3 text-sm">
               <button onClick={() => openEdit(a)} className="text-brand">{t('addresses.edit')}</button>
-              <button onClick={() => handleDelete(a.id)} className="text-red-500">{t('cart.remove')}</button>
+              <button onClick={() => handleDelete(a.id)} className="text-red-600">{t('cart.remove')}</button>
             </div>
           </li>
         ))}

@@ -33,10 +33,10 @@ function InventoryTableRow({ row, warehouseName, onSave }) {
   return (
     <tr>
       <td className="py-1">{warehouseName}</td>
-      <td><input type="number" value={form.stock} onChange={update('stock')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
+      <td><input type="number" value={form.stock} aria-label={t('admin.productDetail.stock')} onChange={update('stock')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
       <td className="text-center text-gray-400">{row.reserved}</td>
-      <td><input type="number" value={form.incoming} onChange={update('incoming')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
-      <td><input type="number" value={form.min_stock} onChange={update('min_stock')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
+      <td><input type="number" value={form.incoming} aria-label={t('admin.productDetail.incoming')} onChange={update('incoming')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
+      <td><input type="number" value={form.min_stock} aria-label={t('admin.productDetail.min')} onChange={update('min_stock')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
       <td>
         {dirty && (
           <button type="button" onClick={save} disabled={saving} className="text-brand disabled:opacity-40">
@@ -57,7 +57,7 @@ function InventoryRow({ sku, warehouses, onProductChanged }) {
   const load = () => adminListInventory(sku.id).then(setRows).catch((err) => setError(errorMessage(err, t('admin.productDetail.inventoryLoadFailed'))))
   useEffect(() => { load() }, [sku.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (error) return <p className="text-red-600 text-xs">{error}</p>
+  if (error) return <p role="alert" className="text-red-600 text-xs">{error}</p>
   if (!rows) return <p className="text-xs text-gray-400">{t('admin.common.loading')}</p>
 
   const usedWarehouseIds = new Set(rows.map((r) => r.warehouse_id))
@@ -111,10 +111,10 @@ function InventoryRow({ sku, warehouses, onProductChanged }) {
           ))}
         </tbody>
       </table>
-      {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-xs mt-1">{error}</p>}
       {availableWarehouses.length > 0 && (
         <div className="flex gap-2 mt-2">
-          <select value={addWarehouseId} onChange={(e) => setAddWarehouseId(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-xs">
+          <select value={addWarehouseId} aria-label={t('admin.productDetail.addWarehousePrompt')} onChange={(e) => setAddWarehouseId(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-xs">
             <option value="">{t('admin.productDetail.addWarehousePrompt')}</option>
             {availableWarehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
@@ -174,17 +174,17 @@ function SkuBlock({ sku, warehouses, onChanged }) {
       {expanded && (
         <>
           <form onSubmit={save} className="grid grid-cols-3 gap-2 mt-3">
-            <input placeholder={t('admin.productDetail.barcode')} value={form.barcode} onChange={update('barcode')} className={inputCls} />
-            <input type="number" step="0.01" min="0.01" required placeholder={t('admin.productDetail.retailPrice')} value={form.retail_price} onChange={update('retail_price')} className={inputCls} />
-            <input placeholder={t('admin.productDetail.currency')} maxLength={3} value={form.currency} onChange={update('currency')} className={inputCls} />
-            <input type="number" step="0.01" placeholder={t('admin.productDetail.wholesalePrice')} value={form.wholesale_price} onChange={update('wholesale_price')} className={inputCls} />
-            <input type="number" step="0.01" placeholder={t('admin.productDetail.distributorPrice')} value={form.distributor_price} onChange={update('distributor_price')} className={inputCls} />
-            <input type="number" step="0.01" placeholder={t('admin.productDetail.exportPrice')} value={form.export_price} onChange={update('export_price')} className={inputCls} />
-            <input type="number" step="0.01" placeholder={t('admin.productDetail.specialPrice')} value={form.special_price} onChange={update('special_price')} className={inputCls} />
+            <input placeholder={t('admin.productDetail.barcode')} aria-label={t('admin.productDetail.barcode')} value={form.barcode} onChange={update('barcode')} className={inputCls} />
+            <input type="number" step="0.01" min="0.01" required placeholder={t('admin.productDetail.retailPrice')} aria-label={t('admin.productDetail.retailPrice')} value={form.retail_price} onChange={update('retail_price')} className={inputCls} />
+            <input placeholder={t('admin.productDetail.currency')} aria-label={t('admin.productDetail.currency')} maxLength={3} value={form.currency} onChange={update('currency')} className={inputCls} />
+            <input type="number" step="0.01" placeholder={t('admin.productDetail.wholesalePrice')} aria-label={t('admin.productDetail.wholesalePrice')} value={form.wholesale_price} onChange={update('wholesale_price')} className={inputCls} />
+            <input type="number" step="0.01" placeholder={t('admin.productDetail.distributorPrice')} aria-label={t('admin.productDetail.distributorPrice')} value={form.distributor_price} onChange={update('distributor_price')} className={inputCls} />
+            <input type="number" step="0.01" placeholder={t('admin.productDetail.exportPrice')} aria-label={t('admin.productDetail.exportPrice')} value={form.export_price} onChange={update('export_price')} className={inputCls} />
+            <input type="number" step="0.01" placeholder={t('admin.productDetail.specialPrice')} aria-label={t('admin.productDetail.specialPrice')} value={form.special_price} onChange={update('special_price')} className={inputCls} />
             <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}</label>
             <button type="submit" disabled={saving} className="bg-brand text-white rounded px-3 py-1.5 text-sm disabled:opacity-40">{saving ? t('admin.common.saving') : t('admin.productDetail.saveSku')}</button>
           </form>
-          {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
+          {error && <p role="alert" className="text-red-600 text-xs mt-1">{error}</p>}
           <InventoryRow sku={sku} warehouses={warehouses} onProductChanged={onChanged} />
         </>
       )}
@@ -295,17 +295,17 @@ function VariantImagesManager({ variant, onChanged }) {
       )}
       <form onSubmit={addByUrl} className="flex gap-2 items-center flex-wrap">
         <input
-          placeholder={t('admin.productDetail.imageUrlPlaceholder')}
+          placeholder={t('admin.productDetail.imageUrlPlaceholder')} aria-label={t('admin.productDetail.imageUrlPlaceholder')}
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
           className={inputCls}
         />
         <button type="submit" className="text-sm text-brand">{t('admin.productDetail.addImageUrl')}</button>
-        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
+        <input type="file" aria-label={t('admin.productDetail.images')} accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
         {uploading && <span className="text-xs text-gray-400">{t('admin.productDetail.uploading')}</span>}
       </form>
       <p className="text-[11px] text-gray-400 mt-1">{t('admin.productDetail.mediaHint')}</p>
-      {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-xs mt-1">{error}</p>}
     </div>
   )
 }
@@ -381,20 +381,20 @@ function VariantBlock({ variant, warehouses, onChanged }) {
       {expanded && (
         <>
           <form onSubmit={save} className="grid grid-cols-2 gap-2 mt-3 mb-4">
-            <input placeholder={t('admin.common.name')} value={form.name} onChange={update('name')} className={inputCls} />
-            <input placeholder={t('admin.productDetail.color')} value={form.color} onChange={update('color')} className={inputCls} />
-            <input placeholder={t('admin.productDetail.colorHex')} value={form.color_hex} onChange={update('color_hex')} className={inputCls} />
-            <input placeholder={t('admin.productDetail.photoUrl')} value={form.photo_url} onChange={update('photo_url')} className={inputCls} />
+            <input placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.name} onChange={update('name')} className={inputCls} />
+            <input placeholder={t('admin.productDetail.color')} aria-label={t('admin.productDetail.color')} value={form.color} onChange={update('color')} className={inputCls} />
+            <input placeholder={t('admin.productDetail.colorHex')} aria-label={t('admin.productDetail.colorHex')} value={form.color_hex} onChange={update('color_hex')} className={inputCls} />
+            <input placeholder={t('admin.productDetail.photoUrl')} aria-label={t('admin.productDetail.photoUrl')} value={form.photo_url} onChange={update('photo_url')} className={inputCls} />
             <div className="flex items-center gap-2">
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
+              <input type="file" aria-label={t('admin.productDetail.images')} accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
               {uploading && <span className="text-xs text-gray-400">{t('admin.productDetail.uploading')}</span>}
               {form.photo_url && <img src={form.photo_url} alt="" className="h-10 w-10 object-cover rounded border border-gray-200" />}
             </div>
-            {uploadError && <p className="text-red-600 text-xs col-span-2">{uploadError}</p>}
+            {uploadError && <p role="alert" className="text-red-600 text-xs col-span-2">{uploadError}</p>}
             <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}</label>
             <button type="submit" disabled={saving} className="bg-brand text-white rounded px-3 py-1.5 text-sm disabled:opacity-40 justify-self-start">{saving ? t('admin.common.saving') : t('admin.productDetail.saveVariant')}</button>
           </form>
-          {error && <p className="text-red-600 text-xs mb-2">{error}</p>}
+          {error && <p role="alert" className="text-red-600 text-xs mb-2">{error}</p>}
 
           <VariantImagesManager variant={variant} onChanged={onChanged} />
 
@@ -403,10 +403,10 @@ function VariantBlock({ variant, warehouses, onChanged }) {
 
           {skuOpen ? (
             <form onSubmit={addSku} className="grid grid-cols-3 gap-2 mt-2 border border-gray-100 rounded p-3">
-              <input required placeholder={t('admin.productDetail.skuCode')} value={skuForm.sku_code} onChange={updateSku('sku_code')} className={inputCls} />
-              <input required type="number" step="0.01" min="0.01" placeholder={t('admin.productDetail.retailPrice')} value={skuForm.retail_price} onChange={updateSku('retail_price')} className={inputCls} />
-              <input placeholder={t('admin.productDetail.currency')} maxLength={3} value={skuForm.currency} onChange={updateSku('currency')} className={inputCls} />
-              {skuError && <p className="text-red-600 text-xs col-span-3">{skuError}</p>}
+              <input required placeholder={t('admin.productDetail.skuCode')} aria-label={t('admin.productDetail.skuCode')} value={skuForm.sku_code} onChange={updateSku('sku_code')} className={inputCls} />
+              <input required type="number" step="0.01" min="0.01" placeholder={t('admin.productDetail.retailPrice')} aria-label={t('admin.productDetail.retailPrice')} value={skuForm.retail_price} onChange={updateSku('retail_price')} className={inputCls} />
+              <input placeholder={t('admin.productDetail.currency')} aria-label={t('admin.productDetail.currency')} maxLength={3} value={skuForm.currency} onChange={updateSku('currency')} className={inputCls} />
+              {skuError && <p role="alert" className="text-red-600 text-xs col-span-3">{skuError}</p>}
               <button type="submit" className="bg-brand text-white rounded px-3 py-1.5 text-sm col-span-1">{t('admin.productDetail.addSku')}</button>
               <button type="button" onClick={() => setSkuOpen(false)} className="border border-gray-300 rounded px-3 py-1.5 text-sm col-span-1">{t('admin.common.cancel')}</button>
             </form>
@@ -496,14 +496,14 @@ function ProductTranslations({ productId }) {
         ))}
       </div>
       <form onSubmit={save} className="border border-gray-200 rounded-lg p-4 space-y-3">
-        <input required placeholder={t('admin.common.name')} value={translationForm.name} onChange={update('name')} className={`${inputCls} w-full`} />
-        <textarea placeholder={t('admin.products.description')} value={translationForm.description} onChange={update('description')} rows={3} className={`${inputCls} w-full`} />
+        <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={translationForm.name} onChange={update('name')} className={`${inputCls} w-full`} />
+        <textarea placeholder={t('admin.products.description')} aria-label={t('admin.products.description')} value={translationForm.description} onChange={update('description')} rows={3} className={`${inputCls} w-full`} />
         <div className="grid grid-cols-3 gap-2">
-          <input placeholder={t('admin.products.shape')} value={translationForm.shape} onChange={update('shape')} className={inputCls} />
-          <input placeholder={t('admin.products.purpose')} value={translationForm.purpose} onChange={update('purpose')} className={inputCls} />
-          <input placeholder={t('admin.products.countryOfOrigin')} value={translationForm.country_of_origin} onChange={update('country_of_origin')} className={inputCls} />
+          <input placeholder={t('admin.products.shape')} aria-label={t('admin.products.shape')} value={translationForm.shape} onChange={update('shape')} className={inputCls} />
+          <input placeholder={t('admin.products.purpose')} aria-label={t('admin.products.purpose')} value={translationForm.purpose} onChange={update('purpose')} className={inputCls} />
+          <input placeholder={t('admin.products.countryOfOrigin')} aria-label={t('admin.products.countryOfOrigin')} value={translationForm.country_of_origin} onChange={update('country_of_origin')} className={inputCls} />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={saving} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
           {saving ? t('admin.common.saving') : t('admin.common.save')}
         </button>
@@ -541,7 +541,7 @@ export default function AdminProductDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId])
 
-  if (error) return <p className="text-red-600 text-sm">{error}</p>
+  if (error) return <p role="alert" className="text-red-600 text-sm">{error}</p>
   if (!product || !form) return <p>{t('admin.common.loading')}</p>
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
@@ -580,14 +580,14 @@ export default function AdminProductDetail() {
       <h1 className="text-2xl font-bold mt-2 mb-6">{product.name}</h1>
 
       <form onSubmit={saveProduct} className="border border-gray-200 rounded-lg p-4 mb-8 grid grid-cols-2 gap-3">
-        <input required placeholder={t('admin.common.name')} value={form.name} onChange={update('name')} className={inputCls} />
-        <input required placeholder={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className={inputCls} />
-        <input required type="number" min="1" placeholder={t('admin.products.volumeMl')} value={form.volume_ml} onChange={update('volume_ml')} className={inputCls} />
-        <input type="number" min="1" placeholder={t('admin.products.minOrderQty')} value={form.min_order_quantity} onChange={update('min_order_quantity')} className={inputCls} />
-        <input placeholder={t('admin.products.shape')} value={form.shape} onChange={update('shape')} className={inputCls} />
-        <input placeholder={t('admin.products.purpose')} value={form.purpose} onChange={update('purpose')} className={inputCls} />
-        <input placeholder={t('admin.products.countryOfOrigin')} value={form.country_of_origin} onChange={update('country_of_origin')} className={`${inputCls} col-span-2`} />
-        <textarea placeholder={t('admin.products.description')} value={form.description} onChange={update('description')} rows={3} className={`${inputCls} col-span-2`} />
+        <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.name} onChange={update('name')} className={inputCls} />
+        <input required placeholder={t('admin.common.slug')} aria-label={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className={inputCls} />
+        <input required type="number" min="1" placeholder={t('admin.products.volumeMl')} aria-label={t('admin.products.volumeMl')} value={form.volume_ml} onChange={update('volume_ml')} className={inputCls} />
+        <input type="number" min="1" placeholder={t('admin.products.minOrderQty')} aria-label={t('admin.products.minOrderQty')} value={form.min_order_quantity} onChange={update('min_order_quantity')} className={inputCls} />
+        <input placeholder={t('admin.products.shape')} aria-label={t('admin.products.shape')} value={form.shape} onChange={update('shape')} className={inputCls} />
+        <input placeholder={t('admin.products.purpose')} aria-label={t('admin.products.purpose')} value={form.purpose} onChange={update('purpose')} className={inputCls} />
+        <input placeholder={t('admin.products.countryOfOrigin')} aria-label={t('admin.products.countryOfOrigin')} value={form.country_of_origin} onChange={update('country_of_origin')} className={`${inputCls} col-span-2`} />
+        <textarea placeholder={t('admin.products.description')} aria-label={t('admin.products.description')} value={form.description} onChange={update('description')} rows={3} className={`${inputCls} col-span-2`} />
 
         <div className="col-span-2 border-t border-gray-100 pt-3 mt-1">
           <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('admin.productDetail.badges')}</p>
@@ -624,7 +624,7 @@ export default function AdminProductDetail() {
           </div>
         </div>
 
-        {saveError && <p className="text-red-600 text-sm col-span-2">{saveError}</p>}
+        {saveError && <p role="alert" className="text-red-600 text-sm col-span-2">{saveError}</p>}
         <button type="submit" disabled={saving} className="bg-brand text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-40 justify-self-start">
           {saving ? t('admin.common.saving') : t('admin.productDetail.saveProduct')}
         </button>
@@ -645,10 +645,10 @@ export default function AdminProductDetail() {
 
       {variantOpen && (
         <form onSubmit={addVariant} className="grid grid-cols-3 gap-2 border border-gray-200 rounded-lg p-4 mb-4">
-          <input required placeholder={t('admin.common.name')} value={variantForm.name} onChange={(e) => setVariantForm((f) => ({ ...f, name: e.target.value }))} className={inputCls} />
-          <input required placeholder={t('admin.productDetail.color')} value={variantForm.color} onChange={(e) => setVariantForm((f) => ({ ...f, color: e.target.value }))} className={inputCls} />
-          <input placeholder={t('admin.productDetail.colorHex')} value={variantForm.color_hex} onChange={(e) => setVariantForm((f) => ({ ...f, color_hex: e.target.value }))} className={inputCls} />
-          {variantError && <p className="text-red-600 text-xs col-span-3">{variantError}</p>}
+          <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={variantForm.name} onChange={(e) => setVariantForm((f) => ({ ...f, name: e.target.value }))} className={inputCls} />
+          <input required placeholder={t('admin.productDetail.color')} aria-label={t('admin.productDetail.color')} value={variantForm.color} onChange={(e) => setVariantForm((f) => ({ ...f, color: e.target.value }))} className={inputCls} />
+          <input placeholder={t('admin.productDetail.colorHex')} aria-label={t('admin.productDetail.colorHex')} value={variantForm.color_hex} onChange={(e) => setVariantForm((f) => ({ ...f, color_hex: e.target.value }))} className={inputCls} />
+          {variantError && <p role="alert" className="text-red-600 text-xs col-span-3">{variantError}</p>}
           <button type="submit" className="bg-brand text-white rounded px-3 py-1.5 text-sm">{t('admin.productDetail.add')}</button>
           <button type="button" onClick={() => setVariantOpen(false)} className="border border-gray-300 rounded px-3 py-1.5 text-sm">{t('admin.common.cancel')}</button>
         </form>

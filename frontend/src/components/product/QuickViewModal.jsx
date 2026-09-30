@@ -6,6 +6,7 @@ import ProductGallery from './ProductGallery'
 import ProductBadges from './ProductBadges'
 import VariantSelector from './VariantSelector'
 import QuantitySelector from './QuantitySelector'
+import useDialogFocus from '../../lib/useDialogFocus'
 
 // Self-contained quick-view: opened from a ProductCard with the product data
 // the catalog/search list already fetched (variants+skus included), so no
@@ -17,6 +18,8 @@ export default function QuickViewModal({ product, onClose }) {
   const [quantity, setQuantity] = useState(product.min_order_quantity || 1)
   const [status, setStatus] = useState(null)
   const closeRef = useRef(null)
+  const dialogRef = useRef(null)
+  useDialogFocus(dialogRef)
 
   useEffect(() => {
     closeRef.current?.focus()
@@ -48,6 +51,7 @@ export default function QuickViewModal({ product, onClose }) {
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
       onClick={onClose}
       role="dialog"
@@ -77,7 +81,7 @@ export default function QuickViewModal({ product, onClose }) {
             <p className="text-2xl font-semibold mt-2">
               {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
             </p>
-            <p className={`text-sm mt-1 ${inStock ? 'text-green-600' : 'text-red-500'}`}>
+            <p className={`text-sm mt-1 ${inStock ? 'text-green-700' : 'text-red-600'}`}>
               {inStock ? t('productDetail.inStockCount', { n: sku.available_quantity }) : t('productDetail.outOfStock')}
             </p>
 
@@ -108,7 +112,7 @@ export default function QuickViewModal({ product, onClose }) {
             </div>
 
             {status && (
-              <p className={`text-sm mt-2 ${status.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+              <p role={status.type === 'success' ? 'status' : 'alert'} className={`text-sm mt-2 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
                 {status.message}
               </p>
             )}

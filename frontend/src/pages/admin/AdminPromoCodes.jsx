@@ -68,21 +68,21 @@ export default function AdminPromoCodes() {
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 grid grid-cols-2 gap-3">
-          <input required disabled={!!editingId} placeholder={t('admin.promoCodes.code')} value={form.code} onChange={update('code')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
-          <select value={form.discount_type} onChange={update('discount_type')} className="border border-gray-300 rounded px-3 py-2 text-sm">
+          <input required disabled={!!editingId} placeholder={t('admin.promoCodes.code')} aria-label={t('admin.promoCodes.code')} value={form.code} onChange={update('code')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
+          <select value={form.discount_type} aria-label={t('admin.promoCodes.discount')} onChange={update('discount_type')} className="border border-gray-300 rounded px-3 py-2 text-sm">
             <option value="percent">{t('admin.promoCodes.percent')}</option>
             <option value="fixed">{t('admin.promoCodes.fixed')}</option>
           </select>
-          <input required type="number" step="0.01" min="0.01" placeholder={t('admin.promoCodes.discountValue')} value={form.discount_value} onChange={update('discount_value')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input placeholder={t('admin.promoCodes.currencyForFixed')} maxLength={3} value={form.currency} onChange={update('currency')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input type="number" step="0.01" min="0" placeholder={t('admin.promoCodes.minOrderAmount')} value={form.min_order_amount} onChange={update('min_order_amount')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input type="number" min="1" placeholder={t('admin.promoCodes.maxUses')} value={form.max_uses} onChange={update('max_uses')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required type="number" step="0.01" min="0.01" placeholder={t('admin.promoCodes.discountValue')} aria-label={t('admin.promoCodes.discountValue')} value={form.discount_value} onChange={update('discount_value')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.promoCodes.currencyForFixed')} aria-label={t('admin.promoCodes.currencyForFixed')} maxLength={3} value={form.currency} onChange={update('currency')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="number" step="0.01" min="0" placeholder={t('admin.promoCodes.minOrderAmount')} aria-label={t('admin.promoCodes.minOrderAmount')} value={form.min_order_amount} onChange={update('min_order_amount')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="number" min="1" placeholder={t('admin.promoCodes.maxUses')} aria-label={t('admin.promoCodes.maxUses')} value={form.max_uses} onChange={update('max_uses')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}</label>
-          {formError && <p className="text-sm text-red-600 col-span-2">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-red-600 col-span-2">{formError}</p>}
           <div className="col-span-2 flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">{submitting ? t('admin.common.saving') : t('admin.common.save')}</button>
             <button type="button" onClick={() => setFormOpen(false)} className="border border-gray-300 rounded px-4 py-2 text-sm">{t('admin.common.cancel')}</button>

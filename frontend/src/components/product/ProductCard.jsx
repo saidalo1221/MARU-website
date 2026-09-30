@@ -36,7 +36,7 @@ export default function ProductCard({ product }) {
             <span className="font-semibold">
               {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
             </span>
-            <span className={`text-xs ${inStock ? 'text-green-600' : 'text-red-500'}`}>
+            <span className={`text-xs ${inStock ? 'text-green-700' : 'text-red-600'}`}>
               {inStock ? t('product.inStock') : t('product.outOfStock')}
             </span>
           </div>

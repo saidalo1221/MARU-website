@@ -59,21 +59,21 @@ export default function AdminNotificationTemplates() {
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
           <div className="grid grid-cols-3 gap-3">
-            <input required disabled={!!editingId} placeholder={t('admin.notificationTemplates.event')} value={form.event} onChange={update('event')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
-            <select disabled={!!editingId} value={form.locale} onChange={update('locale')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100">
+            <input required disabled={!!editingId} placeholder={t('admin.notificationTemplates.event')} aria-label={t('admin.notificationTemplates.event')} value={form.event} onChange={update('event')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
+            <select disabled={!!editingId} value={form.locale} aria-label={t('admin.notificationTemplates.locale')} onChange={update('locale')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100">
               <option value="en">en</option><option value="ru">ru</option><option value="uz">uz</option>
             </select>
-            <input disabled={!!editingId} placeholder={t('admin.notificationTemplates.channel')} value={form.channel} onChange={update('channel')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
+            <input disabled={!!editingId} placeholder={t('admin.notificationTemplates.channel')} aria-label={t('admin.notificationTemplates.channel')} value={form.channel} onChange={update('channel')} className="border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-100" />
           </div>
-          <input placeholder={t('admin.notificationTemplates.subject')} value={form.subject} onChange={update('subject')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <textarea required placeholder={t('admin.notificationTemplates.body')} value={form.body} onChange={update('body')} rows={5} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.notificationTemplates.subject')} aria-label={t('admin.notificationTemplates.subject')} value={form.subject} onChange={update('subject')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <textarea required placeholder={t('admin.notificationTemplates.body')} aria-label={t('admin.notificationTemplates.body')} value={form.body} onChange={update('body')} rows={5} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}</label>
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">{submitting ? t('admin.common.saving') : t('admin.common.save')}</button>
             <button type="button" onClick={() => setFormOpen(false)} className="border border-gray-300 rounded px-4 py-2 text-sm">{t('admin.common.cancel')}</button>
