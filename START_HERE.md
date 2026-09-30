@@ -3,14 +3,18 @@
 Read this file, then `CLAUDE.md` (house rules). Open `HANDOFF.md` only for
 detail on a specific area — it is long. `PRD.md` is the spec. Ignore
 `session_notes.md` and the "done" lists in `TODO.md` (historical).
+Also: `PRD_AUDIT.md` (what the PRD asks for vs what exists, with a suggested
+build order) and `MARIADB_PREFLIGHT.md` (first-deploy checklist for MariaDB
+and the Python 3.9 server). This file holds the to-do list; those two are
+reference.
 
 ## What this is
 Plastic-food-container e-commerce site. FastAPI + SQLAlchemy backend, React +
 Tailwind frontend (Vite), MariaDB in production (UzCloud), SQLite `dev.db`
-locally. Analytics work is on branch `feat/client-analytics-events`, pushed to
-origin but **no PR opened yet** (`gh` is not installed; use the GitHub compare
-URL). That branch also carries 11 earlier commits that were never on
-`origin/main`. Working tree is clean.
+locally. All work is on branch `feat/client-analytics-events`, pushed to
+origin, **PR #1 open** against `main` (`gh` is not installed; use the GitHub
+web UI). The branch also carries 11 earlier commits that were never on
+`origin/main`, so the PR is large. Working tree is clean.
 
 ## Run it
 Backend MUST override DATABASE_URL or every DB call 500s:
@@ -53,33 +57,40 @@ Buildable now:
    dark, 390px checkout). Re-run axe after UI changes.
 3. Not browser-verified: real mp4/webm upload in the admin variant-images
    panel (add-by-YouTube-URL was verified), real phone, Safari/Firefox.
-4. Native-speaker review of the ru/uz FAQ text (my draft). `dev.db` has it but
+4. Build order suggested by `PRD_AUDIT.md`: shipments + order tracking
+   (biggest customer-facing gap), security headers / `/docs` exposure,
+   checkout idempotency key + RFQ numbering, Dockerfile + CI + backups.
+   Smaller: replace `datetime.utcnow()` (deprecated; `dependencies.py`,
+   `badges.py`); uploads trust the declared content type, not file bytes.
+5. Native-speaker review of the ru/uz FAQ text (my draft). `dev.db` has it but
    is gitignored — a real DB needs it entered via admin "Support Pages Content".
 
 Needs a decision/access from the user (do not guess):
-5. GA4 / Meta forwarding (needs Measurement Protocol secret + Meta token).
-6. Object storage (S3-compatible): uploads are local-disk only.
-7. Keep or drop Stripe/PayPal. Vendors: shipping carrier, SMS/WhatsApp/
+6. GA4 / Meta forwarding (needs Measurement Protocol secret + Meta token).
+7. Object storage (S3-compatible): uploads are local-disk only.
+8. Keep or drop Stripe/PayPal. Vendors: shipping carrier, SMS/WhatsApp/
    Telegram, ERP/1C, Uzum marketplace, Uzum Pay (needs API docs).
-8. Admin MFA policy (code forces 2FA on all admin roles; TODO.md says opt-in).
-9. `CountryBanner` sends every visitor's IP to `ipapi.co` from the browser,
+9. Admin MFA policy (code forces 2FA on all admin roles; TODO.md says opt-in).
+10. `CountryBanner` sends every visitor's IP to `ipapi.co` from the browser,
    no consent step — privacy decision before launch.
 
 Deployment blockers:
-10. Production server has only Python 3.9. `X | None` annotations were
+11. Production server has only Python 3.9. `X | None` annotations were
     rewritten to `Optional[...]` (static checks pass) but it has **not** been
     run on a real 3.9 — see `MARIADB_PREFLIGHT.md` for the server-side check.
-11. MariaDB never run. SQL files match the models (static diff), one
+12. MariaDB never run. SQL files match the models (static diff), one
     InnoDB-only deadlock risk was fixed; the first-deploy checklist is in
     `MARIADB_PREFLIGHT.md`. PRD coverage is in `PRD_AUDIT.md`.
-12. Rate limits key on `request.client.host`: behind a reverse proxy run
+13. Rate limits key on `request.client.host`: behind a reverse proxy run
     uvicorn with `--proxy-headers --forwarded-allow-ips=<proxy>` or all users
     share one bucket. Route `/sitemap.xml` to the backend too.
-13. Prod `.env`: `REDIS_URL` (+ Redis running), `BITRIX24_WEBHOOK_URL`,
+14. Prod `.env`: `REDIS_URL` (+ Redis running), `BITRIX24_WEBHOOK_URL`,
     `FRONTEND_URL`, Payme/Click credentials. Schedule
     `app/tasks/sync_exchange_rates.py` daily. Swap Gmail SMTP for a
     transactional provider (env-only change).
-14. Nothing is pushed to a remote.
+15. Nothing is deployed. Code is pushed (PR #1) but not merged to `main`.
+16. Confirm the real DB user: `.env` uses `maru`, `CLAUDE.md` says `maruplast`.
+    Requirements are unpinned; after one green run on the server, freeze them.
 
 ## Gotchas that cost time
 - **Windows Python defaults to cp1251.** Always `open(..., encoding="utf-8")`
