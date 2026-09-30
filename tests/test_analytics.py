@@ -1,5 +1,6 @@
 """Server-side analytics event capture (PRD ТЗ№4 §46/§49)."""
 
+from app.models.analytics_event import AnalyticsEvent
 from app.models.enums import OrderStatus, UserRole
 from app.models.order import Order
 from conftest import CHECKOUT_PAYLOAD, login, make_admin, register
@@ -55,3 +56,30 @@ def test_add_to_wishlist_captured(client, sku, db_session):
 def test_analytics_events_require_marketing_role(client):
     r = client.get("/api/v1/admin/analytics-events/")
     assert r.status_code == 401
+
+
+def test_client_event_ingest_records_whitelisted_event(client, db_session):
+    r = client.post(
+        "/api/v1/analytics/events",
+        json={"event_name": "search", "session_id": "dev-1", "properties": {"search_term": "cup", "results": 3}},
+    )
+    assert r.status_code == 204, r.text
+
+    row = db_session.query(AnalyticsEvent).filter_by(event_name="search").one()
+    assert row.session_id == "dev-1"
+    assert '"search_term": "cup"' in row.properties
+
+
+def test_client_event_ingest_rejects_server_side_and_unknown_events(client):
+    for name in ("purchase", "login", "made_up"):
+        r = client.post("/api/v1/analytics/events", json={"event_name": name})
+        assert r.status_code == 422, name
+
+
+def test_client_event_ingest_rejects_oversized_or_reserved_properties(client):
+    r = client.post("/api/v1/analytics/events", json={"event_name": "view_item", "properties": {"x": "a" * 3000}})
+    assert r.status_code == 422
+    r = client.post("/api/v1/analytics/events", json={"event_name": "view_item", "properties": {"user": 1}})
+    assert r.status_code == 422
+    r = client.post("/api/v1/analytics/events", json={"event_name": "view_item", "session_id": "s" * 65})
+    assert r.status_code == 422

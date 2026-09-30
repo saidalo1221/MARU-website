@@ -4,6 +4,7 @@ import { listProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
+import { trackEvent } from '../lib/analytics'
 import { rankProducts } from '../lib/search'
 import { ProductGridSkeleton } from '../components/Skeleton'
 
@@ -24,6 +25,12 @@ export default function SearchResults() {
   }, [locale, currency])
 
   const results = useMemo(() => rankProducts(products, query), [products, query])
+
+  useEffect(() => {
+    if (!loading && query) trackEvent('search', { search_term: query.slice(0, 100), result_count: results.length })
+    // Only when a search finishes loading for a new term, not on every re-rank.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, query])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">

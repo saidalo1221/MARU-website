@@ -3,6 +3,7 @@ import { listProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
+import { trackEvent } from '../lib/analytics'
 import Seo from '../components/Seo'
 import { ProductGridSkeleton } from '../components/Skeleton'
 
@@ -39,7 +40,10 @@ export default function Catalog() {
   useEffect(() => {
     setLoading(true)
     listProducts(locale, currency)
-      .then(setProducts)
+      .then((list) => {
+        setProducts(list)
+        trackEvent('view_item_list', { item_list_name: 'catalog', item_count: list.length })
+      })
       .catch(setError)
       .finally(() => setLoading(false))
   }, [locale, currency])

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../api/products'
 import { listShippingCountries } from '../api/shipping'
+import { trackEvent } from '../lib/analytics'
 import { addToWishlist, getWishlist, removeFromWishlist } from '../api/wishlist'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
@@ -53,6 +54,17 @@ export default function ProductDetail() {
   )
   const sku = variant?.skus.find((s) => s.is_active) ?? null
   const coverImage = variant?.images?.[0]?.image_url || variant?.photo_url
+
+  const productId = product?.id
+  useEffect(() => {
+    if (productId) trackEvent('view_item', { product_id: productId, slug })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId])
+
+  const handleSelectVariant = (id) => {
+    setVariantId(id)
+    trackEvent('select_variant', { product_id: product.id, variant_id: id })
+  }
 
   useEffect(() => {
     if (!user || !sku) return
@@ -140,7 +152,7 @@ export default function ProductDetail() {
               <VariantSelector
                 variants={product.variants}
                 selectedVariantId={variantId}
-                onSelect={setVariantId}
+                onSelect={handleSelectVariant}
               />
             </div>
           )}

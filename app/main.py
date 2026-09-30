@@ -39,6 +39,7 @@ from app.routers import (
     admin_variants,
     admin_warehouses,
     addresses,
+    analytics,
     auth,
     blog,
     cart,
@@ -102,6 +103,7 @@ api_v1.include_router(admin_users.router)
 api_v1.include_router(admin_variants.router)
 api_v1.include_router(admin_warehouses.router)
 api_v1.include_router(addresses.router)
+api_v1.include_router(analytics.router)
 api_v1.include_router(auth.router)
 api_v1.include_router(blog.router)
 api_v1.include_router(cart.router)

@@ -6,6 +6,7 @@ import { getCartRecommendations } from '../api/cart'
 import ProductCard from '../components/product/ProductCard'
 import QuantitySelector from '../components/product/QuantitySelector'
 import { errorMessage } from '../api/client'
+import { trackEvent } from '../lib/analytics'
 import Seo from '../components/Seo'
 
 export default function Cart() {
@@ -30,6 +31,12 @@ export default function Cart() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartKey, locale])
+
+  const cartItemCount = cart?.items.length ?? 0
+  useEffect(() => {
+    if (cartItemCount > 0) trackEvent('view_cart', { item_count: cartItemCount, currency: cart.currency })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartItemCount > 0])
 
   if (loading && !cart) return <p className="max-w-4xl mx-auto px-4 py-8">{t('cart.loading')}</p>
 

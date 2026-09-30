@@ -10,6 +10,7 @@ import { errorMessage } from '../api/client'
 import StripePaymentForm from '../components/checkout/StripePaymentForm'
 import PayPalButton from '../components/checkout/PayPalButton'
 import MapPicker from '../components/MapPicker'
+import { trackEvent } from '../lib/analytics'
 import Seo from '../components/Seo'
 
 const NEW_ADDRESS = 'new'
@@ -106,6 +107,10 @@ export default function Checkout() {
     if (!form.country) return
     refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined }).catch(() => {})
   }, [form.country, form.delivery_method, refresh])
+
+  useEffect(() => {
+    if (form.payment_method) trackEvent('add_payment_info', { payment_method: form.payment_method })
+  }, [form.payment_method])
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
