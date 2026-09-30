@@ -48,10 +48,11 @@ server no longer records `begin_checkout` at order placement.
 Buildable now:
 1. ~~Client-side analytics events~~ — DONE (see State). Not yet in PRD's list
    and not wired: `remove_from_cart` and `refund` (TODO.md).
-2. Accessibility follow-ups: dialog focus trap + focus restore, `role="alert"`
-   on error messages, audit admin pages, real axe/keyboard pass.
-3. Not browser-verified: admin video-upload UI, light mode, real phone,
-   checkout at phone width, Safari/Firefox.
+2. ~~Accessibility follow-ups~~ — DONE (PR #1): `useDialogFocus` trap on
+   every modal, `role="alert"`/`status`, axe pass (public + admin, light +
+   dark, 390px checkout). Re-run axe after UI changes.
+3. Not browser-verified: real mp4/webm upload in the admin variant-images
+   panel (add-by-YouTube-URL was verified), real phone, Safari/Firefox.
 4. Native-speaker review of the ru/uz FAQ text (my draft). `dev.db` has it but
    is gitignored — a real DB needs it entered via admin "Support Pages Content".
 
@@ -96,15 +97,18 @@ Deployment blockers:
   with a same-origin `<iframe style="width:390px">` from a scratch page.
 - Background dev servers can be killed by Claude Code under memory pressure;
   don't restart them automatically if told not to.
-- Tests: `tests/test_analytics.py` (3), `tests/test_quotes.py` (1) and others
-  that log in as an admin fail with 401 — admin login now needs a 2FA code and
-  the `conftest.login` helper doesn't handle it (pre-existing). Also
-  `tests/test_fx_provider.py` fails to import `fetch_latest_rates`.
+- Tests: `conftest.login` completes the emailed-code step itself (admin
+  2FA, customer new-device) by capturing the code from the notifier; use it
+  instead of posting to `/auth/login` directly.
 - Analytics trackers must guard with a `useRef` (pages refetch when the cart
   currency loads, and StrictMode double-runs effects) or events get counted
   2-3x per visit.
-- `dev.db` holds throwaway analytics test data (customer id 6,
-  `analytics-test-*@example.com`, ~18 event rows); delete before real use.
+- `dev.db` may hold throwaway analytics events from browser testing
+  (anonymous rows); clear before real use.
+- axe-core in the browser: inject it from cdnjs into the page and run it per
+  page (a SPA pushState loop can stall in a hidden tab — use one full load
+  per page, e.g. in a same-origin iframe). Transitions make color-contrast
+  read mid-fade values; inject `*{transition:none!important}` first.
 - Browser-testing checkout in dev: no payment provider is configured, so
   there are no payment radios, and seeded products have one variant. Stub the
   API response with a `window.fetch` patch in the page rather than editing

@@ -69,6 +69,19 @@ html {
 }
 .dark .bg-transparent { background-color: transparent; }
 
+/* Native form controls (dropdown popups, scrollbars) follow the dark scheme.
+ * Options get an explicit background: selects use bg-transparent above, so
+ * their options would otherwise inherit transparent and render light-on-white. */
+.dark { color-scheme: dark; }
+.dark select option,
+.dark select optgroup { background-color: #1e293b; color: #f1f5f9; }
+
+/* Outlined form controls: #334155 on the dark surfaces is ~1.5:1, so the
+ * language/currency choosers and inputs nearly vanish (WCAG 1.4.11 wants 3:1). */
+.dark input.border,
+.dark select.border,
+.dark textarea.border { border-color: #64748b; }
+
 /* Brand/status text colors: the light-mode shades are too dark on the dark
  * surfaces above (axe color-contrast). */
 .dark .text-brand,

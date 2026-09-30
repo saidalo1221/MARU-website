@@ -40,11 +40,11 @@ export default function AdminQuotes() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.quotes.rfqNumber')}</th>
-                <th className="px-3 py-2">{t('admin.quotes.type')}</th>
-                <th className="px-3 py-2">{t('admin.quotes.name')}</th>
-                <th className="px-3 py-2">{t('admin.quotes.country')}</th>
-                <th className="px-3 py-2">{t('admin.common.status')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.quotes.rfqNumber')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.quotes.type')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.quotes.name')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.quotes.country')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.status')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

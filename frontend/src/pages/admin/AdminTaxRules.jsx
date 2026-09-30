@@ -84,12 +84,12 @@ export default function AdminTaxRules() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.common.country')}</th>
-                <th className="px-3 py-2">{t('admin.taxRules.customerType')}</th>
-                <th className="px-3 py-2">{t('admin.taxRules.taxType')}</th>
-                <th className="px-3 py-2">{t('admin.taxRules.rate')}</th>
-                <th className="px-3 py-2">{t('admin.common.active')}</th>
-                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.country')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.taxRules.customerType')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.taxRules.taxType')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.taxRules.rate')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.active')}</th>
+                <th scope="col" className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

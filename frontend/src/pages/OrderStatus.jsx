@@ -36,8 +36,8 @@ export default function OrderStatus() {
     }
   }
 
-  if (error) return <p role="alert" className="max-w-2xl mx-auto px-4 py-8 text-red-600">{t('orderStatus.notFound')}</p>
-  if (!order) return <p className="max-w-2xl mx-auto px-4 py-8">{t('orderStatus.loading')}</p>
+  if (error) return <div role="alert" className="max-w-2xl mx-auto px-4 py-8"><h1 className="text-red-600">{t('orderStatus.notFound')}</h1></div>
+  if (!order) return <h1 className="max-w-2xl mx-auto px-4 py-8 font-normal">{t('orderStatus.loading')}</h1>
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">

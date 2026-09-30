@@ -44,11 +44,11 @@ export default function AdminOrders() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.orders.orderNumber')}</th>
-                <th className="px-3 py-2">{t('admin.orders.customer')}</th>
-                <th className="px-3 py-2">{t('admin.common.status')}</th>
-                <th className="px-3 py-2">{t('admin.orders.total')}</th>
-                <th className="px-3 py-2">{t('admin.orders.created')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.orders.orderNumber')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.orders.customer')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.status')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.orders.total')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.orders.created')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

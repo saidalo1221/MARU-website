@@ -14,7 +14,7 @@ def _event_names(client, headers):
 
 def test_signup_login_add_to_cart_purchase_are_captured(client, sku, db_session):
     buyer_headers = register(client, "shopper@example.com")
-    client.post("/api/v1/auth/login", json={"email": "shopper@example.com", "password": "Password123!"})
+    login(client, "shopper@example.com")  # completes the new-device code step, which records `login`
     client.post("/api/v1/cart/items", headers=buyer_headers, json={"sku_id": sku.id, "quantity": 1})
     r = client.post("/api/v1/orders/", headers=buyer_headers, json=CHECKOUT_PAYLOAD)
     assert r.status_code == 201, r.text

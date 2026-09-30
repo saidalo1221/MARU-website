@@ -33,10 +33,10 @@ export default function AdminAnalyticsEvents() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.analyticsEvents.event')}</th>
-                <th className="px-3 py-2">{t('admin.analyticsEvents.user')}</th>
-                <th className="px-3 py-2">{t('admin.analyticsEvents.properties')}</th>
-                <th className="px-3 py-2">{t('admin.analyticsEvents.when')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.analyticsEvents.event')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.analyticsEvents.user')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.analyticsEvents.properties')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.analyticsEvents.when')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

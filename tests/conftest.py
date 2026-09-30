@@ -180,7 +180,35 @@ def _promote(client: TestClient, email: str, role: UserRole) -> None:
 
 
 def login(client: TestClient, email: str, password: str = "Password123!") -> dict:
-    r = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+    """Signs in through the real endpoints, completing the emailed-code step
+    each account type requires: admin roles go through /auth/admin/login +
+    /auth/admin/verify, customers through the new-device challenge
+    (/auth/login + /auth/login/verify-device). The code is captured by
+    swapping the notifier's send method, since only its hash is stored."""
+    import app.routers.auth as auth_router
+
+    notifier = auth_router.email_notifier
+    captured: dict = {}
+    originals = {}
+    for name in ("admin_login_code", "device_login_code"):
+        originals[name] = getattr(notifier, name)
+        setattr(notifier, name, lambda to_email, code, db=None, _n=name: captured.update({_n: code}))
+    try:
+        r = client.post("/api/v1/auth/admin/login", json={"email": email, "password": password})
+        if r.status_code == 200:
+            r = client.post("/api/v1/auth/admin/verify", json={"email": email, "code": captured["admin_login_code"]})
+        else:
+            device_id = "test-device"
+            r = client.post("/api/v1/auth/login", json={"email": email, "password": password, "device_id": device_id})
+            assert r.status_code == 200, r.text
+            if not r.json().get("access_token"):
+                r = client.post(
+                    "/api/v1/auth/login/verify-device",
+                    json={"email": email, "code": captured["device_login_code"], "device_id": device_id},
+                )
+    finally:
+        for name, fn in originals.items():
+            setattr(notifier, name, fn)
     assert r.status_code == 200, r.text
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 

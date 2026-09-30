@@ -88,10 +88,10 @@ export default function AdminBlogPosts() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.common.name')}</th>
-                <th className="px-3 py-2">{t('admin.blog.category')}</th>
-                <th className="px-3 py-2">{t('admin.blog.published')}</th>
-                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.name')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.blog.category')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.blog.published')}</th>
+                <th scope="col" className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

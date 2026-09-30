@@ -34,9 +34,9 @@ export default function SearchResults() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <p className="text-sm text-gray-500 mb-4">
+      <h1 className="text-sm font-normal text-gray-500 mb-4">
         {loading ? t('search_results.searching') : t('search_results.resultsFor', { count: results.length, query })}
-      </p>
+      </h1>
 
       {!loading && results.length === 0 && (
         <div className="text-center py-12">
@@ -47,6 +47,7 @@ export default function SearchResults() {
 
       {loading && products.length === 0 && <ProductGridSkeleton />}
 
+      <h2 className="sr-only">{t('catalog.title')}</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {results.map((p) => (
           <ProductCard key={p.id} product={p} />

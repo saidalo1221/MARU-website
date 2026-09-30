@@ -95,11 +95,11 @@ export default function AdminPromoCodes() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.promoCodes.code')}</th>
-                <th className="px-3 py-2">{t('admin.promoCodes.discount')}</th>
-                <th className="px-3 py-2">{t('admin.promoCodes.uses')}</th>
-                <th className="px-3 py-2">{t('admin.common.active')}</th>
-                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
+                <th scope="col" className="px-3 py-2">{t('admin.promoCodes.code')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.promoCodes.discount')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.promoCodes.uses')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.active')}</th>
+                <th scope="col" className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

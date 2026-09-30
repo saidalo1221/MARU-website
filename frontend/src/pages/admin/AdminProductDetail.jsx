@@ -92,12 +92,12 @@ function InventoryRow({ sku, warehouses, onProductChanged }) {
       <table className="text-xs w-full">
         <thead className="text-gray-500">
           <tr>
-            <th className="text-left font-normal">{t('admin.productDetail.warehouse')}</th>
-            <th className="font-normal">{t('admin.productDetail.stock')}</th>
-            <th className="font-normal">{t('admin.productDetail.reserved')}</th>
-            <th className="font-normal">{t('admin.productDetail.incoming')}</th>
-            <th className="font-normal">{t('admin.productDetail.min')}</th>
-            <th><span className="sr-only">{t('admin.common.actions')}</span></th>
+            <th scope="col" className="text-left font-normal">{t('admin.productDetail.warehouse')}</th>
+            <th scope="col" className="font-normal">{t('admin.productDetail.stock')}</th>
+            <th scope="col" className="font-normal">{t('admin.productDetail.reserved')}</th>
+            <th scope="col" className="font-normal">{t('admin.productDetail.incoming')}</th>
+            <th scope="col" className="font-normal">{t('admin.productDetail.min')}</th>
+            <th scope="col"><span className="sr-only">{t('admin.common.actions')}</span></th>
           </tr>
         </thead>
         <tbody>

@@ -150,13 +150,13 @@ export default function AdminProducts() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.common.name')}</th>
-                <th className="px-3 py-2">{t('admin.common.slug')}</th>
-                <th className="px-3 py-2">{t('admin.products.volume')}</th>
-                <th className="px-3 py-2">{t('admin.quoteDetail.price')}</th>
-                <th className="px-3 py-2">{t('admin.products.variants')}</th>
-                <th className="px-3 py-2">{t('admin.products.visibleInShop')}</th>
-                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.name')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.slug')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.products.volume')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.quoteDetail.price')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.products.variants')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.products.visibleInShop')}</th>
+                <th scope="col" className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

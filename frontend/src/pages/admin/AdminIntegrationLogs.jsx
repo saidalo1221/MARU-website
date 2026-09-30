@@ -54,13 +54,13 @@ export default function AdminIntegrationLogs() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.integrationLogs.integration')}</th>
-                <th className="px-3 py-2">{t('admin.integrationLogs.operation')}</th>
-                <th className="px-3 py-2">{t('admin.integrationLogs.entity')}</th>
-                <th className="px-3 py-2">{t('admin.common.status')}</th>
-                <th className="px-3 py-2">{t('admin.integrationLogs.attempt')}</th>
-                <th className="px-3 py-2">{t('admin.integrationLogs.error')}</th>
-                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
+                <th scope="col" className="px-3 py-2">{t('admin.integrationLogs.integration')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.integrationLogs.operation')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.integrationLogs.entity')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.status')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.integrationLogs.attempt')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.integrationLogs.error')}</th>
+                <th scope="col" className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
