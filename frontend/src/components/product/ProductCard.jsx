@@ -32,7 +32,7 @@ export default function ProductCard({ product }) {
         <div className="p-3">
           <h3 className="font-medium text-sm truncate">{product.name}</h3>
           <p className="text-xs text-gray-500">{product.volume_ml} ml</p>
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap mt-2">
             <span className="font-semibold">
               {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
             </span>
@@ -46,7 +46,7 @@ export default function ProductCard({ product }) {
       <button
         type="button"
         onClick={() => setQuickViewOpen(true)}
-        className="absolute bottom-[4.5rem] right-2 bg-white/90 hover:bg-white text-xs font-medium px-2 py-1 rounded shadow opacity-90 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition"
+        className="block w-full border-t border-gray-200 py-2 text-xs font-medium text-brand hover:bg-gray-50"
       >
         {t('product.quickView')}
       </button>

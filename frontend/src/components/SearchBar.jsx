@@ -57,7 +57,7 @@ export default function SearchBar({ className = '' }) {
           onFocus={() => setOpen(true)}
           placeholder={t('search.placeholder')}
           aria-label={t('search.ariaLabel')}
-          className="flex-1 border border-gray-300 rounded-l px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+          className="flex-1 min-w-0 border border-gray-300 rounded-l px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
         />
         <button
           type="submit"

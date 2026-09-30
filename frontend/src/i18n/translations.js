@@ -106,7 +106,7 @@ export const translations = {
       shippingNote: 'We ship internationally, wherever you are.',
       dismiss: 'Dismiss',
     },
-    common: { loading: 'Loading...', skipToContent: 'Skip to main content' },
+    common: { loading: 'Loading...', skipToContent: 'Skip to main content', close: 'Close' },
     cart: {
       loading: 'Loading...',
       boughtTogether: 'Frequently bought together',
@@ -1019,7 +1019,7 @@ export const translations = {
       shippingNote: 'Мы доставляем в любую точку мира.',
       dismiss: 'Закрыть',
     },
-    common: { loading: 'Загрузка...', skipToContent: 'Перейти к основному содержимому' },
+    common: { loading: 'Загрузка...', skipToContent: 'Перейти к основному содержимому', close: 'Закрыть' },
     cart: {
       loading: 'Загрузка...',
       boughtTogether: 'С этим товаром часто покупают',
@@ -1932,7 +1932,7 @@ export const translations = {
       shippingNote: "Biz dunyoning istalgan nuqtasiga yetkazib beramiz.",
       dismiss: 'Yopish',
     },
-    common: { loading: 'Yuklanmoqda...', skipToContent: "Asosiy kontentga o'tish" },
+    common: { loading: 'Yuklanmoqda...', skipToContent: "Asosiy kontentga o'tish", close: 'Yopish' },
     cart: {
       loading: 'Yuklanmoqda...',
       boughtTogether: 'Odatda birga sotib olinadi',

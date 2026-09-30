@@ -124,7 +124,7 @@ export default function Catalog() {
               <div className="mx-auto mb-3 h-1 w-10 rounded bg-gray-300" aria-hidden="true" />
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-bold">{t('catalog.filters')}</h2>
-                <button onClick={() => setFiltersOpen(false)} aria-label={t('product.quickViewClose')}>✕</button>
+                <button onClick={() => setFiltersOpen(false)} aria-label={t('common.close')}>✕</button>
               </div>
               {FiltersPanel}
               <button

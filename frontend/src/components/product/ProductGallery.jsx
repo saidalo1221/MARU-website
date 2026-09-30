@@ -205,7 +205,7 @@ function Lightbox({ items, startIndex, alt, onIndexChange, onClose }) {
         ref={closeRef}
         type="button"
         onClick={onClose}
-        aria-label={t('product.quickViewClose')}
+        aria-label={t('common.close')}
         className="absolute top-4 right-4 text-white text-3xl leading-none w-10 h-10 flex items-center justify-center"
       >
         &times;
@@ -213,7 +213,7 @@ function Lightbox({ items, startIndex, alt, onIndexChange, onClose }) {
       <img
         src={items[imageIndexes[pos]].url}
         alt={alt}
-        className="max-w-full max-h-full object-contain"
+        className="w-full h-full object-contain"
         onClick={(e) => e.stopPropagation()}
       />
       {imageIndexes.length > 1 && (

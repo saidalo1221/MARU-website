@@ -18,12 +18,10 @@ export default function Header() {
 
   return (
     <header className="border-b border-gray-200 sticky top-0 bg-white z-40">
-      {/* Mobile header: Logo | Search | Cart | Menu */}
-      <div className="flex items-center gap-2 px-4 py-3 md:hidden">
-        <Link to="/" className="font-bold text-lg text-brand">MARU</Link>
-        <div className="flex-1">
-          <SearchBar />
-        </div>
+      {/* Mobile header: row 1 Logo | actions, row 2 full-width Search — six
+          items plus a search box don't fit one row at phone widths. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 md:hidden">
+        <Link to="/" className="font-bold text-lg text-brand mr-auto">MARU</Link>
         <DarkModeToggle />
         <Link to="/account/wishlist" className="px-2 text-lg" aria-label={t('header.wishlist')}>
           ♡
@@ -39,6 +37,9 @@ export default function Header() {
         <button onClick={() => setMenuOpen(true)} aria-label={t('header.openMenu')} className="px-2 text-xl">
           ☰
         </button>
+        <div className="basis-full min-w-0">
+          <SearchBar />
+        </div>
       </div>
 
       {/* Desktop header */}
