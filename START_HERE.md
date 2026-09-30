@@ -7,8 +7,10 @@ detail on a specific area — it is long. `PRD.md` is the spec. Ignore
 ## What this is
 Plastic-food-container e-commerce site. FastAPI + SQLAlchemy backend, React +
 Tailwind frontend (Vite), MariaDB in production (UzCloud), SQLite `dev.db`
-locally. Branch `main`, all work committed, **nothing pushed**. Working tree
-is clean.
+locally. Analytics work is on branch `feat/client-analytics-events`, pushed to
+origin but **no PR opened yet** (`gh` is not installed; use the GitHub compare
+URL). That branch also carries 11 earlier commits that were never on
+`origin/main`. Working tree is clean.
 
 ## Run it
 Backend MUST override DATABASE_URL or every DB call 500s:
@@ -36,15 +38,16 @@ unconfigured), Bitrix24 CRM push. Recently added and browser-verified on
 mp4 + YouTube entries, Quick View, cart upsell (`GET /cart/recommendations`),
 country banner, dark mode, mobile filter bottom sheet, skeleton loaders,
 WCAG fixes (lang sync, skip link, field labels, contrast), rate limits on
-nearly every public route, FAQ in ru/uz.
+nearly every public route, FAQ in ru/uz. Client-side analytics
+(`POST /analytics/events`, `frontend/src/lib/analytics.js`): `view_item`,
+`select_variant`, `view_item_list`, `search`, `view_cart`, `begin_checkout`
+(on checkout open), `add_payment_info` — browser-verified 2026-09-30; the
+server no longer records `begin_checkout` at order placement.
 
 ## What is left (priority order)
 Buildable now:
-1. Client-side analytics events the PRD wants but only the browser can see:
-   `view_item`, `view_item_list`, `search`, `view_cart`, `add_payment_info`,
-   `select_variant`. Needs a small public, rate-limited, name-whitelisted
-   ingest endpoint (e.g. `POST /analytics/events`) + a frontend tracker.
-   `begin_checkout` currently fires at order placement, not checkout open.
+1. ~~Client-side analytics events~~ — DONE (see State). Not yet in PRD's list
+   and not wired: `remove_from_cart` and `refund` (TODO.md).
 2. Accessibility follow-ups: dialog focus trap + focus restore, `role="alert"`
    on error messages, audit admin pages, real axe/keyboard pass.
 3. Not browser-verified: admin video-upload UI, light mode, real phone,
@@ -93,6 +96,19 @@ Deployment blockers:
   with a same-origin `<iframe style="width:390px">` from a scratch page.
 - Background dev servers can be killed by Claude Code under memory pressure;
   don't restart them automatically if told not to.
+- Tests: `tests/test_analytics.py` (3), `tests/test_quotes.py` (1) and others
+  that log in as an admin fail with 401 — admin login now needs a 2FA code and
+  the `conftest.login` helper doesn't handle it (pre-existing). Also
+  `tests/test_fx_provider.py` fails to import `fetch_latest_rates`.
+- Analytics trackers must guard with a `useRef` (pages refetch when the cart
+  currency loads, and StrictMode double-runs effects) or events get counted
+  2-3x per visit.
+- `dev.db` holds throwaway analytics test data (customer id 6,
+  `analytics-test-*@example.com`, ~18 event rows); delete before real use.
+- Browser-testing checkout in dev: no payment provider is configured, so
+  there are no payment radios, and seeded products have one variant. Stub the
+  API response with a `window.fetch` patch in the page rather than editing
+  `dev.db`.
 - Testing pattern that works: FastAPI `TestClient` against a *copy* of
   `dev.db` (`DATABASE_URL=sqlite:///<copy>`), never the real one.
 
