@@ -90,7 +90,7 @@ export default function AdminNotificationTemplates() {
                 <th className="px-3 py-2">{t('admin.notificationTemplates.locale')}</th>
                 <th className="px-3 py-2">{t('admin.notificationTemplates.channel')}</th>
                 <th className="px-3 py-2">{t('admin.common.active')}</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -103,7 +103,7 @@ export default function AdminNotificationTemplates() {
                   <td className="px-3 py-2 text-right"><button onClick={() => openEdit(tpl)} className="text-brand">{t('admin.common.edit')}</button></td>
                 </tr>
               ))}
-              {templates.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-400">{t('admin.notificationTemplates.none')}</td></tr>}
+              {templates.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-500">{t('admin.notificationTemplates.none')}</td></tr>}
             </tbody>
           </table>
         </div>

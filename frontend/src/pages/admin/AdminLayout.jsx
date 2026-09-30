@@ -68,8 +68,8 @@ export default function AdminLayout() {
           <aside className="mb-6 md:mb-0 space-y-4">
             {sections.map((section, i) => (
               <div key={i}>
-                {section.title && <p className="text-xs font-semibold text-gray-400 uppercase mb-1 px-3">{section.title}</p>}
-                <nav className="space-y-0.5">
+                {section.title && <p className="text-xs font-semibold text-gray-500 uppercase mb-1 px-3">{section.title}</p>}
+                <nav aria-label={section.title || t('header.admin')} className="space-y-0.5">
                   {section.links.map(([to, label]) => (
                     <NavLink key={to} to={to} end={to === '/admin'} className={navLinkClass}>
                       {label}

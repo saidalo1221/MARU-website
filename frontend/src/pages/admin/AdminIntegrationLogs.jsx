@@ -60,7 +60,7 @@ export default function AdminIntegrationLogs() {
                 <th className="px-3 py-2">{t('admin.common.status')}</th>
                 <th className="px-3 py-2">{t('admin.integrationLogs.attempt')}</th>
                 <th className="px-3 py-2">{t('admin.integrationLogs.error')}</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -81,7 +81,7 @@ export default function AdminIntegrationLogs() {
                   </td>
                 </tr>
               ))}
-              {logs.length === 0 && <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400">{t('admin.integrationLogs.none')}</td></tr>}
+              {logs.length === 0 && <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-500">{t('admin.integrationLogs.none')}</td></tr>}
             </tbody>
           </table>
         </div>

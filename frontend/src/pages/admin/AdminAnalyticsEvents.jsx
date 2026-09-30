@@ -48,7 +48,7 @@ export default function AdminAnalyticsEvents() {
                   <td className="px-3 py-2 text-gray-500">{new Date(e.created_at).toLocaleString()}</td>
                 </tr>
               ))}
-              {events.length === 0 && <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-400">{t('admin.analyticsEvents.none')}</td></tr>}
+              {events.length === 0 && <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-500">{t('admin.analyticsEvents.none')}</td></tr>}
             </tbody>
           </table>
         </div>

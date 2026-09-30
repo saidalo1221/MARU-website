@@ -48,8 +48,8 @@ export default function AdminReviews() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-yellow-500 text-sm">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</p>
-                  <p className="text-sm text-gray-700 mt-1">{r.content || <span className="text-gray-400">{t('admin.reviews.noComment')}</span>}</p>
-                  <p className="text-xs text-gray-400 mt-1">{t('admin.reviews.product', { id: r.product_id })} · {r.status}</p>
+                  <p className="text-sm text-gray-700 mt-1">{r.content || <span className="text-gray-500">{t('admin.reviews.noComment')}</span>}</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('admin.reviews.product', { id: r.product_id })} · {r.status}</p>
                 </div>
                 {r.status !== 'approved' && (
                   <button onClick={() => moderate(r.id, 'approved')} className="text-green-700 text-sm">{t('admin.reviews.approve')}</button>
@@ -60,7 +60,7 @@ export default function AdminReviews() {
               )}
             </li>
           ))}
-          {reviews.length === 0 && <p className="text-gray-400 text-center py-6">{t('admin.reviews.none')}</p>}
+          {reviews.length === 0 && <li className="text-gray-500 text-center py-6">{t('admin.reviews.none')}</li>}
         </ul>
       )}
     </div>

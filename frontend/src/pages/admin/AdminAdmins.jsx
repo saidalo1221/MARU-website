@@ -90,7 +90,7 @@ export default function AdminAdmins() {
               <tr>
                 <th className="px-3 py-2">{t('admin.admins.email')}</th>
                 <th className="px-3 py-2">{t('admin.admins.role')}</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -105,7 +105,7 @@ export default function AdminAdmins() {
                   </td>
                 </tr>
               ))}
-              {admins.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-gray-400">{t('admin.admins.none')}</td></tr>}
+              {admins.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-gray-500">{t('admin.admins.none')}</td></tr>}
             </tbody>
           </table>
         </div>

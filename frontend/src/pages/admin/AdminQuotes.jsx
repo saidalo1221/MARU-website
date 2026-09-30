@@ -60,7 +60,7 @@ export default function AdminQuotes() {
                 </tr>
               ))}
               {quotes.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-400">{t('admin.quotes.none')}</td></tr>
+                <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-500">{t('admin.quotes.none')}</td></tr>
               )}
             </tbody>
           </table>

@@ -99,7 +99,7 @@ export default function AdminPromoCodes() {
                 <th className="px-3 py-2">{t('admin.promoCodes.discount')}</th>
                 <th className="px-3 py-2">{t('admin.promoCodes.uses')}</th>
                 <th className="px-3 py-2">{t('admin.common.active')}</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -114,7 +114,7 @@ export default function AdminPromoCodes() {
                   <td className="px-3 py-2 text-right"><button onClick={() => openEdit(c)} className="text-brand">{t('admin.common.edit')}</button></td>
                 </tr>
               ))}
-              {codes.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-400">{t('admin.promoCodes.none')}</td></tr>}
+              {codes.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-500">{t('admin.promoCodes.none')}</td></tr>}
             </tbody>
           </table>
         </div>

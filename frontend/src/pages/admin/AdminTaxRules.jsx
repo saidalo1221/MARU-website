@@ -89,7 +89,7 @@ export default function AdminTaxRules() {
                 <th className="px-3 py-2">{t('admin.taxRules.taxType')}</th>
                 <th className="px-3 py-2">{t('admin.taxRules.rate')}</th>
                 <th className="px-3 py-2">{t('admin.common.active')}</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -103,7 +103,7 @@ export default function AdminTaxRules() {
                   <td className="px-3 py-2 text-right"><button onClick={() => openEdit(r)} className="text-brand">{t('admin.common.edit')}</button></td>
                 </tr>
               ))}
-              {rules.length === 0 && <tr><td colSpan={6} className="px-3 py-6 text-center text-gray-400">{t('admin.taxRules.none')}</td></tr>}
+              {rules.length === 0 && <tr><td colSpan={6} className="px-3 py-6 text-center text-gray-500">{t('admin.taxRules.none')}</td></tr>}
             </tbody>
           </table>
         </div>

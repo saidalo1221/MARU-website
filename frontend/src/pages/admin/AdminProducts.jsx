@@ -156,7 +156,7 @@ export default function AdminProducts() {
                 <th className="px-3 py-2">{t('admin.quoteDetail.price')}</th>
                 <th className="px-3 py-2">{t('admin.products.variants')}</th>
                 <th className="px-3 py-2">{t('admin.products.visibleInShop')}</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -179,7 +179,7 @@ export default function AdminProducts() {
                   </tr>
                 )
               })}
-              {products.length === 0 && <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400">{t('admin.products.none')}</td></tr>}
+              {products.length === 0 && <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-500">{t('admin.products.none')}</td></tr>}
             </tbody>
           </table>
         </div>

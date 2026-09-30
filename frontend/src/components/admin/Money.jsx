@@ -27,7 +27,7 @@ export default function Money({ amount, currency, showOriginal = false }) {
     return (
       <span>
         {formatMoney(converted, displayCurrency)}{' '}
-        <span className="text-gray-400 text-xs">({formatMoney(amount, currency)})</span>
+        <span className="text-gray-500 text-xs">({formatMoney(amount, currency)})</span>
       </span>
     )
   }

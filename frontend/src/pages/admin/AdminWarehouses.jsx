@@ -115,7 +115,7 @@ export default function AdminWarehouses() {
                 <th className="px-3 py-2">{t('admin.common.country')}</th>
                 <th className="px-3 py-2">{t('admin.warehouses.priority')}</th>
                 <th className="px-3 py-2">{t('admin.common.active')}</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -128,7 +128,7 @@ export default function AdminWarehouses() {
                   <td className="px-3 py-2 text-right"><button onClick={() => openEdit(w)} className="text-brand">{t('admin.common.edit')}</button></td>
                 </tr>
               ))}
-              {warehouses.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-400">{t('admin.warehouses.none')}</td></tr>}
+              {warehouses.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-500">{t('admin.warehouses.none')}</td></tr>}
             </tbody>
           </table>
         </div>

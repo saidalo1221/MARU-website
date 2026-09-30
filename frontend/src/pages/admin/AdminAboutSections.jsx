@@ -53,7 +53,7 @@ function SectionTranslations({ sectionId }) {
     }
   }
 
-  if (loading) return <p className="text-xs text-gray-400">{t('admin.common.loading')}</p>
+  if (loading) return <p className="text-xs text-gray-500">{t('admin.common.loading')}</p>
 
   return (
     <div className="mt-3 pt-3 border-t border-gray-100">
@@ -128,7 +128,7 @@ function SectionBlock({ section, isFirst, isLast, onChanged }) {
         <button onClick={() => setExpanded((x) => !x)} className="font-medium text-left flex-1">
           {section.display_title}
           {section.display_title !== section.title && (
-            <span className="text-gray-400 font-normal"> ({section.title})</span>
+            <span className="text-gray-500 font-normal"> ({section.title})</span>
           )}
         </button>
         <div className="flex items-center gap-2 text-sm">
@@ -217,7 +217,7 @@ export default function AdminAboutSections() {
       {!loading && !error && sections.map((s, i) => (
         <SectionBlock key={s.id} section={s} isFirst={i === 0} isLast={i === sections.length - 1} onChanged={load} />
       ))}
-      {!loading && !error && sections.length === 0 && <p className="text-gray-400 text-sm">{t('admin.aboutSections.none')}</p>}
+      {!loading && !error && sections.length === 0 && <p className="text-gray-500 text-sm">{t('admin.aboutSections.none')}</p>}
     </div>
   )
 }

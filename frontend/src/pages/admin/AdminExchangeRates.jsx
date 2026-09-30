@@ -208,7 +208,7 @@ export default function AdminExchangeRates() {
       {!loading && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left"><tr><th className="px-3 py-2">{t('admin.common.name')}</th><th className="px-3 py-2">{t('admin.exchangeRates.unitsPerUsd')}</th><th className="px-3 py-2"></th></tr></thead>
+            <thead className="bg-gray-50 text-left"><tr><th className="px-3 py-2">{t('admin.common.name')}</th><th className="px-3 py-2">{t('admin.exchangeRates.unitsPerUsd')}</th><th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th></tr></thead>
             <tbody className="divide-y divide-gray-100">
               {rates.map((r) => (
                 <tr key={r.id}>
@@ -221,7 +221,7 @@ export default function AdminExchangeRates() {
                   </td>
                 </tr>
               ))}
-              {rates.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-gray-400">{t('admin.exchangeRates.none')}</td></tr>}
+              {rates.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-gray-500">{t('admin.exchangeRates.none')}</td></tr>}
             </tbody>
           </table>
         </div>

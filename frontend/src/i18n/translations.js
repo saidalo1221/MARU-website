@@ -340,6 +340,7 @@ export const translations = {
         idleLoggedOut: 'You were logged out after 5 minutes of inactivity.',
       },
       common: {
+        actions: 'Actions',
         loading: 'Loading...',
         save: 'Save',
         saving: 'Saving...',
@@ -1253,6 +1254,7 @@ export const translations = {
         idleLoggedOut: 'Вы вышли из системы после 5 минут бездействия.',
       },
       common: {
+        actions: 'Действия',
         loading: 'Загрузка...',
         save: 'Сохранить',
         saving: 'Сохранение...',
@@ -2166,6 +2168,7 @@ export const translations = {
         idleLoggedOut: "5 daqiqa harakatsizlikdan so'ng tizimdan chiqarildingiz.",
       },
       common: {
+        actions: 'Amallar',
         loading: 'Yuklanmoqda...',
         save: 'Saqlash',
         saving: 'Saqlanmoqda...',

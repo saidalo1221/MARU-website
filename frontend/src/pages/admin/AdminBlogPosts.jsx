@@ -91,7 +91,7 @@ export default function AdminBlogPosts() {
                 <th className="px-3 py-2">{t('admin.common.name')}</th>
                 <th className="px-3 py-2">{t('admin.blog.category')}</th>
                 <th className="px-3 py-2">{t('admin.blog.published')}</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -103,7 +103,7 @@ export default function AdminBlogPosts() {
                   <td className="px-3 py-2 text-right"><Link to={`/admin/blog/posts/${p.id}`} className="text-brand">{t('admin.common.edit')}</Link></td>
                 </tr>
               ))}
-              {posts.length === 0 && <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-400">{t('admin.blog.none')}</td></tr>}
+              {posts.length === 0 && <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-500">{t('admin.blog.none')}</td></tr>}
             </tbody>
           </table>
         </div>

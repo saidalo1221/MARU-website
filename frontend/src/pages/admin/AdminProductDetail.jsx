@@ -34,7 +34,7 @@ function InventoryTableRow({ row, warehouseName, onSave }) {
     <tr>
       <td className="py-1">{warehouseName}</td>
       <td><input type="number" value={form.stock} aria-label={t('admin.productDetail.stock')} onChange={update('stock')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
-      <td className="text-center text-gray-400">{row.reserved}</td>
+      <td className="text-center text-gray-500">{row.reserved}</td>
       <td><input type="number" value={form.incoming} aria-label={t('admin.productDetail.incoming')} onChange={update('incoming')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
       <td><input type="number" value={form.min_stock} aria-label={t('admin.productDetail.min')} onChange={update('min_stock')} className="w-16 border border-gray-200 rounded px-1 py-0.5 text-center" /></td>
       <td>
@@ -58,7 +58,7 @@ function InventoryRow({ sku, warehouses, onProductChanged }) {
   useEffect(() => { load() }, [sku.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (error) return <p role="alert" className="text-red-600 text-xs">{error}</p>
-  if (!rows) return <p className="text-xs text-gray-400">{t('admin.common.loading')}</p>
+  if (!rows) return <p className="text-xs text-gray-500">{t('admin.common.loading')}</p>
 
   const usedWarehouseIds = new Set(rows.map((r) => r.warehouse_id))
   const availableWarehouses = warehouses.filter((w) => !usedWarehouseIds.has(w.id))
@@ -97,7 +97,7 @@ function InventoryRow({ sku, warehouses, onProductChanged }) {
             <th className="font-normal">{t('admin.productDetail.reserved')}</th>
             <th className="font-normal">{t('admin.productDetail.incoming')}</th>
             <th className="font-normal">{t('admin.productDetail.min')}</th>
-            <th></th>
+            <th><span className="sr-only">{t('admin.common.actions')}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -169,7 +169,7 @@ function SkuBlock({ sku, warehouses, onChanged }) {
     <div className="border border-gray-100 rounded p-3 mb-2">
       <button onClick={() => setExpanded((x) => !x)} className="text-sm font-medium w-full text-left flex justify-between">
         <span>{sku.sku_code} — <Money amount={sku.retail_price} currency={sku.currency} /> ({t('admin.productDetail.available', { n: sku.available_quantity })})</span>
-        <span className="text-gray-400">{expanded ? '−' : '+'}</span>
+        <span className="text-gray-500">{expanded ? '−' : '+'}</span>
       </button>
       {expanded && (
         <>
@@ -302,9 +302,9 @@ function VariantImagesManager({ variant, onChanged }) {
         />
         <button type="submit" className="text-sm text-brand">{t('admin.productDetail.addImageUrl')}</button>
         <input type="file" aria-label={t('admin.productDetail.images')} accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
-        {uploading && <span className="text-xs text-gray-400">{t('admin.productDetail.uploading')}</span>}
+        {uploading && <span className="text-xs text-gray-500">{t('admin.productDetail.uploading')}</span>}
       </form>
-      <p className="text-[11px] text-gray-400 mt-1">{t('admin.productDetail.mediaHint')}</p>
+      <p className="text-[11px] text-gray-500 mt-1">{t('admin.productDetail.mediaHint')}</p>
       {error && <p role="alert" className="text-red-600 text-xs mt-1">{error}</p>}
     </div>
   )
@@ -374,8 +374,8 @@ function VariantBlock({ variant, warehouses, onChanged }) {
   return (
     <div className="border border-gray-200 rounded-lg p-4 mb-3">
       <button onClick={() => setExpanded((x) => !x)} className="font-medium w-full text-left flex justify-between items-center">
-        <span>{variant.name} ({variant.color}) {!variant.is_active && <span className="text-xs text-gray-400">{t('admin.common.no')}</span>}</span>
-        <span className="text-gray-400">{expanded ? '−' : '+'}</span>
+        <span>{variant.name} ({variant.color}) {!variant.is_active && <span className="text-xs text-gray-500">{t('admin.common.no')}</span>}</span>
+        <span className="text-gray-500">{expanded ? '−' : '+'}</span>
       </button>
 
       {expanded && (
@@ -387,7 +387,7 @@ function VariantBlock({ variant, warehouses, onChanged }) {
             <input placeholder={t('admin.productDetail.photoUrl')} aria-label={t('admin.productDetail.photoUrl')} value={form.photo_url} onChange={update('photo_url')} className={inputCls} />
             <div className="flex items-center gap-2">
               <input type="file" aria-label={t('admin.productDetail.images')} accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
-              {uploading && <span className="text-xs text-gray-400">{t('admin.productDetail.uploading')}</span>}
+              {uploading && <span className="text-xs text-gray-500">{t('admin.productDetail.uploading')}</span>}
               {form.photo_url && <img src={form.photo_url} alt="" className="h-10 w-10 object-cover rounded border border-gray-200" />}
             </div>
             {uploadError && <p role="alert" className="text-red-600 text-xs col-span-2">{uploadError}</p>}
@@ -478,7 +478,7 @@ function ProductTranslations({ productId }) {
     }
   }
 
-  if (loading) return <p className="text-sm text-gray-400">{t('admin.common.loading')}</p>
+  if (loading) return <p className="text-sm text-gray-500">{t('admin.common.loading')}</p>
 
   return (
     <div className="mb-8">
@@ -604,7 +604,7 @@ export default function AdminProductDetail() {
               </select>
             </label>
             {form.badge_mode === 'auto' ? (
-              <p className="text-xs text-gray-400">{t('admin.productDetail.badgeModeAutoHint')}</p>
+              <p className="text-xs text-gray-500">{t('admin.productDetail.badgeModeAutoHint')}</p>
             ) : (
               <>
                 <label className="flex items-center gap-1 text-sm">
@@ -657,7 +657,7 @@ export default function AdminProductDetail() {
       {product.variants.map((v) => (
         <VariantBlock key={v.id} variant={v} warehouses={warehouses} onChanged={load} />
       ))}
-      {product.variants.length === 0 && <p className="text-gray-400 text-sm">{t('admin.productDetail.noVariants')}</p>}
+      {product.variants.length === 0 && <p className="text-gray-500 text-sm">{t('admin.productDetail.noVariants')}</p>}
     </div>
   )
 }

@@ -87,14 +87,14 @@ export default function AdminBlogCategories() {
         <ul className="border border-gray-200 rounded-lg divide-y divide-gray-100">
           {categories.map((c) => (
             <li key={c.id} className="px-3 py-2 flex justify-between items-center text-sm">
-              <span>{c.name} <span className="text-gray-400">({c.slug})</span></span>
+              <span>{c.name} <span className="text-gray-500">({c.slug})</span></span>
               <span className="flex gap-3">
                 <button onClick={() => openEdit(c)} className="text-brand">{t('admin.common.edit')}</button>
                 <button onClick={() => handleDelete(c.id)} className="text-red-600">{t('admin.common.delete')}</button>
               </span>
             </li>
           ))}
-          {categories.length === 0 && <li className="px-3 py-6 text-center text-gray-400">{t('admin.blog.noneCategories')}</li>}
+          {categories.length === 0 && <li className="px-3 py-6 text-center text-gray-500">{t('admin.blog.noneCategories')}</li>}
         </ul>
       )}
     </div>
