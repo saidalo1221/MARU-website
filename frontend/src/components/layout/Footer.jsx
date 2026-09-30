@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useLocale } from '../../context/LocaleContext'
 import NewsletterForm from './NewsletterForm'
+import { openConsentSettings } from '../../lib/consent'
 
 export default function Footer() {
   const { t } = useLocale()
@@ -64,6 +65,8 @@ export default function Footer() {
       </div>
       <p className="max-w-7xl mx-auto mt-8 text-xs text-gray-500">
         &copy; {new Date().getFullYear()} MARU
+        {' · '}
+        <button type="button" onClick={openConsentSettings} className="underline">{t('consent.settings')}</button>
       </p>
     </footer>
   )

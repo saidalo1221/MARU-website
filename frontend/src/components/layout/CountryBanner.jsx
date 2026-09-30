@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocale } from '../../context/LocaleContext'
 import { useCart } from '../../context/CartContext'
 import { listExchangeRates } from '../../api/exchangeRates'
+import { useConsent } from '../../lib/consent'
 
 // MARU's primary market (UzCloud-hosted, PRD default currency UZS) — no
 // banner for visitors already there, only for everyone else.
@@ -30,6 +31,8 @@ const COUNTRY_CURRENCY = {
 export default function CountryBanner() {
   const { t } = useLocale()
   const { cart, setCurrency } = useCart()
+  const consent = useConsent()
+  const geoAllowed = consent?.geo === true
   const [country, setCountry] = useState(null)
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD'])
   const [dismissed, setDismissed] = useState(true)
@@ -41,6 +44,9 @@ export default function CountryBanner() {
       // localStorage unavailable (private mode etc.) — fall through and just
       // won't persist the dismissal.
     }
+    // Sending the visitor's IP to a third party needs their consent; without
+    // it the banner simply never appears.
+    if (!geoAllowed) return
     setDismissed(false)
 
     fetch(GEO_IP_URL)
@@ -53,7 +59,7 @@ export default function CountryBanner() {
     listExchangeRates()
       .then((rates) => setAvailableCurrencies(['USD', ...rates.map((r) => r.currency)]))
       .catch(() => {})
-  }, [])
+  }, [geoAllowed])
 
   const dismiss = () => {
     setDismissed(true)

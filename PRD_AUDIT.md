@@ -77,7 +77,8 @@ marked **n/a**, not missing.
 - **Marketplace connectors** incl. Uzum as a marketplace (Uzum exists only as
   a payment method name).
 - **GDPR / privacy**: data export and self-service erasure **done** (orders/quotes
-  retained). Still no cookie-consent banner (tied to the `ipapi.co` decision).
+  retained). Cookie-consent banner **done** (gates analytics, attribution and the
+  `ipapi.co` lookup). No privacy-policy page yet.
 - ~~**Security headers**~~ **done for the API** (middleware in `main.py`);
   the reverse proxy must add them for the static frontend (see
   `OPS_RUNBOOK.md`). ~~Swagger UI on everywhere~~ now off unless

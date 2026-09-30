@@ -3,6 +3,7 @@ import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import EmailVerifyBanner from './components/layout/EmailVerifyBanner'
 import CountryBanner from './components/layout/CountryBanner'
+import ConsentBanner from './components/layout/ConsentBanner'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
@@ -75,6 +76,7 @@ export default function App() {
       </a>
       <Header />
       <CountryBanner />
+      <ConsentBanner />
       <EmailVerifyBanner />
       <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         <Routes>

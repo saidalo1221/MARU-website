@@ -82,8 +82,8 @@ Buildable now:
    (see State). Also done: request-id logging, UTM attribution,
    free-shipping threshold, delivery estimate, newsletter, back-in-stock,
    save-for-later, GDPR export/erasure, stock reconciliation. What is left
-   that needs no decision: proxy-side security headers (server config) and
-   a cookie-consent banner (tied to item 10 below). Not browser-verified:
+   that needs no decision: proxy-side security headers (server config; see
+   `OPS_RUNBOOK.md`). Not browser-verified:
    the newsletter/back-in-stock/privacy/save-for-later pages (API tests only
    unless noted in the change log below).
 5. Native-speaker review of the ru/uz FAQ text (my draft). `dev.db` has it but
@@ -100,8 +100,16 @@ Needs a decision/access from the user (do not guess):
 8. Keep or drop Stripe/PayPal. Vendors: shipping carrier, SMS/WhatsApp/
    Telegram, ERP/1C, Uzum marketplace, Uzum Pay (needs API docs).
 9. Admin MFA policy (code forces 2FA on all admin roles; TODO.md says opt-in).
-10. `CountryBanner` sends every visitor's IP to `ipapi.co` from the browser,
-   no consent step — privacy decision before launch.
+10. ~~`CountryBanner` IP lookup without consent~~ — DONE: a consent banner
+   (`components/layout/ConsentBanner.jsx`, `lib/consent.js`) now gates the
+   `ipapi.co` lookup ("geo"), the client analytics events and the stored
+   UTM/referrer attribution ("analytics"); default is nothing until the visitor
+   chooses, withdrawal via the footer "Cookie settings" link clears stored
+   attribution. Browser-verified. **Not gated:** server-side events recorded
+   during cart/checkout (`add_to_cart`, `purchase`, ...), which use the cart
+   token; and OpenStreetMap tiles in the address map picker (loaded only when
+   that widget is used). Have a lawyer confirm whether those need consent,
+   and there is still no written privacy-policy page to link from the banner.
 
 Deployment blockers:
 11. Production server has only Python 3.9. `X | None` annotations were

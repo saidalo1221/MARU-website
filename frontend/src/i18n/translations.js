@@ -200,6 +200,13 @@ export const translations = {
       failed: 'Registration failed',
     },
     notFound: { title: 'Page not found', backHome: 'Back to home' },
+    consent: {
+      title: 'Your privacy choices',
+      text: 'We only use what is needed to run the shop unless you agree to more. You can change this at any time from the footer.',
+      analytics: 'Usage statistics and campaign tracking, to improve the shop',
+      geo: 'Detect my country from my IP address (sent to a third-party service) to suggest currency and delivery',
+      acceptAll: 'Accept all', essentialOnly: 'Essential only', save: 'Save my choices', settings: 'Cookie settings',
+    },
     privacy: {
       title: 'Privacy',
       exportTitle: 'Download my data',
@@ -1203,6 +1210,13 @@ export const translations = {
       failed: 'Не удалось зарегистрироваться',
     },
     notFound: { title: 'Страница не найдена', backHome: 'На главную' },
+    consent: {
+      title: 'Ваши настройки конфиденциальности',
+      text: 'Мы используем только то, что нужно для работы магазина, если вы не согласитесь на большее. Изменить выбор можно в любой момент внизу страницы.',
+      analytics: 'Статистика использования и отслеживание кампаний для улучшения магазина',
+      geo: 'Определять мою страну по IP-адресу (передаётся стороннему сервису) для подсказки валюты и доставки',
+      acceptAll: 'Принять всё', essentialOnly: 'Только необходимое', save: 'Сохранить выбор', settings: 'Настройки cookie',
+    },
     privacy: {
       title: 'Конфиденциальность',
       exportTitle: 'Скачать мои данные',
@@ -2206,6 +2220,13 @@ export const translations = {
       failed: "Ro'yxatdan o'tib bo'lmadi",
     },
     notFound: { title: 'Sahifa topilmadi', backHome: 'Bosh sahifaga qaytish' },
+    consent: {
+      title: 'Maxfiylik sozlamalaringiz',
+      text: 'Siz ko‘proq narsaga rozilik bermasangiz, biz faqat do‘kon ishlashi uchun zarur narsalardan foydalanamiz. Tanlovni istalgan vaqt sahifa pastidan o‘zgartirishingiz mumkin.',
+      analytics: 'Do‘konni yaxshilash uchun foydalanish statistikasi va kampaniyalarni kuzatish',
+      geo: 'Valyuta va yetkazib berishni taklif qilish uchun davlatimni IP manzil bo‘yicha aniqlash (uchinchi tomon xizmatiga yuboriladi)',
+      acceptAll: 'Hammasini qabul qilish', essentialOnly: 'Faqat zarurlari', save: 'Tanlovni saqlash', settings: 'Cookie sozlamalari',
+    },
     privacy: {
       title: 'Maxfiylik',
       exportTitle: 'Ma‘lumotlarimni yuklab olish',

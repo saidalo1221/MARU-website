@@ -8,9 +8,12 @@ import { CartProvider } from './context/CartContext.jsx'
 import { LocaleProvider } from './context/LocaleContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import './index.css'
-import { captureAttribution } from './lib/attribution'
+import { captureAttribution, clearAttribution } from './lib/attribution'
+import { hasConsent, subscribeConsent } from './lib/consent'
 
 captureAttribution()
+// Start capturing when analytics is accepted; forget what was stored when it is withdrawn.
+subscribeConsent(() => (hasConsent('analytics') ? captureAttribution() : clearAttribution()))
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
