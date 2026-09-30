@@ -113,6 +113,12 @@ export function adminUploadImage(file) {
   return apiRequest('/admin/uploads/image', { method: 'POST', body: formData })
 }
 
+export function adminUploadVideo(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiRequest('/admin/uploads/video', { method: 'POST', body: formData })
+}
+
 // Product translations
 export function adminListProductTranslations(productId) {
   return apiRequest(`/admin/products/${productId}/translations`)

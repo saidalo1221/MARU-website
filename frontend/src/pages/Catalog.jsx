@@ -22,6 +22,13 @@ export default function Catalog() {
   const [sort, setSort] = useState('default')
   const [filtersOpen, setFiltersOpen] = useState(false)
 
+  useEffect(() => {
+    if (!filtersOpen) return
+    const onKey = (e) => e.key === 'Escape' && setFiltersOpen(false)
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [filtersOpen])
+
   const SORT_OPTIONS = [
     { value: 'default', label: t('catalog.sortDefault') },
     { value: 'price_asc', label: t('catalog.sortPriceAsc') },
@@ -108,18 +115,22 @@ export default function Catalog() {
         <aside className="hidden md:block">{FiltersPanel}</aside>
 
         {filtersOpen && (
-          <div className="fixed inset-0 z-50 bg-white p-4 md:hidden overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-bold">{t('catalog.filters')}</h2>
-              <button onClick={() => setFiltersOpen(false)} aria-label={t('catalog.filters')}>✕</button>
+          <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label={t('catalog.filters')}>
+            <div className="absolute inset-0 bg-black/40" onClick={() => setFiltersOpen(false)} />
+            <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white p-4 shadow-xl">
+              <div className="mx-auto mb-3 h-1 w-10 rounded bg-gray-300" aria-hidden="true" />
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-bold">{t('catalog.filters')}</h2>
+                <button onClick={() => setFiltersOpen(false)} aria-label={t('product.quickViewClose')}>✕</button>
+              </div>
+              {FiltersPanel}
+              <button
+                onClick={() => setFiltersOpen(false)}
+                className="mt-6 w-full bg-brand text-white py-2 rounded"
+              >
+                {t('catalog.apply')}
+              </button>
             </div>
-            {FiltersPanel}
-            <button
-              onClick={() => setFiltersOpen(false)}
-              className="mt-6 w-full bg-brand text-white py-2 rounded"
-            >
-              {t('catalog.apply')}
-            </button>
           </div>
         )}
 

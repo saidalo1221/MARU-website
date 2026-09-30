@@ -4,11 +4,12 @@ import {
   adminAddInventory, adminAddVariantImage, adminCreateSku, adminCreateVariant, adminDeleteVariantImage,
   adminGetProduct, adminListInventory, adminListProductTranslations, adminListWarehouses,
   adminReorderVariantImage, adminUpdateInventory, adminUpdateProduct, adminUpdateSku, adminUpdateVariant,
-  adminUploadImage, adminUpsertProductTranslation,
+  adminUploadImage, adminUploadVideo, adminUpsertProductTranslation,
 } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import Money from '../../components/admin/Money'
+import { classifyMedia, youtubeThumb } from '../../lib/media'
 
 const inputCls = 'border border-gray-300 rounded px-2 py-1.5 text-sm'
 
@@ -191,6 +192,17 @@ function SkuBlock({ sku, warehouses, onChanged }) {
   )
 }
 
+function AdminMediaThumb({ url }) {
+  const media = classifyMedia(url)
+  if (media.kind === 'image') return <img src={url} alt="" className="w-16 h-16 object-cover" />
+  return (
+    <div className="relative w-16 h-16 bg-gray-900">
+      {media.kind === 'youtube' && <img src={youtubeThumb(media.youtubeId)} alt="" className="w-full h-full object-cover" />}
+      <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-white bg-black/30">&#9654;</span>
+    </div>
+  )
+}
+
 function VariantImagesManager({ variant, onChanged }) {
   const { t } = useLocale()
   const [error, setError] = useState(null)
@@ -217,7 +229,8 @@ function VariantImagesManager({ variant, onChanged }) {
     setError(null)
     setUploading(true)
     try {
-      const { url } = await adminUploadImage(file)
+      const upload = file.type.startsWith('video/') ? adminUploadVideo : adminUploadImage
+      const { url } = await upload(file)
       await adminAddVariantImage(variant.id, url)
       await onChanged()
     } catch (err) {
@@ -259,7 +272,7 @@ function VariantImagesManager({ variant, onChanged }) {
         <div className="flex gap-2 flex-wrap mb-2">
           {images.map((img, i) => (
             <div key={img.id} className="relative border border-gray-200 rounded overflow-hidden">
-              <img src={img.image_url} alt="" className="w-16 h-16 object-cover" />
+              <AdminMediaThumb url={img.image_url} />
               <div className="flex justify-between bg-white/90 text-[10px] px-0.5">
                 <button type="button" onClick={() => move(img, -1)} disabled={i === 0} className="disabled:opacity-20">
                   {t('admin.productDetail.moveLeft')}
@@ -288,9 +301,10 @@ function VariantImagesManager({ variant, onChanged }) {
           className={inputCls}
         />
         <button type="submit" className="text-sm text-brand">{t('admin.productDetail.addImageUrl')}</button>
-        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
         {uploading && <span className="text-xs text-gray-400">{t('admin.productDetail.uploading')}</span>}
       </form>
+      <p className="text-[11px] text-gray-400 mt-1">{t('admin.productDetail.mediaHint')}</p>
       {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
     </div>
   )
