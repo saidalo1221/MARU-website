@@ -297,6 +297,8 @@ def remove_item(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to remove cart item") from exc
 
+    if item is not None:
+        record_event(db, "remove_from_cart", user=user, session_id=cart.token, sku_id=sku_id)
     return _build_cart_out(db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), None)
 
 

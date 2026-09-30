@@ -8,6 +8,7 @@ from app.models.enums import OrderStatus, RefundStatus
 from app.models.order import Order
 from app.models.refund import Refund
 from app.models.user import User
+from app.services.analytics import record_event
 from app.services.audit import log_audit
 from app.services.order_service import set_order_status
 from app.services.payment.errors import PaymentProviderError, RefundNotSupportedError
@@ -104,5 +105,9 @@ def create_refund(db: Session, order: Order, amount: Decimal, reason: str | None
         {"amount": str(amount), "provider_refund_id": provider_refund_id},
     )
     db.commit()
+    record_event(
+        db, "refund", user=order.user, session_id=order.guest_order_token,
+        order_id=order.id, value=str(amount), currency=order.currency,
+    )
     db.refresh(refund)
     return refund
