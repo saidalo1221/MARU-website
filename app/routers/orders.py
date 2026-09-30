@@ -13,7 +13,6 @@ from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.user import User
 from app.schemas.order import CheckoutOut, CheckoutRequest, OrderOut, PaymentInitiationOut
-from app.services.analytics import record_event
 from app.services.crm.bitrix24 import Bitrix24Connector
 from app.services.integrations.log import run_with_log
 from app.services.notifications.email import EmailNotifier
@@ -103,10 +102,6 @@ def checkout(
     order = _load_order(db, order.id)
     notifier.order_created(order, db=db)
     run_with_log(db, "crm_bitrix24", "push_order", "order", order.id, lambda: crm.push_order(order))
-    record_event(
-        db, "begin_checkout", user=user, session_id=order.guest_order_token,
-        order_id=order.id, value=str(order.total_amount), currency=order.currency,
-    )
     db.commit()
     return CheckoutOut(
         **OrderOut.model_validate(order).model_dump(),

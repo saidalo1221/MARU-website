@@ -12,7 +12,7 @@ def _event_names(client, headers):
     return [e["event_name"] for e in r.json()]
 
 
-def test_signup_login_add_to_cart_begin_checkout_purchase_are_captured(client, sku, db_session):
+def test_signup_login_add_to_cart_purchase_are_captured(client, sku, db_session):
     buyer_headers = register(client, "shopper@example.com")
     client.post("/api/v1/auth/login", json={"email": "shopper@example.com", "password": "Password123!"})
     client.post("/api/v1/cart/items", headers=buyer_headers, json={"sku_id": sku.id, "quantity": 1})
@@ -29,7 +29,7 @@ def test_signup_login_add_to_cart_begin_checkout_purchase_are_captured(client, s
     admin_headers = login(client, "marketing@example.com")
     names = _event_names(client, admin_headers)
 
-    for expected in ("sign_up", "login", "add_to_cart", "begin_checkout", "purchase"):
+    for expected in ("sign_up", "login", "add_to_cart", "purchase"):
         assert expected in names, f"{expected} missing from {names}"
 
 
@@ -68,6 +68,18 @@ def test_client_event_ingest_records_whitelisted_event(client, db_session):
     row = db_session.query(AnalyticsEvent).filter_by(event_name="search").one()
     assert row.session_id == "dev-1"
     assert '"search_term": "cup"' in row.properties
+
+
+def test_begin_checkout_is_client_event_not_recorded_at_order_placement(client, sku, db_session):
+    headers = register(client, "checkouter@example.com")
+    client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 1})
+    r = client.post("/api/v1/orders/", headers=headers, json=CHECKOUT_PAYLOAD)
+    assert r.status_code == 201, r.text
+    assert db_session.query(AnalyticsEvent).filter_by(event_name="begin_checkout").count() == 0
+
+    r = client.post("/api/v1/analytics/events", headers=headers, json={"event_name": "begin_checkout", "properties": {"item_count": 1}})
+    assert r.status_code == 204, r.text
+    assert db_session.query(AnalyticsEvent).filter_by(event_name="begin_checkout").count() == 1
 
 
 def test_client_event_ingest_rejects_server_side_and_unknown_events(client):

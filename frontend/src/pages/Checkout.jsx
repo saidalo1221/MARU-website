@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -107,6 +107,16 @@ export default function Checkout() {
     if (!form.country) return
     refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined }).catch(() => {})
   }, [form.country, form.delivery_method, refresh])
+
+  // Fires when the checkout page is opened with items (not at order placement).
+  const checkoutTracked = useRef(false)
+  const cartItemCount = cart?.items.length ?? 0
+  useEffect(() => {
+    if (!user || cartItemCount === 0 || checkoutTracked.current) return
+    checkoutTracked.current = true
+    trackEvent('begin_checkout', { item_count: cartItemCount, value: cart.total, currency: cart.currency })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, cartItemCount])
 
   useEffect(() => {
     if (form.payment_method) trackEvent('add_payment_info', { payment_method: form.payment_method })

@@ -21,7 +21,7 @@ class ClientEventIn(BaseModel):
     # Whitelist: only events the browser alone can observe. Server-side events
     # (purchase, add_to_cart, ...) are recorded by their own routers and must
     # not be forgeable from this public endpoint.
-    event_name: Literal["view_item", "view_item_list", "search", "view_cart", "add_payment_info", "select_variant"]
+    event_name: Literal["view_item", "view_item_list", "search", "view_cart", "add_payment_info", "select_variant", "begin_checkout"]
     session_id: str | None = Field(default=None, max_length=64)
     properties: dict[str, Any] = Field(default_factory=dict)
 
