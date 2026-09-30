@@ -39,6 +39,12 @@ export function adminGetOrder(orderId) {
 export function adminUpdateOrderStatus(orderId, status, note) {
   return apiRequest(`/admin/orders/${orderId}/status`, { method: 'PATCH', body: { status, note: note || null } })
 }
+export function adminCreateShipment(orderId, body) {
+  return apiRequest(`/admin/orders/${orderId}/shipments`, { method: 'POST', body })
+}
+export function adminAddShipmentEvent(orderId, shipmentId, body) {
+  return apiRequest(`/admin/orders/${orderId}/shipments/${shipmentId}/events`, { method: 'POST', body })
+}
 export function adminRefundOrder(orderId, amount, reason) {
   return apiRequest(`/admin/orders/${orderId}/refund`, { method: 'POST', body: { amount, reason: reason || null } })
 }

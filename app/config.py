@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     # Comma-separated browser origins. Set this to the deployed frontend URL
     # in production; localhost values make a separate Vite dev server work.
     CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Swagger UI / ReDoc / openapi.json publish every admin route. Off unless
+    # explicitly enabled (set ENABLE_DOCS=true in a local .env).
+    ENABLE_DOCS: bool = False
 
     @property
     def cors_origins(self) -> list[str]:

@@ -129,3 +129,73 @@ def test_invalid_transition_is_rejected(db_session, sku):
         assert False, "expected InvalidTransitionError"
     except InvalidTransitionError:
         pass
+
+
+def test_checkout_with_same_idempotency_key_returns_same_order(client, sku, db_session):
+    from app.models.order import Order
+    from conftest import register
+
+    headers = register(client, "idem@example.com")
+    client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 2})
+    key = {"Idempotency-Key": "retry-key-0001", **headers}
+
+    first = client.post("/api/v1/orders/", headers=key, json=CHECKOUT_PAYLOAD)
+    assert first.status_code == 201, first.text
+    second = client.post("/api/v1/orders/", headers=key, json=CHECKOUT_PAYLOAD)
+    assert second.status_code == 201, second.text
+    assert second.headers["Idempotent-Replayed"] == "true"
+    assert second.json()["id"] == first.json()["id"]
+    assert second.json()["payment"] == first.json()["payment"]
+    assert db_session.query(Order).count() == 1
+    assert _inventory_row(db_session, sku.id).reserved == 2  # reserved once, not twice
+
+
+def test_checkout_without_key_still_fails_on_empty_cart_retry(client, sku):
+    from conftest import register
+
+    headers = register(client, "nokey@example.com")
+    client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 1})
+    assert client.post("/api/v1/orders/", headers=headers, json=CHECKOUT_PAYLOAD).status_code == 201
+    assert client.post("/api/v1/orders/", headers=headers, json=CHECKOUT_PAYLOAD).status_code == 400
+
+
+def test_idempotency_key_cannot_be_replayed_by_someone_else(client, sku):
+    from conftest import register
+
+    owner = register(client, "owner@example.com")
+    client.post("/api/v1/cart/items", headers=owner, json={"sku_id": sku.id, "quantity": 1})
+    key = "shared-key-0001"
+    assert client.post("/api/v1/orders/", headers={"Idempotency-Key": key, **owner}, json=CHECKOUT_PAYLOAD).status_code == 201
+
+    other = register(client, "other@example.com")
+    client.post("/api/v1/cart/items", headers=other, json={"sku_id": sku.id, "quantity": 1})
+    r = client.post("/api/v1/orders/", headers={"Idempotency-Key": key, **other}, json=CHECKOUT_PAYLOAD)
+    assert r.status_code == 409
+    anonymous = client.post("/api/v1/orders/", headers={"Idempotency-Key": key}, json=CHECKOUT_PAYLOAD)
+    assert anonymous.status_code == 409
+
+
+def test_guest_idempotent_replay_requires_the_same_cart_token(client, sku, db_session):
+    first = client.post("/api/v1/cart/items", json={"sku_id": sku.id, "quantity": 1})
+    cart_token = first.headers["X-Cart-Token"]
+    headers = {"Idempotency-Key": "guest-key-0001", "X-Cart-Token": cart_token}
+
+    created = client.post("/api/v1/orders/", headers=headers, json=CHECKOUT_PAYLOAD)
+    assert created.status_code == 201, created.text
+    replay = client.post("/api/v1/orders/", headers=headers, json=CHECKOUT_PAYLOAD)
+    assert replay.status_code == 201
+    assert replay.json()["id"] == created.json()["id"]
+    assert replay.json()["guest_order_token"] == created.json()["guest_order_token"]
+
+    stranger = client.post("/api/v1/orders/", headers={"Idempotency-Key": "guest-key-0001"}, json=CHECKOUT_PAYLOAD)
+    assert stranger.status_code == 409
+
+
+def test_malformed_idempotency_key_is_rejected(client, sku):
+    from conftest import register
+
+    headers = register(client, "badkey@example.com")
+    client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 1})
+    for bad in ("short", "has space in it!", "x" * 65):
+        r = client.post("/api/v1/orders/", headers={"Idempotency-Key": bad, **headers}, json=CHECKOUT_PAYLOAD)
+        assert r.status_code == 400, bad

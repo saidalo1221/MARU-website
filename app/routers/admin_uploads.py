@@ -25,6 +25,25 @@ ALLOWED_VIDEO_TYPES = {"video/mp4": ".mp4", "video/webm": ".webm"}
 MAX_VIDEO_BYTES = 25 * 1024 * 1024
 
 
+def _matches_signature(content_type: str, data: bytes) -> bool:
+    """True if the leading bytes look like the declared type. The browser-sent
+    Content-Type is attacker-controlled, so it alone must not decide what gets
+    stored under /static."""
+    if content_type == "image/jpeg":
+        return data.startswith(b"\xff\xd8\xff")
+    if content_type == "image/png":
+        return data.startswith(b"\x89PNG\r\n\x1a\n")
+    if content_type == "image/gif":
+        return data.startswith((b"GIF87a", b"GIF89a"))
+    if content_type == "image/webp":
+        return data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+    if content_type == "video/mp4":
+        return data[4:8] == b"ftyp"
+    if content_type == "video/webm":
+        return data.startswith(b"\x1a\x45\xdf\xa3")
+    return False
+
+
 @router.post("/image")
 async def upload_image(
     file: UploadFile,
@@ -37,6 +56,8 @@ async def upload_image(
     contents = await file.read()
     if len(contents) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Image too large (max 5MB)")
+    if not _matches_signature(file.content_type, contents):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File content does not match its image type")
 
     extension = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}[
         file.content_type
@@ -61,6 +82,8 @@ async def upload_video(
     contents = await file.read(MAX_VIDEO_BYTES + 1)
     if len(contents) > MAX_VIDEO_BYTES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Video too large (max 25MB)")
+    if not _matches_signature(file.content_type, contents):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File content does not match its video type")
 
     filename = f"{uuid.uuid4().hex}{extension}"
     (UPLOAD_DIR / filename).write_bytes(contents)

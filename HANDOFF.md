@@ -326,12 +326,13 @@ coverage against the PRD's event list.
 ## Known gaps / open decisions (carried forward, still true)
 
 - **MariaDB has never been verified.** Every migration this whole project
-  has produced (`app/migration_*.sql`, latest is `migration_2026_session8.sql`)
+  has produced (`app/migration_*.sql`, latest is `migration_2026_session9.sql`)
   and `app/schema_mariadb.sql` (fresh-install version) are SQLite-tested
   only — MariaDB isn't reachable from this dev machine. Re-verify before
   any production deploy. `migration_2026_session7.sql` covers page sections, trusted devices,
   account lockout, blog slugs, warehouse lat/long; `migration_2026_session8.sql`
-  covers `variant_images` and the product badge columns.
+  covers `variant_images` and the product badge columns; `migration_2026_session9.sql`
+  covers `shipments`, `shipment_events` and `orders.idempotency_key`.
 - **Object storage decision still open** (see PRD gap audit above).
 - Production server reportedly only has Python 3.9 (see `TODO.md`) — this
   codebase uses 3.10+ union syntax (`X | None`) throughout and will not

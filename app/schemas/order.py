@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, StringConstraints
 
 from app.models.enums import OrderStatus
 from app.models.order import OrderType
+from app.schemas.shipment import ShipmentOut
 
 EmailStr = Annotated[
     str,
@@ -97,6 +98,7 @@ class OrderOut(BaseModel):
     created_at: datetime
     items: list[OrderItemOut]
     status_history: list[OrderStatusHistoryOut]
+    shipments: list[ShipmentOut] = []
 
 
 PaymentReferenceKind = Literal["redirect_url", "client_secret", "provider_order_id"]

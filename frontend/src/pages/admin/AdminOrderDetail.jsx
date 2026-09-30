@@ -4,6 +4,7 @@ import { adminGetOrder, adminRefundOrder, adminUpdateOrderStatus } from '../../a
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import Money from '../../components/admin/Money'
+import ShipmentsPanel from '../../components/admin/ShipmentsPanel'
 
 const STATUSES = [
   'new', 'payment_pending', 'paid', 'processing', 'packed', 'shipped', 'in_transit',
@@ -107,6 +108,8 @@ export default function AdminOrderDetail() {
               {submitting ? t('admin.orderDetail.updating') : t('admin.orderDetail.updateButton')}
             </button>
           </form>
+
+          <ShipmentsPanel order={order} onChanged={load} />
 
           <form onSubmit={handleRefund} className="border border-gray-200 rounded-lg p-4">
             <h2 className="font-semibold mb-3">{t('admin.orderDetail.refund')}</h2>

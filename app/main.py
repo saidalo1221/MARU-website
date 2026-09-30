@@ -56,7 +56,34 @@ from app.routers import (
     wishlist,
 )
 
-app = FastAPI(title="MARU")
+app = FastAPI(
+    title="MARU",
+    docs_url="/docs" if settings.ENABLE_DOCS else None,
+    redoc_url="/redoc" if settings.ENABLE_DOCS else None,
+    openapi_url="/openapi.json" if settings.ENABLE_DOCS else None,
+)
+
+_DOCS_PATHS = ("/docs", "/redoc", "/openapi.json")
+
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """Baseline hardening headers for every API response (PRD ТЗ№3 §102). The
+    storefront's static files are served by the reverse proxy, which needs the
+    same headers (plus a CSP suited to the React app) — see MARIADB_PREFLIGHT.md."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Permissions-Policy", "geolocation=(), camera=(), microphone=()")
+    # Ignored by browsers over plain http, so safe to send from a local server.
+    response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    if not request.url.path.startswith(_DOCS_PATHS):
+        # The API only returns JSON/XML/media; nothing in it should ever run as a page.
+        response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+    return response
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

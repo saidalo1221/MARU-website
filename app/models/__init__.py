@@ -6,7 +6,7 @@ from app.models.sku import SKU
 from app.models.inventory import Inventory
 from app.models.warehouse import Warehouse
 from app.models.user import User
-from app.models.enums import CustomerType, UserRole, OrderStatus, RefundStatus
+from app.models.enums import CustomerType, UserRole, OrderStatus, RefundStatus, ShipmentStatus
 from app.models.cart import Cart
 from app.models.cart_item import CartItem
 from app.models.promo_code import PromoCode, PromoDiscountType
@@ -27,6 +27,7 @@ from app.models.review import Review, ReviewStatus
 from app.models.audit_log import AuditLog
 from app.models.password_reset_token import PasswordResetToken
 from app.models.refund import Refund
+from app.models.shipment import Shipment, ShipmentEvent
 from app.models.email_verification_token import EmailVerificationToken
 from app.models.notification_template import NotificationTemplate
 from app.models.tax_rule import TaxRule
@@ -83,6 +84,9 @@ __all__ = [
     "PasswordResetToken",
     "Refund",
     "RefundStatus",
+    "ShipmentStatus",
+    "Shipment",
+    "ShipmentEvent",
     "EmailVerificationToken",
     "NotificationTemplate",
     "TaxRule",

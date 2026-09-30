@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models.order import Order
+from app.models.shipment import Shipment
 from app.services.notifications.base import NotificationBase
 from app.services.notifications.templates import render_template
 
@@ -129,4 +130,29 @@ class EmailNotifier(NotificationBase):
                 f"Hi {order.first_name},\n\n"
                 f"Your order {order.order_number} status changed from {old_status} to {new_status}.\n\nMARU"
             )
+        self._send(order.email, subject, body)
+
+    def shipment_updated(self, order: Order, shipment: Shipment, db: Optional[Session] = None) -> None:
+        tracking = shipment.tracking_number or ""
+        status_text = shipment.status.value.replace("_", " ")
+        context = {
+            "order_number": order.order_number,
+            "first_name": order.first_name,
+            "carrier": shipment.carrier,
+            "tracking_number": tracking,
+            "tracking_url": shipment.tracking_url or "",
+            "shipment_status": shipment.status.value,
+        }
+        rendered = render_template(db, "shipment_updated", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = f"Order {order.order_number}: shipment {status_text}"
+            lines = [f"Hi {order.first_name},", "", f"Your order {order.order_number} is now {status_text} with {shipment.carrier}."]
+            if tracking:
+                lines.append(f"Tracking number: {tracking}")
+            if shipment.tracking_url:
+                lines.append(f"Track it here: {shipment.tracking_url}")
+            lines += ["", "MARU"]
+            body = "\n".join(lines)
         self._send(order.email, subject, body)

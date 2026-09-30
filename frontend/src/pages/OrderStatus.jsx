@@ -3,8 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import { cancelOrder, getOrder } from '../api/orders'
 import { useLocale } from '../context/LocaleContext'
 import Seo from '../components/Seo'
+import ShipmentList from '../components/ShipmentList'
 
-const CANCELLABLE = new Set(['NEW', 'PAYMENT_PENDING', 'PAID', 'PROCESSING'])
+const CANCELLABLE = new Set(['new', 'payment_pending', 'paid', 'processing'])
 
 export default function OrderStatus() {
   const { t } = useLocale()
@@ -73,6 +74,11 @@ export default function OrderStatus() {
           </li>
         ))}
       </ul>
+
+      <h2 className="font-semibold mb-2">{t('orderStatus.shipments')}</h2>
+      <div className="mb-6">
+        <ShipmentList shipments={order.shipments} />
+      </div>
 
       {order.status_history?.length > 0 && (
         <div className="mb-6">

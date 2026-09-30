@@ -1,0 +1,61 @@
+# MARU operations runbook
+
+None of this has been run on the real server (no access from the dev
+machine). Treat every step as "verify on staging first".
+
+## Scheduled jobs (cron)
+| Job | Command | Suggested schedule |
+|---|---|---|
+| Expire unpaid reservations | `python -m app.tasks.expire_reservations` | every 5 min |
+| Retry failed CRM pushes | `python -m app.tasks.retry_integrations` | every 10 min |
+| Sync exchange rates | `python -m app.tasks.sync_exchange_rates` | daily |
+| Database + uploads backup | `scripts/backup_db.sh` | daily, 02:15 |
+
+Run each from the project root with the production `.env` loaded.
+
+## Backups
+`scripts/backup_db.sh` writes `db-<stamp>.sql.gz` (consistent InnoDB snapshot
+via `--single-transaction`) and `uploads-<stamp>.tar.gz`, then deletes files
+older than `KEEP_DAYS` (default 14). Uploads are local disk, so they need the
+tarball too. Copy the backup directory **off the server** (another host or
+object storage) - a backup on the same disk does not survive the disk.
+
+Setup: create `~/.maru-backup.cnf` (`chmod 600`) with a `[client]` section
+holding the DB user and password; confirm the DB user has `SELECT`,
+`LOCK TABLES`, `SHOW VIEW`, `TRIGGER` on the database.
+
+## Restore (rehearse quarterly on staging)
+1. Stop the app (or put the proxy in maintenance mode).
+2. Restore into an empty database:
+   ```
+   mysql -e "DROP DATABASE IF EXISTS maruplast_restore; CREATE DATABASE maruplast_restore CHARACTER SET utf8mb4"
+   gunzip -c db-<stamp>.sql.gz | mysql maruplast_restore
+   ```
+   Check row counts (`orders`, `users`, `skus`) against production first.
+3. Only then swap: restore over `maruplast` the same way, or point
+   `DATABASE_URL` at the restored copy.
+4. Restore uploads: `tar -xzf uploads-<stamp>.tar.gz -C app/static/uploads`.
+5. Start the app and place a test order.
+
+## Container
+`docker build -t maru-backend .` then run with the production `.env`
+(`--env-file`), port 8000 behind the reverse proxy, and a volume on
+`/srv/maru/app/static/uploads`. Set `FORWARDED_ALLOW_IPS=<proxy ip>`.
+The Dockerfile has **not** been built (no Docker on the dev machine).
+
+## Reverse proxy checklist
+- Route `/api/` and `/static/` and `/sitemap.xml` to the backend; everything
+  else to the built frontend (`frontend/dist`).
+- The API sets its own security headers. The proxy must add the same ones to
+  the frontend's static responses (`X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy`, HSTS) plus a Content-Security-
+  Policy written for the React app (it loads Leaflet tiles and, if enabled,
+  Stripe/PayPal scripts, so it cannot be copied from the API's `default-src
+  'none'`).
+- Swagger UI / `openapi.json` are off unless `ENABLE_DOCS=true`. Leave it off
+  in production.
+
+## CI
+`.github/workflows/ci.yml` runs the backend tests on Python 3.9 (production's
+version) and builds the frontend on every push and pull request. The first run
+on GitHub is also the first real Python 3.9 test run - check it.

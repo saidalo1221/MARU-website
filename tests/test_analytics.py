@@ -33,6 +33,39 @@ def test_signup_login_add_to_cart_purchase_are_captured(client, sku, db_session)
         assert expected in names, f"{expected} missing from {names}"
 
 
+def test_remove_from_cart_captured_only_when_an_item_was_removed(client, sku, db_session):
+    headers = register(client, "remover@example.com")
+    client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 1})
+
+    assert client.delete(f"/api/v1/cart/items/{sku.id + 999}", headers=headers).status_code == 200
+    assert db_session.query(AnalyticsEvent).filter_by(event_name="remove_from_cart").count() == 0
+
+    assert client.delete(f"/api/v1/cart/items/{sku.id}", headers=headers).status_code == 200
+    row = db_session.query(AnalyticsEvent).filter_by(event_name="remove_from_cart").one()
+    assert f'"sku_id": {sku.id}' in row.properties
+
+
+def test_refund_captured_on_completed_refund(client, sku, db_session, monkeypatch):
+    import app.services.refund_service as refund_service
+    from app.services.order_service import set_order_status
+
+    class _Gateway:
+        def refund(self, order, amount):
+            return "fake-refund-id"
+
+    monkeypatch.setattr(refund_service, "get_payment_gateway", lambda method: _Gateway())
+    buyer = register(client, "refundee@example.com")
+    client.post("/api/v1/cart/items", headers=buyer, json={"sku_id": sku.id, "quantity": 1})
+    order = client.post("/api/v1/orders/", headers=buyer, json=CHECKOUT_PAYLOAD).json()
+    set_order_status(db_session, db_session.get(Order, order["id"]), OrderStatus.PAID, None)
+
+    make_admin(db_session, "acct@example.com", UserRole.ACCOUNTANT)
+    admin_headers = login(client, "acct@example.com")
+    r = client.post(f"/api/v1/admin/orders/{order['id']}/refund", headers=admin_headers, json={"amount": order["total_amount"]})
+    assert r.status_code == 201, r.text
+    assert db_session.query(AnalyticsEvent).filter_by(event_name="refund").count() == 1
+
+
 def test_generate_lead_captured_on_quote_submission(client, db_session):
     client.post(
         "/api/v1/quotes/",

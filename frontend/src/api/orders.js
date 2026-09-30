@@ -1,7 +1,7 @@
 import { apiRequest } from './client'
 
-export function checkout(payload) {
-  return apiRequest('/orders/', { method: 'POST', body: payload })
+export function checkout(payload, idempotencyKey) {
+  return apiRequest('/orders/', { method: 'POST', body: payload, idempotencyKey })
 }
 
 export function getOrder(orderId, orderToken) {
@@ -14,6 +14,10 @@ export function confirmPayment(orderId, orderToken) {
 
 export function cancelOrder(orderId, orderToken) {
   return apiRequest(`/orders/${orderId}/cancel`, { method: 'POST', orderToken })
+}
+
+export function trackOrder(orderNumber, email) {
+  return apiRequest('/orders/track', { method: 'POST', body: { order_number: orderNumber, email } })
 }
 
 export function listMyOrders() {

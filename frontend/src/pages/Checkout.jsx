@@ -110,6 +110,9 @@ export default function Checkout() {
 
   // Fires when the checkout page is opened with items (not at order placement).
   const checkoutTracked = useRef(false)
+  // One key per checkout page visit: a double click or a retry after a dropped
+  // response gets the original order back instead of a second attempt.
+  const idempotencyKey = useRef(null)
   const cartItemCount = cart?.items.length ?? 0
   useEffect(() => {
     if (!user || cartItemCount === 0 || checkoutTracked.current) return
@@ -159,7 +162,8 @@ export default function Checkout() {
         delete payload.company_address
         delete payload.contact_person
       }
-      const result = await checkout(payload)
+      idempotencyKey.current ??= crypto.randomUUID()
+      const result = await checkout(payload, idempotencyKey.current)
       if (result.guest_order_token) {
         sessionStorage.setItem(`maru_order_token_${result.id}`, result.guest_order_token)
       }

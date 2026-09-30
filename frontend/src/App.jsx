@@ -18,6 +18,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import OrdersHistory from './pages/OrdersHistory'
+import TrackOrder from './pages/TrackOrder'
 import Wishlist from './pages/Wishlist'
 import Addresses from './pages/Addresses'
 import QuoteRequest from './pages/QuoteRequest'
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders/:orderId" element={<OrderStatus />} />
+          <Route path="/track" element={<TrackOrder />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

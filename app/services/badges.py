@@ -9,7 +9,7 @@ is always computed live in both modes — it's a factual availability state,
 not a marketing choice.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -56,7 +56,7 @@ def _is_on_sale(product: Product) -> bool:
 def _is_new(product: Product) -> bool:
     if product.created_at is None:
         return False
-    return datetime.utcnow() - product.created_at <= timedelta(days=NEW_DAYS_THRESHOLD)
+    return datetime.now(timezone.utc).replace(tzinfo=None) - product.created_at <= timedelta(days=NEW_DAYS_THRESHOLD)
 
 
 def _bestseller_product_ids(db: Session, product_ids: list[int]) -> set[int]:

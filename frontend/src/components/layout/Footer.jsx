@@ -36,6 +36,7 @@ export default function Footer() {
         ['/delivery', 'footer.delivery'],
         ['/payment', 'footer.payment'],
         ['/returns', 'footer.returns'],
+        ['/track', 'footer.trackOrder'],
         ['/faq', 'footer.faq'],
       ],
     },

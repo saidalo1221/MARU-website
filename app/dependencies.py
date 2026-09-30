@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import Depends, Header, HTTPException, Response, status
@@ -55,7 +55,7 @@ def require_role(*roles: UserRole):
         # email-code login (app/routers/auth.py's admin_login_request/
         # admin_login_verify) to have been completed recently — a plain
         # site login is not enough to reach the admin panel or its API.
-        if user.admin_mfa_verified_until is None or user.admin_mfa_verified_until < datetime.utcnow():
+        if user.admin_mfa_verified_until is None or user.admin_mfa_verified_until < datetime.now(timezone.utc).replace(tzinfo=None):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="admin_verification_required")
         return user
 

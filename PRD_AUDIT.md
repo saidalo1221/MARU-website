@@ -1,4 +1,9 @@
-# PRD coverage audit (2026-09-30)
+# PRD coverage audit (2026-09-30, updated after the shipments/hardening pass)
+
+**Updated since first written:** shipments + tracking, checkout idempotency,
+security headers, `/docs` switch, upload signature checks and the ops files
+(Dockerfile, CI, backup runbook) now exist - see the struck-through items
+below. RFQ numbering was already implemented; the earlier audit was wrong.
 
 What the code actually implements against PRD TZ №2-№4, from reading the
 backend (`app/`) and grepping the frontend. "Verified" means I read the code
@@ -44,13 +49,14 @@ marked **n/a**, not missing.
   `idempotency_key`. Here payment state lives in `orders.status` plus
   Payme/Click transaction tables; Stripe/PayPal only store
   `payment_reference`. Works, but there is no single payment ledger.
-- **Idempotency**: no `Idempotency-Key` on checkout. A retried checkout is
-  stopped in practice because the cart is deactivated, but the client gets
-  "cart is empty" instead of the existing order. Webhooks are idempotent via
+- **Idempotency**: ~~no `Idempotency-Key` on checkout~~ **done**: optional
+  `Idempotency-Key` header; a retry returns the original order (owner-only,
+  `orders.idempotency_key` unique). Without the header a retry still gets
+  "cart is empty". Webhooks are idempotent via
   unique provider transaction ids (Payme/Click); confirm-payment is
   idempotent because same-status transitions are no-ops. Not checked: refund
   double-submit.
-- **RFQ number**: quotes have a numeric id only, not `RFQ-2026-000123`.
+- ~~**RFQ number**~~: already implemented (`RFQ-<year>-<id>`, `routers/quotes.py`).
 - **Attribution**: no UTM / landing page / referrer capture (TZ4 §18).
 - **Server-side ad tracking**: events are stored, not forwarded to GA4/Meta
   (needs your credentials).
@@ -61,24 +67,29 @@ marked **n/a**, not missing.
   B2B minimum order enforcement.
 
 ## Missing
-- **Shipments and tracking**: no shipments table, carrier adapter, tracking
-  number or "Track Order" (TZ2 §25, TZ3 §32, TZ4 §29-33). Delivery is a rate
-  calculation only.
+- ~~**Shipments and tracking**~~ **done (manual carrier)**: `shipments` +
+  `shipment_events`, admin create/update, status sync to the order, email on
+  status change, customer order page + public `/track` (order number +
+  email). Still missing: a carrier API adapter (needs a carrier decision)
+  and automatic tracking updates.
 - **ERP / 1C** integration and ID mapping table (TZ4 §6-13).
 - **Marketplace connectors** incl. Uzum as a marketplace (Uzum exists only as
   a payment method name).
 - **GDPR / privacy**: no cookie consent, data export or deletion (TZ3 §102).
-- **Security headers** (HSTS, X-Frame-Options, CSP, nosniff) are not set in
-  the app; needs to be done at the reverse proxy or added as middleware.
-  Swagger UI (`/docs`, `/openapi.json`) is on in every environment.
+- ~~**Security headers**~~ **done for the API** (middleware in `main.py`);
+  the reverse proxy must add them for the static frontend (see
+  `OPS_RUNBOOK.md`). ~~Swagger UI on everywhere~~ now off unless
+  `ENABLE_DOCS=true`.
 - **Wishlist "notify me when available"**, **save for later** in the cart,
   **free-shipping threshold**, **delivery estimate on the product page**,
   **newsletter signup** (TZ2 §20, §29, §43; TZ3 event list).
 - **Webhook pipeline** as described in TZ4 §50 (queue between receipt and
   handler) and a **real queue/worker** (retries are cron sweeps).
 - **Integration health status + dashboard** beyond the log list.
-- **Dockerfile, CI/CD, staging, monitoring, alerting, backups** (TZ3
-  §82-96): none in the repo.
+- **Dockerfile, CI/CD, backups**: now in the repo (`Dockerfile`,
+  `.github/workflows/ci.yml`, `scripts/backup_db.sh`, `OPS_RUNBOOK.md`) but
+  **none has been run** (no Docker, no GitHub run, no server access).
+  Still none: staging, monitoring, alerting (TZ3 §82-96).
 - **Sentry / error tracking**, **CDN + image optimisation**.
 
 ## n/a (stack difference)
@@ -87,8 +98,8 @@ Redis-queue, Kubernetes. The app uses integer keys, per-locale translation
 tables, MariaDB, and Redis only for rate limits.
 
 ## Suggested order
-1. Shipments + tracking (customer-visible gap, TZ2 P0 "Order").
-2. Security headers at the proxy; decide on `/docs` exposure.
-3. Idempotency key on checkout; RFQ numbering.
-4. Dockerfile + CI + backup/restore runbook (none exist).
+1. ~~Shipments + tracking~~ done (manual carrier).
+2. ~~Security headers; `/docs`~~ done in the API; proxy side pending.
+3. ~~Idempotency key; RFQ numbering~~ done / already existed.
+4. ~~Dockerfile + CI + backup runbook~~ written, unverified.
 5. ERP/1C and marketplace only after the vendor/API decisions.

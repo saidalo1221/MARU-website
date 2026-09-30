@@ -1,11 +1,12 @@
-# MARU — start here (written 2026-09-30)
+# MARU — start here (updated 2026-09-30, after the shipments pass)
 
 Read this file, then `CLAUDE.md` (house rules). Open `HANDOFF.md` only for
 detail on a specific area — it is long. `PRD.md` is the spec. Ignore
 `session_notes.md` and the "done" lists in `TODO.md` (historical).
 Also: `PRD_AUDIT.md` (what the PRD asks for vs what exists, with a suggested
-build order) and `MARIADB_PREFLIGHT.md` (first-deploy checklist for MariaDB
-and the Python 3.9 server). This file holds the to-do list; those two are
+build order) `MARIADB_PREFLIGHT.md` (first-deploy checklist for MariaDB
+and the Python 3.9 server) and `OPS_RUNBOOK.md` (cron jobs, backups, restore,
+container, proxy checklist). This file holds the to-do list; those three are
 reference.
 
 ## What this is
@@ -46,22 +47,33 @@ nearly every public route, FAQ in ru/uz. Client-side analytics
 (`POST /analytics/events`, `frontend/src/lib/analytics.js`): `view_item`,
 `select_variant`, `view_item_list`, `search`, `view_cart`, `begin_checkout`
 (on checkout open), `add_payment_info` — browser-verified 2026-09-30; the
-server no longer records `begin_checkout` at order placement.
+server no longer records `begin_checkout` at order placement. Also done and
+verified (tests; shipments also in the browser): **shipments + order tracking**
+(`shipments`/`shipment_events`, admin panel on the order page, status sync to
+the order, emails, customer order page, public `/track` by order number +
+email; manual carrier, no carrier API), **checkout `Idempotency-Key`**,
+security headers + `/docs` off unless `ENABLE_DOCS=true` (add that to your
+local `.env` if you want Swagger), upload magic-byte checks, `utcnow()`
+removed, `remove_from_cart`/`refund` events (already existed; now tested).
+Written but **never run**: `Dockerfile`, `.github/workflows/ci.yml`,
+`scripts/backup_db.sh`.
 
 ## What is left (priority order)
 Buildable now:
-1. ~~Client-side analytics events~~ — DONE (see State). Not yet in PRD's list
-   and not wired: `remove_from_cart` and `refund` (TODO.md).
+1. ~~Client-side analytics events~~ — DONE, including `remove_from_cart` and
+   `refund` (server-side, tested).
 2. ~~Accessibility follow-ups~~ — DONE (PR #1): `useDialogFocus` trap on
    every modal, `role="alert"`/`status`, axe pass (public + admin, light +
    dark, 390px checkout). Re-run axe after UI changes.
 3. Not browser-verified: real mp4/webm upload in the admin variant-images
    panel (add-by-YouTube-URL was verified), real phone, Safari/Firefox.
-4. Build order suggested by `PRD_AUDIT.md`: shipments + order tracking
-   (biggest customer-facing gap), security headers / `/docs` exposure,
-   checkout idempotency key + RFQ numbering, Dockerfile + CI + backups.
-   Smaller: replace `datetime.utcnow()` (deprecated; `dependencies.py`,
-   `badges.py`); uploads trust the declared content type, not file bytes.
+4. ~~Shipments, security headers, idempotency, RFQ numbering (already
+   existed), Dockerfile/CI/backups, `utcnow()`, upload byte checks~~ — done
+   (see State). Remaining from `PRD_AUDIT.md` that needs no decision:
+   proxy-side security headers (server config), request-id/structured
+   logging, UTM/referrer attribution, free-shipping threshold, delivery
+   estimate on the product page, newsletter signup, "notify me when
+   available", save-for-later, GDPR export/deletion, stock reconciliation job.
 5. Native-speaker review of the ru/uz FAQ text (my draft). `dev.db` has it but
    is gitignored — a real DB needs it entered via admin "Support Pages Content".
 
@@ -126,6 +138,16 @@ Deployment blockers:
   there are no payment radios, and seeded products have one variant. Stub the
   API response with a `window.fetch` patch in the page rather than editing
   `dev.db`.
+- `python -m app.init_db` on SQLite creates `BIGINT` primary keys that SQLite
+  will not auto-increment (inserts fail with `NOT NULL constraint failed:
+  <table>.id`). Only `dev_seed.py` and `tests/conftest.py` patch that. New
+  tables in `dev.db` need the `@compiles(BigInteger, "sqlite")` patch (see
+  `dev_seed.py`) when created. `shipments`/`shipment_events` and
+  `orders.idempotency_key` were already added to `dev.db` this way.
+- Admin browser-testing without the emailed code: run the backend on a
+  *copy* of `dev.db`, set `admin_mfa_verified_until` on the admin row in the
+  copy, mint a token with `create_access_token(str(user.id))` and put it in
+  `localStorage.maru_access_token`.
 - Testing pattern that works: FastAPI `TestClient` against a *copy* of
   `dev.db` (`DATABASE_URL=sqlite:///<copy>`), never the real one.
 

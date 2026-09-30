@@ -27,6 +27,9 @@ class Order(Base):
     # Sent only in the checkout response for guest orders.  It is required to
     # read, cancel, or poll a guest order without exposing it by sequential ID.
     guest_order_token = Column(String(64), nullable=True, unique=True)
+    # Client-chosen `Idempotency-Key` from checkout: a retried request with the
+    # same key returns this order instead of failing on the already-used cart.
+    idempotency_key = Column(String(64), nullable=True, unique=True)
     cart_id = Column(BigInteger, ForeignKey("carts.id"), nullable=True)
     promo_code_id = Column(BigInteger, ForeignKey("promo_codes.id"), nullable=True)
     promo_code_snapshot = Column(String(50), nullable=True)
@@ -86,6 +89,12 @@ class Order(Base):
         back_populates="order",
         cascade="all, delete-orphan",
         order_by="OrderStatusHistory.created_at",
+    )
+    shipments = relationship(
+        "Shipment",
+        back_populates="order",
+        cascade="all, delete-orphan",
+        order_by="Shipment.id",
     )
     user = relationship("User")
     promo_code = relationship("PromoCode")

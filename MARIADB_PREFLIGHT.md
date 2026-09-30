@@ -4,9 +4,9 @@ Nothing here has been run against a real MariaDB: this machine cannot reach
 UzCloud and has no MariaDB server. Static checks only.
 
 ## What was checked statically
-- Compiled all 45 SQLAlchemy models with the MySQL dialect and compared them
+- Compiled all 47 SQLAlchemy models with the MySQL dialect and compared them
   with `app/schema_mariadb.sql` + `migration_new_tables.sql` +
-  `migration_2026_session2..8.sql`: **every table and every column is
+  `migration_2026_session2..9.sql`: **every table and every column is
   present**; all named indexes and constraints appear in the SQL. (Column
   types were compared loosely; decimals and lengths looked right.)
 - Non-native enum columns: the longest member name fits every column length.
@@ -25,7 +25,8 @@ UzCloud and has no MariaDB server. Static checks only.
 ## Do this before the first deploy
 1. **Take a backup, run on a staging database first.** Apply in this order:
    `schema_mariadb.sql`, `migration_new_tables.sql`,
-   `migration_2026_session2.sql` ... `session8.sql`. A fresh database can
+   `migration_2026_session2.sql` ... `session9.sql`
+   (session9 = shipments tables + `orders.idempotency_key`). A fresh database can
    alternatively be created straight from the models with
    `python -m app.init_db` (plain `create_all`, dialect-agnostic); use the
    SQL files only for a database that already has an older schema.

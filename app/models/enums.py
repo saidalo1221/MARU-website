@@ -41,6 +41,13 @@ class OrderStatus(str, enum.Enum):
     PARTIALLY_REFUNDED = "partially_refunded"
 
 
+class ShipmentStatus(str, enum.Enum):
+    SHIPPED = "shipped"
+    IN_TRANSIT = "in_transit"
+    DELIVERED = "delivered"
+    RETURNED = "returned"
+
+
 class RefundStatus(str, enum.Enum):
     PENDING = "pending"
     COMPLETED = "completed"

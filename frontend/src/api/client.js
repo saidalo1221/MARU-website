@@ -62,7 +62,7 @@ export function errorMessage(err, fallback) {
 // callers pass them in explicitly rather than this module tracking one.
 export async function apiRequest(
   path,
-  { method = 'GET', body, orderToken, skipAuth = false, ...rest } = {}
+  { method = 'GET', body, orderToken, idempotencyKey, skipAuth = false, ...rest } = {}
 ) {
   const headers = { ...(rest.headers || {}) }
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
@@ -77,6 +77,7 @@ export async function apiRequest(
   if (cartToken) headers['X-Cart-Token'] = cartToken
 
   if (orderToken) headers['X-Order-Token'] = orderToken
+  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,

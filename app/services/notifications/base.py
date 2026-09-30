@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from app.models.order import Order
+from app.models.shipment import Shipment
 
 
 class NotificationBase(ABC):
@@ -12,3 +13,6 @@ class NotificationBase(ABC):
 
     @abstractmethod
     def order_status_changed(self, order: Order, old_status: str, new_status: str) -> None: ...
+
+    @abstractmethod
+    def shipment_updated(self, order: Order, shipment: Shipment) -> None: ...
