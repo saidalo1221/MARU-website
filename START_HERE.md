@@ -65,7 +65,16 @@ list), **back-in-stock alerts** (`stock_alerts`, cron `notify_back_in_stock`),
 (`/account/privacy`; orders and quotes are kept - see question below), **stock
 reconciliation report** (`reconcile_stock`). New tables/columns are all in
 `migration_2026_session9.sql` and `schema_mariadb.sql`.
-Written but **never run**: `Dockerfile`, `.github/workflows/ci.yml`,
+Third pass: **`/privacy` and `/terms` pages** (built-in ru/uz/en draft text in
+`frontend/src/i18n/legal.js`; an admin can replace it from Support Pages Content,
+keys `privacy`/`terms`; linked from the footer, consent banner, register and
+checkout), **JSON logging + optional Sentry** (`LOG_FORMAT=json`, `SENTRY_DSN`,
+needs `pip install sentry-sdk`), and the `deploy/` folder (nginx site + frontend
+security headers/CSP, systemd unit, crontab).
+**The legal text is a DRAFT written from what the code does; a lawyer must review
+it, and the operator's legal name/registration details and governing law must be
+added (Site Settings holds only phone/email/address).** The ru/uz wording also
+needs a native speaker. Written but **never run**: `Dockerfile`, `.github/workflows/ci.yml`,
 `scripts/backup_db.sh`.
 
 ## What is left (priority order)
@@ -82,8 +91,9 @@ Buildable now:
    (see State). Also done: request-id logging, UTM attribution,
    free-shipping threshold, delivery estimate, newsletter, back-in-stock,
    save-for-later, GDPR export/erasure, stock reconciliation. What is left
-   that needs no decision: proxy-side security headers (server config; see
-   `OPS_RUNBOOK.md`). Not browser-verified:
+   that needs no decision: nothing substantial; `deploy/` has the server config
+   (untested). `robots.txt` has a relative `Sitemap:` line, which crawlers ignore;
+   make it absolute once the domain is known. Not browser-verified:
    the newsletter/back-in-stock/privacy/save-for-later pages (API tests only
    unless noted in the change log below).
 5. Native-speaker review of the ru/uz FAQ text (my draft). `dev.db` has it but

@@ -13,6 +13,7 @@ import MapPicker from '../components/MapPicker'
 import { trackEvent } from '../lib/analytics'
 import { getAttribution } from '../lib/attribution'
 import Seo from '../components/Seo'
+import LegalNotice from '../components/LegalNotice'
 
 const NEW_ADDRESS = 'new'
 
@@ -366,6 +367,7 @@ export default function Checkout() {
           >
             {submitting ? t('checkout.placingOrder') : t('checkout.placeOrder')}
           </button>
+          <LegalNotice />
         </form>
 
         <div className="mt-6 md:mt-0 border border-gray-200 rounded-lg p-4 h-fit">

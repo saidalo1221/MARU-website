@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { onOpenConsentSettings, setConsent, useConsent } from '../../lib/consent'
 import { useLocale } from '../../context/LocaleContext'
 
@@ -36,7 +37,10 @@ export default function ConsentBanner() {
     >
       <div className="max-w-4xl mx-auto">
         <p className="font-semibold mb-1">{t('consent.title')}</p>
-        <p className="text-gray-600 mb-3">{t('consent.text')}</p>
+        <p className="text-gray-600 mb-3">
+          {t('consent.text')}{' '}
+          <Link to="/privacy" className="underline">{t('consent.policyLink')}</Link>
+        </p>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mb-3">
           <label className="flex items-start gap-2">
             <input type="checkbox" checked={analytics} onChange={(e) => setAnalytics(e.target.checked)} className="mt-1" />

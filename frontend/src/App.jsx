@@ -22,6 +22,7 @@ import OrdersHistory from './pages/OrdersHistory'
 import TrackOrder from './pages/TrackOrder'
 import NewsletterAction from './pages/NewsletterAction'
 import AccountPrivacy from './pages/AccountPrivacy'
+import LegalPage from './pages/LegalPage'
 import AdminNewsletter from './pages/admin/AdminNewsletter'
 import Wishlist from './pages/Wishlist'
 import Addresses from './pages/Addresses'
@@ -110,6 +111,8 @@ export default function App() {
           <Route path="/payment" element={<Payment />} />
           <Route path="/returns" element={<Returns />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/privacy" element={<LegalPage pageKey="privacy" />} />
+          <Route path="/terms" element={<LegalPage pageKey="terms" />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />

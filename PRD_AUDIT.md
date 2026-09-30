@@ -60,8 +60,8 @@ marked **n/a**, not missing.
 - ~~**Attribution**~~ **done**: UTM/referrer/landing path stored on the order.
 - **Server-side ad tracking**: events are stored, not forwarded to GA4/Meta
   (needs your credentials).
-- ~~**Structured logging / request ids**~~ **done** (middleware + tagged log lines).
-  Not JSON-formatted and no Sentry yet.
+- ~~**Structured logging / request ids**~~ **done** (middleware, tagged lines, optional
+  JSON format, optional Sentry hook that needs `sentry-sdk` installed).
 - ~~**Stock reconciliation**~~ **done** as a report (`reconcile_stock`, `--fix` opt-in).
   No automatic alerting on top of it.
 - Not checked in depth: tax region/order-value inputs, promo edge cases,
@@ -78,7 +78,7 @@ marked **n/a**, not missing.
   a payment method name).
 - **GDPR / privacy**: data export and self-service erasure **done** (orders/quotes
   retained). Cookie-consent banner **done** (gates analytics, attribution and the
-  `ipapi.co` lookup). No privacy-policy page yet.
+  `ipapi.co` lookup). Privacy Policy and Terms pages **drafted** (need legal review).
 - ~~**Security headers**~~ **done for the API** (middleware in `main.py`);
   the reverse proxy must add them for the static frontend (see
   `OPS_RUNBOOK.md`). ~~Swagger UI on everywhere~~ now off unless

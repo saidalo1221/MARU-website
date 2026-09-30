@@ -6,7 +6,7 @@ from app.database import Base
 # Static "support" pages an admin can attach free-form content sections to —
 # same shape/pattern as AboutSection, just scoped by `page` instead of being
 # its own dedicated table per page.
-PAGE_KEYS = ("delivery", "payment", "returns", "faq", "contact")
+PAGE_KEYS = ("delivery", "payment", "returns", "faq", "contact", "privacy", "terms")
 
 
 class PageSection(Base):

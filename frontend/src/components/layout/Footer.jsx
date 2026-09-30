@@ -40,6 +40,8 @@ export default function Footer() {
         ['/returns', 'footer.returns'],
         ['/track', 'footer.trackOrder'],
         ['/faq', 'footer.faq'],
+        ['/privacy', 'footer.privacy'],
+        ['/terms', 'footer.terms'],
       ],
     },
   ]

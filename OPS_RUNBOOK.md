@@ -15,7 +15,20 @@ machine). Treat every step as "verify on staging first".
 
 Run each from the project root with the production `.env` loaded.
 
-## Logs
+## Deployment files (`deploy/`, none tested on a real server)
+- `nginx.conf.example` + `nginx-security-headers.conf`: one-domain site, HTTPS redirect, API and
+  uploads proxied, SPA fallback, frontend security headers and a CSP written for Stripe, PayPal,
+  OpenStreetMap, YouTube and ipapi.co. Start with `Content-Security-Policy-Report-Only`.
+- `maru-backend.service`: systemd unit. More than one worker requires `REDIS_URL`.
+- `crontab.example`: every scheduled job in one place.
+
+## Logs and error tracking
+Set `LOG_FORMAT=json` for one JSON object per line (time, level, logger, request_id, message,
+exception). Optional Sentry: `pip install sentry-sdk`, then set `SENTRY_DSN`; events carry no
+IPs or user details (`send_default_pii=False`). With the nginx example, the API's request id is
+nginx's `$request_id`, so the access log and application log share it.
+
+## Request ids
 Every response carries `X-Request-ID` (a valid incoming one from the proxy is kept) and every log
 line is tagged `[request-id]`. Ask a customer for the id from a failed request (browser dev tools, Network tab) and grep the logs.
 

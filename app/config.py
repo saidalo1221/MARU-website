@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     # Swagger UI / ReDoc / openapi.json publish every admin route. Off unless
     # explicitly enabled (set ENABLE_DOCS=true in a local .env).
     ENABLE_DOCS: bool = False
+    # Logging (app/core/logging_config.py): "text" or "json"; optional Sentry DSN.
+    LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "text"
+    SENTRY_DSN: Optional[str] = None
 
     @property
     def cors_origins(self) -> list[str]:

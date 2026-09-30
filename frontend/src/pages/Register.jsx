@@ -5,6 +5,7 @@ import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
 import PasswordInput from '../components/PasswordInput'
 import Seo from '../components/Seo'
+import LegalNotice from '../components/LegalNotice'
 
 const emptyForm = { email: '', password: '', first_name: '', last_name: '', phone: '' }
 
@@ -48,6 +49,7 @@ export default function Register() {
         <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
           {submitting ? t('register.submitting') : t('register.submit')}
         </button>
+        <LegalNotice />
       </form>
       <p className="text-sm text-gray-500 mt-4">
         {t('register.haveAccount')} <Link to={`/login?next=${encodeURIComponent(next)}`} className="text-brand underline">{t('register.login')}</Link>

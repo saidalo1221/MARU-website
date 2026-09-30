@@ -3,7 +3,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-PageKey = Literal["delivery", "payment", "returns", "faq", "contact"]
+PageKey = Literal["delivery", "payment", "returns", "faq", "contact", "privacy", "terms"]
 
 
 class PageSectionOut(BaseModel):

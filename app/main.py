@@ -1,4 +1,3 @@
-import logging
 from html import escape
 
 from fastapi import APIRouter, Depends, FastAPI, Response
@@ -8,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.core.logging_config import configure_logging, init_error_tracking
 from app.core.request_id import install_log_record_factory, new_request_id, request_id_var
 from app.database import get_db
 from app.models.blog_post import BlogPost
@@ -72,10 +72,10 @@ app = FastAPI(
 _DOCS_PATHS = ("/docs", "/redoc", "/openapi.json")
 
 install_log_record_factory()
-# uvicorn only configures its own loggers; without this the app's `maru.*`
-# loggers would print bare messages (or nothing below WARNING).
-if not logging.getLogger().handlers:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(request_id)s] %(name)s: %(message)s")
+# uvicorn only configures its own loggers; this gives the app's `maru.*` loggers
+# a handler (text or JSON, see app/core/logging_config.py).
+configure_logging()
+init_error_tracking()
 
 
 @app.middleware("http")
@@ -197,6 +197,8 @@ def sitemap(db: Session = Depends(get_db)) -> Response:
             "payment",
             "returns",
             "faq",
+            "privacy",
+            "terms",
             "b2b",
             "wholesale",
             "distributor",

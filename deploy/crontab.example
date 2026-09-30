@@ -1,0 +1,20 @@
+# Scheduled jobs for MARU - install with `crontab -e` as the app user.
+# NOT TESTED on a real server. Each job must run from the project root with the
+# production .env available (the app reads it from the working directory).
+# Logs go to /var/log/maru/ (create it and give the app user write access).
+
+APP=/srv/maru
+PY=/srv/maru/venv/bin/python
+
+# Release stock held by unpaid orders whose reservation expired
+*/5  * * * *  cd $APP && $PY -m app.tasks.expire_reservations   >> /var/log/maru/expire.log 2>&1
+# Retry failed CRM pushes
+*/10 * * * *  cd $APP && $PY -m app.tasks.retry_integrations    >> /var/log/maru/crm.log 2>&1
+# "Notify me when back in stock" emails
+*/15 * * * *  cd $APP && $PY -m app.tasks.notify_back_in_stock  >> /var/log/maru/stock-alerts.log 2>&1
+# Exchange rates (free API tier: once a day is plenty)
+10 3 * * *    cd $APP && $PY -m app.tasks.sync_exchange_rates   >> /var/log/maru/fx.log 2>&1
+# Stock drift report (exit status 1 = mismatches found; read it before adding --fix)
+30 3 * * *    cd $APP && $PY -m app.tasks.reconcile_stock       >> /var/log/maru/reconcile.log 2>&1
+# Database + uploads backup (see scripts/backup_db.sh for setup)
+15 2 * * *    /srv/maru/scripts/backup_db.sh                    >> /var/log/maru/backup.log 2>&1
