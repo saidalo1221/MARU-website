@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../api/products'
 import { listShippingCountries } from '../api/shipping'
@@ -55,9 +55,14 @@ export default function ProductDetail() {
   const sku = variant?.skus.find((s) => s.is_active) ?? null
   const coverImage = variant?.images?.[0]?.image_url || variant?.photo_url
 
+  // The product refetches when the cart currency loads; count one view per
+  // product, not one per fetch.
+  const viewedProductId = useRef(null)
   const productId = product?.id
   useEffect(() => {
-    if (productId) trackEvent('view_item', { product_id: productId, slug })
+    if (!productId || viewedProductId.current === productId) return
+    viewedProductId.current = productId
+    trackEvent('view_item', { product_id: productId, slug })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId])
 

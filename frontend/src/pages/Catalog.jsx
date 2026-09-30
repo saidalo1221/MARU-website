@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { listProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
@@ -23,6 +23,7 @@ export default function Catalog() {
   const [availabilityFilter, setAvailabilityFilter] = useState(false)
   const [sort, setSort] = useState('default')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const listTracked = useRef(false)
 
   useEffect(() => {
     if (!filtersOpen) return
@@ -42,7 +43,11 @@ export default function Catalog() {
     listProducts(locale, currency)
       .then((list) => {
         setProducts(list)
-        trackEvent('view_item_list', { item_list_name: 'catalog', item_count: list.length })
+        // Refetches on currency/locale change must not count as new list views.
+        if (!listTracked.current) {
+          listTracked.current = true
+          trackEvent('view_item_list', { item_list_name: 'catalog', item_count: list.length })
+        }
       })
       .catch(setError)
       .finally(() => setLoading(false))
