@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
@@ -33,8 +33,12 @@ export default function Cart() {
   }, [cartKey, locale])
 
   const cartItemCount = cart?.items.length ?? 0
+  const cartViewTracked = useRef(false)
   useEffect(() => {
-    if (cartItemCount > 0) trackEvent('view_cart', { item_count: cartItemCount, currency: cart.currency })
+    if (cartItemCount > 0 && !cartViewTracked.current) {
+      cartViewTracked.current = true
+      trackEvent('view_cart', { item_count: cartItemCount, currency: cart.currency })
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartItemCount > 0])
 
