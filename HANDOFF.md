@@ -173,14 +173,28 @@ noted; **none of the UI has been looked at in a real browser yet** (see
   like". Advisory only — frontend swallows any failure so checkout is never
   blocked. `app/services/recommendations.py`.
 
-### Not yet verified (do this first next session)
+### Browser verification (done 2026-09-30, Chrome, dark mode, ru locale)
 
-Servers were killed for low memory mid-session and not restarted, so none of
-these were seen in a browser: badges, gallery zoom/lightbox/video playback,
-filter bottom sheet, Quick View, country banner, dark mode (incl. skeletons and
-`.dark .bg-gray-200`), cart upsell layout, skip link, admin video upload UI.
-Backend logic for all of the above was exercised with FastAPI `TestClient`, and
-`vite build` passes, but that is not the same as using the pages.
+Verified in a real browser: badges match API data; gallery hover-zoom,
+lightbox (Esc/arrows/scroll-lock/focus), mp4 playback and YouTube embed;
+Quick View; cart upsell (excludes cart items and out-of-stock, honest
+"You may also like" heading); mobile filter bottom sheet; country banner
+(incl. EUR switch and dismiss); dark-mode toggle; `<html lang>` sync; skip
+link; skeleton loading state. Console had no errors.
+
+Bugs found and fixed in `6178908`: the mobile header was 499px wide at 390px
+(hamburger off-screen; search now has its own row), the Quick View button was
+unreadable in dark mode and overlapped titles (now an in-flow button), the
+lightbox image showed tiny, and two close buttons read "Close quick view".
+
+Still NOT verified: admin video-upload UI (needs admin 2FA login; the backend
+endpoint itself was tested), light mode visuals, touch behaviour on a real
+phone, checkout/account pages at phone width, Safari/Firefox.
+
+Open decision: `CountryBanner` calls `ipapi.co` from the visitor's browser,
+which discloses every visitor's IP to a third party with no consent step and
+has a low free-tier rate limit. Consider a consent gate or a server-side/paid
+geo lookup before launch.
 
 ### Gotchas learned this session
 
@@ -197,6 +211,13 @@ Backend logic for all of the above was exercised with FastAPI `TestClient`, and
 - Background dev servers can be reaped by Claude Code under memory pressure;
   restart them manually (commands in "Running it locally").
 - Video/image uploads are local-disk only; same object-storage caveat as before.
+- The frontend talks to the backend directly at `VITE_API_BASE_URL` (default
+  `http://127.0.0.1:8000/api/v1`); Vite only proxies `/sitemap.xml`. Requesting
+  `/api/...` on :5173 returns the SPA's HTML with a 200, so a 200 there proves
+  nothing — hit :8000.
+- Claude-in-Chrome's `resize_window` did not change the viewport. To test
+  phone widths, load the site in a same-origin `<iframe style="width:390px">`
+  from a scratch page (e.g. `/robots.txt`) and drive it via `contentDocument`.
 
 ## Feature work done 2026-09-28, newest first
 
