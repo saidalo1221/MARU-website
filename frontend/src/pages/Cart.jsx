@@ -246,15 +246,15 @@ export default function Cart() {
               <dd>{Number(cart.delivery) > 0 ? `${cart.currency} ${Number(cart.delivery).toFixed(2)}` : t('cart.calculatedAtCheckout')}</dd>
             </div>
             <EstimatedDelivery />
-            {cart.packaging && (cart.packaging.boxes > 0 || cart.packaging.weight_kg > 0) && (
+            {cart.packaging && (cart.packaging.boxes > 0 || cart.packaging.loose_units > 0) && (
               <p className="text-xs text-gray-500">
-                {t('cart.packaging', {
-                  boxes: cart.packaging.boxes,
-                  loose: cart.packaging.loose_units ? t('cart.packagingLoose', { n: cart.packaging.loose_units }) : '',
-                  kg: cart.packaging.weight_kg,
-                  l: cart.packaging.volume_l,
-                  approx: cart.packaging.complete ? '' : t('cart.packagingApprox'),
-                })}
+                {t('cart.packLabel')}: {[
+                  cart.packaging.boxes > 0 && t('cart.packBoxes', { n: cart.packaging.boxes }),
+                  cart.packaging.loose_units > 0 && t('cart.packLoose', { n: cart.packaging.loose_units }),
+                  cart.packaging.weight_kg > 0 && t('cart.packKg', { n: cart.packaging.weight_kg }),
+                  cart.packaging.volume_l > 0 && t('cart.packLitres', { n: cart.packaging.volume_l }),
+                ].filter(Boolean).join(' · ')}
+                {cart.packaging.complete ? '' : t('cart.packagingApprox')}
               </p>
             )}
             <div className="flex justify-between font-semibold text-base border-t border-gray-200 pt-2 mt-2">
