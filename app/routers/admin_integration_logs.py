@@ -12,6 +12,7 @@ from app.models.enums import UserRole
 from app.models.integration_log import IntegrationLog, IntegrationLogStatus
 from app.models.user import User
 from app.schemas.integration_log import IntegrationHealthOut, IntegrationLogOut
+from app.services.integrations.health import integration_metrics
 from app.services.integrations.retry import UnknownIntegrationError, retry_one
 
 router = APIRouter(prefix="/admin/integration-logs", tags=["admin-integration-logs"])
@@ -67,6 +68,9 @@ def integration_health(
             entry["last"] = last
     # Known integrations show up even with no traffic yet.
     per.setdefault("crm_bitrix24", {"success": 0, "failed": 0, "dead_letter": 0, "last": None})
+    metrics = integration_metrics(db)
+    for name in metrics:
+        per.setdefault(name, {"success": 0, "failed": 0, "dead_letter": 0, "last": None})
     return [
         IntegrationHealthOut(
             integration=name,
@@ -75,6 +79,11 @@ def integration_health(
             failed_24h=e["failed"],
             dead_letter_24h=e["dead_letter"],
             last_success_at=e["last"],
+            avg_latency_ms=metrics.get(name, {}).get("avg_latency_ms"),
+            max_latency_ms=metrics.get(name, {}).get("max_latency_ms"),
+            pending_retries=metrics.get(name, {}).get("pending_retries", 0),
+            dead_letters_open=metrics.get(name, {}).get("dead_letters", 0),
+            sync_lag_seconds=metrics.get(name, {}).get("sync_lag_seconds"),
         )
         for name, e in sorted(per.items())
     ]

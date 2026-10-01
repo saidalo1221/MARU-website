@@ -30,3 +30,8 @@ class IntegrationHealthOut(BaseModel):
     failed_24h: int
     dead_letter_24h: int
     last_success_at: Optional[datetime]
+    avg_latency_ms: Optional[int] = None
+    max_latency_ms: Optional[int] = None
+    pending_retries: int = 0
+    dead_letters_open: int = 0
+    sync_lag_seconds: Optional[int] = None

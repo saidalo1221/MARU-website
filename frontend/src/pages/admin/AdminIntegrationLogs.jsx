@@ -67,6 +67,11 @@ export default function AdminIntegrationLogs() {
                 <p className="text-xs mt-1">
                   {h.success_24h} {t('admin.integrationLogs.healthSuccess')} · {h.failed_24h} {t('admin.integrationLogs.healthFailed')} · {h.dead_letter_24h} {t('admin.integrationLogs.healthDead')}
                 </p>
+                <p className="text-xs mt-0.5">
+                  {h.avg_latency_ms != null ? `${t('admin.integrationLogs.healthLatency', { ms: h.avg_latency_ms })} · ` : ''}
+                  {h.pending_retries} {t('admin.integrationLogs.healthPending')} · {h.dead_letters_open} {t('admin.integrationLogs.healthDeadOpen')}
+                  {h.sync_lag_seconds != null ? ` · ${t('admin.integrationLogs.healthLag', { min: Math.round(h.sync_lag_seconds / 60) })}` : ''}
+                </p>
               </li>
             ))}
           </ul>

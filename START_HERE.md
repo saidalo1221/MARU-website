@@ -22,7 +22,7 @@ a build on 2026-10-01 — not copied from older notes. Read this file, then
   committed**: 33 modified files plus two new ones
   (`app/migration_2026_session10.sql`, `tests/test_pricing_edge_cases.py`).
   See "Changed 2026-10-01" below. Review and commit when ready.
-- `python -m pytest -q`: **190 passed in ~5-7 min** (slow; run single files while
+- `python -m pytest -q`: **202 passed in ~5-7 min** (slow; run single files while
   iterating). `npx vite build` in `frontend/`: passes.
 - `dev.db` (gitignored, hand-patched) has all model tables and every column,
   including the session-10 tax columns (`tax_rules` was rebuilt; `orders.region`
@@ -65,6 +65,24 @@ a build on 2026-10-01 — not copied from older notes. Read this file, then
   routes (blog, about, page sections, site settings, translations, uploads,
   categories, notification templates, reviews, variant images, product/variant
   create, integration retry) and auth/MFA events.
+- **Integration health metrics + alerts:** `integration_logs.duration_ms` is now
+  recorded per call; the admin cards show avg latency, calls waiting for retry,
+  open dead letters and sync lag (`app/services/integrations/health.py`).
+  `python -m app.tasks.check_alerts` (cron, see `deploy/crontab.example`) emails
+  `ALERT_EMAIL` for dead letters, retry backlog, sync lag and payment-failure
+  spikes (`ALERT_*` settings); repeats are suppressed for
+  `ALERT_COOLDOWN_MINUTES` via `alert_sent` audit rows. Rejected webhook calls
+  (bad signature) are deliberately NOT stored/alerted (would let anyone flood the
+  table); they only appear in the request log. Assumes the DB clock is UTC.
+- **Region on saved addresses:** `addresses.region`; the addresses form has the
+  field, and picking a saved address at checkout sends its region so region tax
+  rules apply (browser-verified: saved address with region -> 15%, without -> 12%).
+  Needs `app/migration_2026_session11.sql` (also adds `integration_logs.duration_ms`)
+  on MariaDB — never run. `dev.db` was patched for both.
+- **Responsive fixes:** the desktop header wrapped/overflowed at ~914px when
+  logged in (cluster now wraps); the cart/checkout two-column grid no longer
+  forces overflow at 768px. Headless `iframe` tests show a leftover 4px at exactly
+  768px that is a scrollbar artifact of the fixed consent banner, not page content.
 - **Cart minimum UX:** cart lines carry `min_order_quantity`; the cart page shows
   "Minimum order: N" (red while below) and disables checkout until every line
   meets it.
@@ -126,7 +144,8 @@ multi-currency, dark mode, full admin panel. Highlights:
 1. **Browser checks still open:** real mp4/webm *playback* (the 2026-10-01
    upload test used an empty webm container, so only the upload/attach path was
    proven), a real phone, Safari/Firefox, and re-running axe after the
-   2026-10-01 UI changes beyond the pages listed above. Already browser-verified on 2026-10-01: newsletter
+   2026-10-01 UI changes beyond the pages listed above (also not re-checked after
+   the header/cart responsive fixes: the other pages at 768-1024px). Already browser-verified on 2026-10-01: newsletter
    double opt-in, privacy/erasure, `/track`, back-in-stock, save-for-later,
    admin tax form + checkout region, MARU shipment form, health cards.
 2. **Native-speaker review** of ru/uz text: FAQ (my draft; `dev.db` has it but is
@@ -136,8 +155,7 @@ multi-currency, dark mode, full admin panel. Highlights:
    it) — make it absolute once the domain is known.
 4. Per `PRD_AUDIT.md`, still open: no unified payments ledger /
    `payment_status` (**on hold at the user's request**); product-level tax and a
-   region on saved addresses; health metrics (latency/queue/lag) and alerts
-   beyond the reconciliation email; per-product/customer promo targeting; no
+   per-product/customer promo targeting; no
    webhook queue / real worker (retries are cron sweeps); audit coverage for the
    content/auth routes listed above.
 
@@ -164,14 +182,16 @@ multi-currency, dark mode, full admin panel. Highlights:
 1. Run on a real Python 3.9 (see `MARIADB_PREFLIGHT.md`).
 2. Run the MariaDB SQL files on a real server (never done), **including
    `migration_2026_session10.sql`** (drops and re-adds the tax_rules unique
-   key), + full smoke test. Prove the refund row lock and the atomic promo
+   key) **and `migration_2026_session11.sql`**, + full smoke test. Prove the refund row lock and the atomic promo
    redeem there too.
 3. Behind a reverse proxy run uvicorn with
    `--proxy-headers --forwarded-allow-ips=<proxy>` or every visitor shares one
    rate-limit bucket. Route `/sitemap.xml` to the backend. The proxy must add
    the static-frontend security headers (`deploy/nginx-security-headers.conf`).
 4. Prod `.env`: `REDIS_URL` (+ Redis running), `BITRIX24_WEBHOOK_URL`,
-   `FRONTEND_URL`, `BACKEND_URL`, Payme/Click credentials, `ALERT_EMAIL`. Install the cron
+   `FRONTEND_URL`, `BACKEND_URL`, Payme/Click credentials, `ALERT_EMAIL`
+   (+ optional `ALERT_PAYMENT_FAILURES`, `ALERT_RETRY_BACKLOG`,
+   `ALERT_SYNC_LAG_MINUTES`, `ALERT_COOLDOWN_MINUTES`). Install the cron
    jobs (`deploy/crontab.example`). Swap Gmail SMTP for a transactional
    provider (env-only change).
 5. Commit the 2026-10-01 work, push, merge the PR, deploy. Nothing is deployed.

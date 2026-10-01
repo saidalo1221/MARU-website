@@ -75,8 +75,10 @@ marked **n/a**, not missing.
   opt-in) ~~with no alerting~~ **now emails `ALERT_EMAIL`** when it finds drift.
 - ~~**Tax region / order-value inputs**~~ **done**: `tax_rules.region` and
   `min_order_amount` (USD tiers), checkout "Region / state" field, `orders.region`.
-  Still missing: product-level tax (PRD TZ3 §74 lists product as an input) and a
-  region on saved addresses. Needs `migration_2026_session10.sql` on MariaDB.
+  Saved addresses now carry a region too (`addresses.region`), so a saved address
+  selects region rules at checkout. Still missing: product-level tax (PRD TZ3 §74
+  lists product as an input). Needs `migration_2026_session10.sql` and
+  `migration_2026_session11.sql` on MariaDB.
 - ~~**Promo edge cases**~~ **fixed**: the promo's `currency` was ignored (a 5 USD
   discount took 5 UZS off a UZS cart); the used-count increment was a plain
   read-modify-write that two concurrent checkouts could both win. Now converted
@@ -111,8 +113,14 @@ marked **n/a**, not missing.
 - ~~**Integration health status + dashboard**~~ **done (basic)**:
   `GET /admin/integration-logs/health` and cards on the Integration Logs page
   (HEALTHY/DEGRADED/FAILED/DISABLED from the last 24h; DISABLED = CRM webhook not
-  configured). Still missing: latency, queue size and sync-lag metrics (TZ4 §66),
-  and alerts beyond the reconciliation email.
+  configured), plus (TZ4 §66) avg/max latency (`duration_ms`), calls waiting for
+  retry, open dead letters and sync lag. ~~Alerts beyond the reconciliation
+  email~~ **done** (TZ4 §67): `app.tasks.check_alerts` emails dead letters, retry
+  backlog, sync lag and payment-failure spikes with a cooldown. Not covered:
+  rejected-webhook alerts (deliberately not stored - flood risk), stock-sync and
+  shipment/tracking failure alerts (no such integrations exist yet), and a
+  queue-size metric for a real queue (there is none; "pending retries" is the
+  closest).
 - **Dockerfile, CI/CD, backups**: now in the repo (`Dockerfile`,
   `.github/workflows/ci.yml`, `scripts/backup_db.sh`, `OPS_RUNBOOK.md`) but
   **none has been run** (no Docker, no GitHub run, no server access).

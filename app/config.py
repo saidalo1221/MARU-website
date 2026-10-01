@@ -85,6 +85,11 @@ class Settings(BaseSettings):
     SMTP_USE_TLS: bool = True
     # Where operational alerts (e.g. stock reconciliation mismatches) go.
     ALERT_EMAIL: Optional[str] = None
+    # Thresholds for app/tasks/check_alerts.py (PRD ТЗ№4 §67).
+    ALERT_PAYMENT_FAILURES: int = 5  # PAYMENT_FAILED orders within the last hour
+    ALERT_RETRY_BACKLOG: int = 20  # integration calls waiting for a retry
+    ALERT_SYNC_LAG_MINUTES: int = 60  # oldest unresolved integration failure
+    ALERT_COOLDOWN_MINUTES: int = 360  # don't repeat the same alert sooner than this
 
 
 settings = Settings()

@@ -10,6 +10,8 @@ PY=/srv/maru/venv/bin/python
 */5  * * * *  cd $APP && $PY -m app.tasks.expire_reservations   >> /var/log/maru/expire.log 2>&1
 # Retry failed CRM pushes
 */10 * * * *  cd $APP && $PY -m app.tasks.retry_integrations    >> /var/log/maru/crm.log 2>&1
+# Email ALERT_EMAIL about dead-letter/stuck integrations and payment-failure spikes
+*/10 * * * *  cd $APP && $PY -m app.tasks.check_alerts          >> /var/log/maru/alerts.log 2>&1
 # "Notify me when back in stock" emails
 */15 * * * *  cd $APP && $PY -m app.tasks.notify_back_in_stock  >> /var/log/maru/stock-alerts.log 2>&1
 # Exchange rates (free API tier: once a day is plenty)

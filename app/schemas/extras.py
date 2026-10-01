@@ -2,7 +2,7 @@ from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import RefundStatus
 from app.models.quote_request import QuoteStatus
@@ -90,12 +90,20 @@ class AddressIn(BaseModel):
     last_name: str = Field(min_length=1, max_length=100)
     phone: str = Field(min_length=1, max_length=30)
     country: str = Field(min_length=1, max_length=100)
+    region: Optional[str] = Field(default=None, max_length=100)
     city: str = Field(min_length=1, max_length=100)
     address_line: str = Field(min_length=1, max_length=255)
     postal_code: str = Field(min_length=1, max_length=20)
     is_default: bool = False
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+
+
+    @field_validator("region")
+    @classmethod
+    def _blank_region_is_none(cls, value):
+        value = (value or "").strip()
+        return value or None
 
 
 class AddressOut(AddressIn):

@@ -15,6 +15,7 @@ const emptyForm = {
   last_name: '',
   phone: '',
   country: '',
+  region: '',
   city: '',
   address_line: '',
   postal_code: '',
@@ -60,7 +61,7 @@ export default function Addresses() {
 
   const openEdit = (address) => {
     setEditingId(address.id)
-    setForm({ ...emptyForm, ...address })
+    setForm({ ...emptyForm, ...address, region: address.region || '' })
     setError(null)
     setFormOpen(true)
   }
@@ -132,6 +133,7 @@ export default function Addresses() {
               <option value="">{t('checkout.selectCountry')}</option>
               {countries.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
+            <input placeholder={t('checkout.region')} aria-label={t('checkout.region')} value={form.region} onChange={update('region')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
             <input required placeholder={t('checkout.city')} aria-label={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
             <input placeholder={t('checkout.postalCode')} aria-label={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
             <input required placeholder={t('checkout.address')} aria-label={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
@@ -163,7 +165,7 @@ export default function Addresses() {
               {a.label && <p className="font-medium">{a.label}{a.is_default && ` · ${t('addresses.default')}`}</p>}
               {!a.label && a.is_default && <p className="font-medium">{t('addresses.default')}</p>}
               <p>{a.first_name} {a.last_name} · {a.phone}</p>
-              <p className="text-gray-500">{a.address_line}, {a.city}, {a.country} {a.postal_code}</p>
+              <p className="text-gray-500">{a.address_line}, {a.city}{a.region ? `, ${a.region}` : ''}, {a.country} {a.postal_code}</p>
             </div>
             <div className="flex gap-3 text-sm">
               <button onClick={() => openEdit(a)} className="text-brand">{t('addresses.edit')}</button>

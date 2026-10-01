@@ -88,6 +88,7 @@ export default function Checkout() {
       last_name: address.last_name,
       phone: address.phone,
       country: address.country,
+      region: address.region || '',
       city: address.city,
       address_line: address.address_line,
       postal_code: address.postal_code,
@@ -232,7 +233,7 @@ export default function Checkout() {
       <Seo title={t('checkout.title')} noindex />
       <h1 className="text-2xl font-bold mb-4">{t('checkout.title')}</h1>
 
-      <div className="md:grid md:grid-cols-[1fr_320px] md:gap-8">
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <fieldset>
             <legend className="font-semibold mb-2">{t('checkout.orderType')}</legend>
@@ -285,7 +286,7 @@ export default function Checkout() {
                     <input type="radio" name="saved_address" checked={selectedAddressId === a.id} onChange={() => selectAddress(a.id)} className="mt-1" />
                     <span>
                       {a.label && <span className="font-medium">{a.label} · </span>}
-                      {a.first_name} {a.last_name} · {a.address_line}, {a.city}, {a.country} {a.postal_code}
+                      {a.first_name} {a.last_name} · {a.address_line}, {a.city}{a.region ? `, ${a.region}` : ''}, {a.country} {a.postal_code}
                     </span>
                   </label>
                 ))}

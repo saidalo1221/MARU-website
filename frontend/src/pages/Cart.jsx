@@ -113,7 +113,7 @@ export default function Cart() {
       <Seo title={t('cart.title')} noindex />
       <h1 className="text-2xl font-bold mb-4">{t('cart.title')}</h1>
 
-      <div className="md:grid md:grid-cols-[1fr_320px] md:gap-8">
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
         <div className="divide-y divide-gray-200">
           {cart.items.map((item) => (
             <div key={item.id} className="py-4 flex items-center gap-4">

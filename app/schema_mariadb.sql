@@ -44,6 +44,7 @@ CREATE TABLE integration_logs (
 	error_code VARCHAR(100), 
 	error_message TEXT, 
 	attempt INTEGER NOT NULL, 
+	duration_ms INTEGER, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	completed_at DATETIME, 
 	PRIMARY KEY (id)
@@ -180,6 +181,7 @@ CREATE TABLE addresses (
 	last_name VARCHAR(100) NOT NULL, 
 	phone VARCHAR(30) NOT NULL, 
 	country VARCHAR(100) NOT NULL, 
+	region VARCHAR(100), 
 	city VARCHAR(100) NOT NULL, 
 	address_line VARCHAR(255) NOT NULL, 
 	postal_code VARCHAR(20) NOT NULL,
