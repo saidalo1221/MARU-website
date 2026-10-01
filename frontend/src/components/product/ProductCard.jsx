@@ -85,6 +85,7 @@ export default function ProductCard({ product }) {
           {product.rating_count > 0 && (
             <p
               className="text-xs text-yellow-600 mt-0.5"
+              role="img"
               aria-label={t('product.ratingLabel', { avg: product.rating_average, n: product.rating_count })}
             >
               <span aria-hidden="true">★ {product.rating_average} ({product.rating_count})</span>

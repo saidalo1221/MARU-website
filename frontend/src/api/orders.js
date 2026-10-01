@@ -31,3 +31,7 @@ export function getMyOrder(orderId) {
 export function getPaymentMethods() {
   return apiRequest('/payments/methods')
 }
+
+export function retryPayment(orderId, orderToken) {
+  return apiRequest(`/orders/${orderId}/payment`, { method: 'POST', orderToken })
+}

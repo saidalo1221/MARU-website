@@ -51,6 +51,20 @@ html {
 .dark .text-amber-700,
 .dark .text-amber-800 { color: #fbbf24; }
 
+.dark .bg-brand-light { background-color: #12372a; }
+.dark .bg-green-50 { background-color: #052e16; }
+.dark .border-green-200,
+.dark .border-green-300 { border-color: #166534; }
+.dark .text-green-800 { color: #86efac; }
+.dark .bg-red-50 { background-color: #450a0a; }
+.dark .border-red-200,
+.dark .border-red-300 { border-color: #991b1b; }
+.dark .text-red-800 { color: #fca5a5; }
+.dark .bg-yellow-50 { background-color: #422006; }
+.dark .border-yellow-200,
+.dark .border-yellow-300 { border-color: #854d0e; }
+.dark .text-yellow-800,
+.dark .text-yellow-900 { color: #fde68a; }
 .dark .bg-blue-50 { background-color: #172554; }
 .dark .border-blue-200 { border-color: #1e3a8a; }
 .dark .text-blue-700,

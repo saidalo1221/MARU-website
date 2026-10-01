@@ -62,6 +62,9 @@ import AdminNotificationTemplates from './pages/admin/AdminNotificationTemplates
 import AdminIntegrationLogs from './pages/admin/AdminIntegrationLogs'
 import AdminAuditLog from './pages/admin/AdminAuditLog'
 import AdminAnalyticsEvents from './pages/admin/AdminAnalyticsEvents'
+import AccountDashboard from './pages/AccountDashboard'
+import AccountProfile from './pages/AccountProfile'
+import ContentPage from './pages/ContentPage'
 import NotFound from './pages/NotFound'
 import { useLocale } from './context/LocaleContext'
 
@@ -97,6 +100,8 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/account" element={<AccountDashboard />} />
+          <Route path="/account/profile" element={<AccountProfile />} />
           <Route path="/account/orders" element={<OrdersHistory />} />
           <Route path="/account/wishlist" element={<Wishlist />} />
           <Route path="/account/addresses" element={<Addresses />} />
@@ -106,6 +111,8 @@ export default function App() {
           <Route path="/wholesale" element={<Wholesale />} />
           <Route path="/distributor" element={<Distributor />} />
           <Route path="/about" element={<About />} />
+          <Route path="/manufacturing" element={<ContentPage pageKey="manufacturing" />} />
+          <Route path="/quality" element={<ContentPage pageKey="quality" />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/delivery" element={<Delivery />} />
           <Route path="/payment" element={<Payment />} />

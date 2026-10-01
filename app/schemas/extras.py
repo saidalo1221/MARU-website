@@ -128,6 +128,17 @@ class ReviewOut(BaseModel):
     created_at: datetime
 
 
+class FeaturedReviewOut(BaseModel):
+    """A review shown on the home page: first name only, never an email or surname."""
+
+    id: int
+    rating: int
+    content: str
+    author: Optional[str]
+    product_name: str
+    product_slug: str
+
+
 class ReviewSummary(BaseModel):
     average_rating: Optional[float]
     count: int

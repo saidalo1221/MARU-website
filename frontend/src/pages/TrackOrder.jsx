@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { trackOrder } from '../api/orders'
 import { useLocale } from '../context/LocaleContext'
@@ -7,7 +8,9 @@ import ShipmentList from '../components/ShipmentList'
 
 export default function TrackOrder() {
   const { t } = useLocale()
-  const [orderNumber, setOrderNumber] = useState('')
+  const [searchParams] = useSearchParams()
+  // The order page links here with ?order=<number>; the email is still asked for.
+  const [orderNumber, setOrderNumber] = useState(searchParams.get('order') || '')
   const [email, setEmail] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)

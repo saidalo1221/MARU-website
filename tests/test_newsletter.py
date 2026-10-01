@@ -96,3 +96,18 @@ def test_admin_list_requires_marketing_role_and_reports_counts(client, db_sessio
     only = client.get("/api/v1/admin/newsletter/?status_filter=confirmed", headers=headers).json()
     assert [s["email"] for s in only["subscribers"]] == ["reader@example.com"]
     assert "token" not in only["subscribers"][0]
+
+
+def test_confirming_records_a_newsletter_signup_event_without_pii(client, db_session):
+    from app.models.analytics_event import AnalyticsEvent
+    from app.models.newsletter_subscriber import NewsletterSubscriber
+
+    client.post("/api/v1/newsletter/subscribe", json={"email": "evt@example.com", "locale": "ru"})
+    token = db_session.query(NewsletterSubscriber).filter_by(email="evt@example.com").one().token
+    assert db_session.query(AnalyticsEvent).filter_by(event_name="newsletter_signup").count() == 0
+
+    client.post("/api/v1/newsletter/confirm", json={"token": token})
+    client.post("/api/v1/newsletter/confirm", json={"token": token})  # repeat clicks do not count twice
+    events = db_session.query(AnalyticsEvent).filter_by(event_name="newsletter_signup").all()
+    assert len(events) == 1
+    assert "evt@example.com" not in (events[0].properties or "")

@@ -96,7 +96,11 @@ class OrderOut(BaseModel):
     last_name: str
     email: str
     country: str
+    region: Optional[str] = None
     city: str
+    address_line: Optional[str] = None
+    postal_code: Optional[str] = None
+    delivery_method: Optional[str] = None
     source: str
     payment_method: str
     created_at: datetime

@@ -106,3 +106,25 @@ def test_admin_rejects_inverted_days_and_accepts_offer_fields(client, db_session
     )
     assert ok.status_code == 201, ok.text
     assert ok.json()["max_delivery_days"] == 5
+
+
+def test_estimate_reports_availability_and_cheapest_fee(client, db_session):
+    from decimal import Decimal
+
+    from app.models.shipping_rate import ShippingRate
+
+    db_session.add_all(
+        [
+            ShippingRate(country="Uzbekistan", delivery_method="courier", base_fee=Decimal("5"), currency="USD", max_delivery_days=3),
+            ShippingRate(country="Uzbekistan", delivery_method="pickup", base_fee=Decimal("0"), currency="USD"),
+            ShippingRate(country="Germany", delivery_method="courier", base_fee=Decimal("20"), currency="USD", min_delivery_days=5, max_delivery_days=9),
+        ]
+    )
+    db_session.commit()
+
+    uz = client.get("/api/v1/shipping/estimate", params={"country": "Uzbekistan"}).json()
+    assert uz["available"] is True and Decimal(uz["from_fee"]) == 0 and uz["max_days"] == 3 and uz["fee_currency"] == "USD"
+    de = client.get("/api/v1/shipping/estimate", params={"country": "Germany"}).json()
+    assert Decimal(de["from_fee"]) == 20 and (de["min_days"], de["max_days"]) == (5, 9)
+    nowhere = client.get("/api/v1/shipping/estimate", params={"country": "Atlantis"}).json()
+    assert nowhere["available"] is False and nowhere["from_fee"] is None

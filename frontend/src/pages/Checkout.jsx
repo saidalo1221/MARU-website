@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import { checkout, confirmPayment, getPaymentMethods } from '../api/orders'
+import { getShipCountry } from '../lib/shipCountry'
 import { listAddresses } from '../api/addresses'
 import { listShippingCountries, listShippingMethods } from '../api/shipping'
 import { errorMessage } from '../api/client'
@@ -43,7 +44,8 @@ export default function Checkout() {
   const { t } = useLocale()
   const navigate = useNavigate()
 
-  const [form, setForm] = useState(emptyForm)
+  // The country picked in the header / delivery block is the default delivery country.
+  const [form, setForm] = useState(() => ({ ...emptyForm, country: getShipCountry() }))
   const [pin, setPin] = useState(null)
   const [countries, setCountries] = useState([])
   const [methods, setMethods] = useState([])

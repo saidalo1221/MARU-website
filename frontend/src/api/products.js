@@ -8,8 +8,14 @@ function buildQuery({ lang, currency } = {}) {
   return qs ? `?${qs}` : ''
 }
 
-export function listProducts(lang, currency) {
-  return apiRequest(`/products/${buildQuery({ lang, currency })}`)
+export function listProducts(lang, currency, { sort, limit } = {}) {
+  const params = new URLSearchParams()
+  if (lang) params.set('lang', lang)
+  if (currency) params.set('currency', currency)
+  if (sort) params.set('sort', sort)
+  if (limit) params.set('limit', String(limit))
+  const qs = params.toString()
+  return apiRequest(`/products/${qs ? `?${qs}` : ''}`)
 }
 
 export function listCategories(lang) {

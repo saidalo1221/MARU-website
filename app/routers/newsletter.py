@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.newsletter_subscriber import NewsletterStatus, NewsletterSubscriber
+from app.services.analytics import record_event
 from app.services.notifications.email import EmailNotifier
 
 router = APIRouter(prefix="/newsletter", tags=["newsletter"])
@@ -85,6 +86,8 @@ def confirm(payload: TokenIn, db: Session = Depends(get_db)) -> OkOut:
         row.confirmed_at = _now()
         row.unsubscribed_at = None
         db.commit()
+        # The signup counts once it is confirmed (PRD ТЗ№2 §63); no email or other PII is recorded.
+        record_event(db, "newsletter_signup", locale=row.locale)
     return OkOut()
 
 

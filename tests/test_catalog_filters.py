@@ -110,3 +110,29 @@ def test_rating_is_returned_and_sortable(client, db_session, warehouse):
     assert by_slug["pricey"]["rating_average"] is None and by_slug["pricey"]["rating_count"] == 0
     detail = client.get(f"{URL}mid").json()
     assert detail["rating_average"] == 5.0
+
+
+def test_featured_reviews_expose_only_first_name_and_approved_text(client, db_session, warehouse):
+    _, _, prods = _catalog(db_session, warehouse)
+    register(client, "fan@example.com")
+    user = db_session.query(User).filter_by(email="fan@example.com").one()
+    user.first_name, user.last_name = "Dilnoza", "Secret"
+    other = User(email="other@example.com", password_hash="x", first_name="Bek")
+    db_session.add(other)
+    db_session.flush()
+    db_session.add_all(
+        [
+            Review(user_id=user.id, product_id=prods["mid"].id, rating=5, content="Great box", status=ReviewStatus.APPROVED),
+            Review(user_id=user.id, product_id=prods["cheap"].id, rating=4, content="Pending text", status=ReviewStatus.PENDING),
+            Review(user_id=other.id, product_id=prods["mid"].id, rating=3, content=None, status=ReviewStatus.APPROVED),
+        ]
+    )
+    db_session.commit()
+
+    r = client.get("/api/v1/reviews/featured")
+    assert r.status_code == 200, r.text
+    assert r.json() == [
+        {"id": r.json()[0]["id"], "rating": 5, "content": "Great box", "author": "Dilnoza", "product_name": "mid", "product_slug": "mid"}
+    ]
+    assert "Secret" not in r.text and "@" not in r.text
+    assert client.get("/api/v1/reviews/featured", params={"limit": 50}).status_code == 422

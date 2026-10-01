@@ -11,7 +11,7 @@ import {
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 
-const PAGES = ['delivery', 'payment', 'returns', 'faq', 'contact', 'privacy', 'terms']
+const PAGES = ['delivery', 'payment', 'returns', 'faq', 'contact', 'privacy', 'terms', 'manufacturing', 'quality']
 const TRANSLATION_LOCALES = ['ru', 'uz', 'en']
 const emptyTranslation = { title: '', body: '' }
 

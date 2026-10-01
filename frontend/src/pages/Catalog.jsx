@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { listCategories, listProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
@@ -9,6 +10,7 @@ import { ProductGridSkeleton } from '../components/Skeleton'
 import useDialogFocus from '../lib/useDialogFocus'
 
 const PAGE_SIZE = 12
+const SORT_VALUES = ['default', 'price_asc', 'price_desc', 'newest', 'rating']
 
 function minPrice(product) {
   const prices = product.variants.flatMap((v) => v.skus.map((s) => Number(s.retail_price)))
@@ -26,7 +28,11 @@ export default function Catalog() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [volumeFilter, setVolumeFilter] = useState('')
+  // The header menus and home page link here with ?capacity=<ml> and ?sort=<value>.
+  const [searchParams] = useSearchParams()
+  const urlCapacity = searchParams.get('capacity') || ''
+  const urlSort = searchParams.get('sort') || ''
+  const [volumeFilter, setVolumeFilter] = useState(urlCapacity)
   const [availabilityFilter, setAvailabilityFilter] = useState(false)
   const [categoryFilter, setCategoryFilter] = useState('')
   const [colorFilter, setColorFilter] = useState('')
@@ -34,7 +40,7 @@ export default function Catalog() {
   const [priceMax, setPriceMax] = useState('')
   const [categories, setCategories] = useState([])
   const [page, setPage] = useState(1)
-  const [sort, setSort] = useState('default')
+  const [sort, setSort] = useState(SORT_VALUES.includes(urlSort) ? urlSort : 'default')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const listTracked = useRef(false)
   const filtersDialogRef = useRef(null)
@@ -46,6 +52,11 @@ export default function Catalog() {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [filtersOpen])
+
+  useEffect(() => {
+    setVolumeFilter(urlCapacity)
+    setSort(SORT_VALUES.includes(urlSort) ? urlSort : 'default')
+  }, [urlCapacity, urlSort])
 
   const SORT_OPTIONS = [
     { value: 'default', label: t('catalog.sortDefault') },

@@ -1,6 +1,8 @@
 from typing import Annotated, Optional
 
-from pydantic import BaseModel, ConfigDict, StringConstraints
+import re
+
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from app.models.enums import CustomerType, UserRole
 
@@ -10,6 +12,18 @@ EmailStr = Annotated[
 ]
 
 
+def normalize_phone(value: Optional[str]) -> Optional[str]:
+    """Stores phones as digits with an optional leading + (E.164 shape, PRD ТЗ№4 §80);
+    spaces, dashes and brackets typed by the user are dropped. Blank becomes None."""
+    value = (value or "").strip()
+    if not value:
+        return None
+    cleaned = re.sub(r"[\s\-().]", "", value)
+    if not re.fullmatch(r"\+?\d{7,15}", cleaned):
+        raise ValueError("phone must have 7-15 digits, optionally starting with +")
+    return cleaned
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
@@ -17,6 +31,29 @@ class UserCreate(BaseModel):
     last_name: Optional[str] = None
     phone: Optional[str] = None
     customer_type: CustomerType = CustomerType.RETAIL
+
+    _phone = field_validator("phone")(normalize_phone)
+
+
+class ProfileUpdate(BaseModel):
+    """Self-service profile edit; the email is changed through support, not here."""
+
+    first_name: Optional[str] = Field(default=None, max_length=100)
+    last_name: Optional[str] = Field(default=None, max_length=100)
+    phone: Optional[str] = None
+
+    @field_validator("first_name", "last_name")
+    @classmethod
+    def _blank_is_none(cls, value):
+        value = (value or "").strip()
+        return value or None
+
+    _phone = field_validator("phone")(normalize_phone)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 
 class UserLogin(BaseModel):

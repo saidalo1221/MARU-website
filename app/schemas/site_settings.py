@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class SiteSettingsOut(BaseModel):
@@ -15,6 +15,10 @@ class SiteSettingsOut(BaseModel):
     longitude: Optional[float]
     about_title: Optional[str]
     about_body: Optional[str]
+    facebook_url: Optional[str] = None
+    instagram_url: Optional[str] = None
+    telegram_url: Optional[str] = None
+    youtube_url: Optional[str] = None
 
 
 class SiteSettingsUpdate(BaseModel):
@@ -25,6 +29,21 @@ class SiteSettingsUpdate(BaseModel):
     longitude: Optional[float] = None
     about_title: Optional[str] = Field(default=None, max_length=255)
     about_body: Optional[str] = None
+    facebook_url: Optional[str] = Field(default=None, max_length=255)
+    instagram_url: Optional[str] = Field(default=None, max_length=255)
+    telegram_url: Optional[str] = Field(default=None, max_length=255)
+    youtube_url: Optional[str] = Field(default=None, max_length=255)
+
+    @field_validator("facebook_url", "instagram_url", "telegram_url", "youtube_url")
+    @classmethod
+    def _social_url(cls, value):
+        # Rendered as links in the footer, so only http(s) is allowed (no javascript: URLs).
+        value = (value or "").strip()
+        if not value:
+            return None
+        if not value.lower().startswith(("http://", "https://")):
+            raise ValueError("must be an http(s) URL")
+        return value
 
 
 class SiteSettingsTranslationIn(BaseModel):

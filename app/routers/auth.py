@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.password_policy import PasswordPolicyError, validate_password
 from app.core.security import create_access_token, hash_password, verify_password
 from app.core.rate_limit import rate_limit
 from app.database import get_db
@@ -25,9 +26,11 @@ from app.services.notifications.email import EmailNotifier
 from app.schemas.user import (
     AdminLoginRequest,
     AdminVerifyRequest,
+    ChangePasswordRequest,
     LoginResult,
     MfaCodeRequest,
     MfaSetupOut,
+    ProfileUpdate,
     Token,
     UserCreate,
     UserLogin,
@@ -97,6 +100,10 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
 
     if existing is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    try:
+        validate_password(payload.password, email=payload.email)
+    except PasswordPolicyError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     user = User(
         email=payload.email,
@@ -222,6 +229,43 @@ def me(user: User = Depends(get_current_user_required)) -> User:
     return user
 
 
+@router.patch("/me", response_model=UserOut, dependencies=[Depends(rate_limit("profile_update", 30, 3600))])
+def update_profile(
+    payload: ProfileUpdate, user: User = Depends(get_current_user_required), db: Session = Depends(get_db)
+) -> User:
+    """Self-service name and phone change (PRD ТЗ№2 §27 account profile)."""
+    try:
+        for field, value in payload.model_dump(exclude_unset=True).items():
+            setattr(user, field, value)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to update profile") from exc
+    db.refresh(user)
+    return user
+
+
+@router.post("/change-password", dependencies=[Depends(rate_limit("change_password", 10, 3600))])
+def change_password(
+    payload: ChangePasswordRequest, user: User = Depends(get_current_user_required), db: Session = Depends(get_db)
+) -> dict:
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+    if payload.new_password == payload.current_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must differ from the current one")
+    try:
+        validate_password(payload.new_password, email=user.email, strong=user.role != UserRole.CUSTOMER)
+    except PasswordPolicyError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    try:
+        user.password_hash = hash_password(payload.new_password)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to change password") from exc
+    return {"detail": "Password changed."}
+
+
 @router.post("/forgot-password", dependencies=[Depends(rate_limit("forgot", 5, 3600))])
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)) -> dict:
     """Always answers the same way so it can't be used to discover which emails have accounts."""
@@ -253,6 +297,10 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
 
     user = db.get(User, record.user_id)
+    try:
+        validate_password(payload.new_password, email=user.email, strong=user.role != UserRole.CUSTOMER)
+    except PasswordPolicyError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     try:
         user.password_hash = hash_password(payload.new_password)
         record.used_at = now

@@ -705,6 +705,10 @@ CREATE TABLE site_settings (
 	longitude FLOAT,
 	about_title VARCHAR(255),
 	about_body TEXT,
+	facebook_url VARCHAR(255),
+	instagram_url VARCHAR(255),
+	telegram_url VARCHAR(255),
+	youtube_url VARCHAR(255),
 	updated_at DATETIME NOT NULL DEFAULT now(),
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;

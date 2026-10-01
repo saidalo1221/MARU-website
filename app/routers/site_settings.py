@@ -30,4 +30,8 @@ def get_site_settings(lang: Optional[str] = None, db: Session = Depends(get_db))
             translation.about_title if translation and translation.about_title else settings_row.about_title
         ),
         about_body=(translation.about_body if translation and translation.about_body else settings_row.about_body),
+        facebook_url=settings_row.facebook_url,
+        instagram_url=settings_row.instagram_url,
+        telegram_url=settings_row.telegram_url,
+        youtube_url=settings_row.youtube_url,
     )

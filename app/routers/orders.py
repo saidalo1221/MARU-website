@@ -282,6 +282,40 @@ def confirm_payment(
     return order
 
 
+_RETRYABLE_PAYMENT_STATUSES = {OrderStatus.NEW, OrderStatus.PAYMENT_PENDING, OrderStatus.PAYMENT_FAILED}
+
+
+@router.post(
+    "/{order_id}/payment",
+    response_model=PaymentInitiationOut,
+    dependencies=[Depends(rate_limit("order_payment", 20, 60))],
+)
+def retry_payment(
+    order_id: int,
+    order_token: Optional[str] = Header(default=None, alias="X-Order-Token"),
+    user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+) -> PaymentInitiationOut:
+    """Pay Now / Try Again (PRD ТЗ№2 §24): hands back the payment link for an
+    order that is unpaid or whose payment failed. Only redirect-style gateways
+    (Payme, Click) can be retried this way - their webhooks already re-reserve
+    stock for a failed order; card gateways need a new checkout."""
+    order = _load_order(db, order_id)
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    _require_order_access(order, user, order_token)
+
+    if order.status not in _RETRYABLE_PAYMENT_STATUSES:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This order is not waiting for payment")
+    try:
+        kind = payment_reference_kind(order.payment_method)
+    except KeyError:
+        kind = None
+    if kind != "redirect_url" or not order.payment_reference:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Payment cannot be retried for this order; please place a new order")
+    return PaymentInitiationOut(method=order.payment_method, reference_kind=kind, reference=order.payment_reference)
+
+
 @router.post(
     "/{order_id}/cancel",
     response_model=OrderOut,

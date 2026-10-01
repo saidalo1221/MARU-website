@@ -42,13 +42,23 @@ def shipping_estimate(country: Optional[str] = None, db: Session = Depends(get_d
     """Fastest configured delivery window (and free-shipping offer) for a
     country, for the product page. Country-specific rates win over "*" ones;
     with no country it summarises every active rate."""
-    stmt = select(ShippingRate).where(ShippingRate.is_active.is_(True), ShippingRate.max_delivery_days.is_not(None))
-    rates = db.execute(stmt).scalars().all()
+    all_rates = db.execute(select(ShippingRate).where(ShippingRate.is_active.is_(True))).scalars().all()
     if country:
-        specific = [r for r in rates if r.country == country]
-        rates = specific or [r for r in rates if r.country == ANY]
-    if not rates:
+        specific = [r for r in all_rates if r.country == country]
+        pool = specific or [r for r in all_rates if r.country == ANY]
+    else:
+        pool = all_rates
+    if not pool:
         return ShippingEstimateOut()
+
+    # The cheapest base fee, compared within the first rate's currency.
+    fee_currency = pool[0].currency
+    from_fee = min(r.base_fee for r in pool if r.currency == fee_currency)
+    availability = {"available": True, "from_fee": from_fee, "fee_currency": fee_currency}
+
+    rates = [r for r in pool if r.max_delivery_days is not None]
+    if not rates:
+        return ShippingEstimateOut(**availability)
     best = min(rates, key=lambda r: (r.max_delivery_days, r.min_delivery_days or 0))
     offers = [r for r in rates if r.free_shipping_threshold is not None and r.currency == best.currency]
     threshold = min((r.free_shipping_threshold for r in offers), default=None)
@@ -57,4 +67,5 @@ def shipping_estimate(country: Optional[str] = None, db: Session = Depends(get_d
         max_days=best.max_delivery_days,
         free_shipping_threshold=threshold,
         currency=best.currency,
+        **availability,
     )

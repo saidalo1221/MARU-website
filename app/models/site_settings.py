@@ -19,6 +19,10 @@ class SiteSettings(Base):
     address = Column(String(500), nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+    facebook_url = Column(String(255), nullable=True)
+    instagram_url = Column(String(255), nullable=True)
+    telegram_url = Column(String(255), nullable=True)
+    youtube_url = Column(String(255), nullable=True)
     about_title = Column(String(255), nullable=True)
     about_body = Column(Text, nullable=True)
 

@@ -65,3 +65,8 @@ class ShippingEstimateOut(BaseModel):
     # In `currency`; the storefront converts for display.
     free_shipping_threshold: Optional[Decimal] = None
     currency: Optional[str] = None
+    # Whether any active rate serves this country, and the cheapest base fee
+    # among them (in `fee_currency`) - the "delivery from X" line (PRD ТЗ№2 §17).
+    available: bool = False
+    from_fee: Optional[Decimal] = None
+    fee_currency: Optional[str] = None

@@ -38,6 +38,10 @@ export default function AdminSiteSettings() {
           longitude: s.longitude,
           about_title: s.about_title || '',
           about_body: s.about_body || '',
+          facebook_url: s.facebook_url || '',
+          instagram_url: s.instagram_url || '',
+          telegram_url: s.telegram_url || '',
+          youtube_url: s.youtube_url || '',
         })
         setTranslations(Object.fromEntries(tr.map((row) => [row.locale, row])))
       })
@@ -113,6 +117,10 @@ export default function AdminSiteSettings() {
             onChange={({ latitude, longitude }) => setForm((f) => ({ ...f, latitude, longitude }))}
           />
         </div>
+
+        {['facebook_url', 'instagram_url', 'telegram_url', 'youtube_url'].map((field) => (
+          <input key={field} type="url" placeholder={t(`admin.siteSettings.${field}`)} aria-label={t(`admin.siteSettings.${field}`)} value={form[field]} onChange={update(field)} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+        ))}
 
         <input placeholder={t('admin.siteSettings.aboutTitle')} aria-label={t('admin.siteSettings.aboutTitle')} value={form.about_title} onChange={update('about_title')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
         <textarea placeholder={t('admin.siteSettings.aboutBody')} aria-label={t('admin.siteSettings.aboutBody')} value={form.about_body} onChange={update('about_body')} rows={6} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />

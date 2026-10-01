@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -12,10 +14,42 @@ from app.models.order_item import OrderItem
 from app.models.product_variant import ProductVariant
 from app.models.review import Review, ReviewStatus
 from app.models.user import User
-from app.schemas.extras import ReviewCreate, ReviewOut, ReviewSummary
+from app.schemas.extras import FeaturedReviewOut, ReviewCreate, ReviewOut, ReviewSummary
+from app.services.i18n import get_product_translations
 from app.services.order_service import _RESERVED_STATUSES
 
 router = APIRouter(prefix="/products", tags=["reviews"])
+featured_router = APIRouter(prefix="/reviews", tags=["reviews"])
+
+
+@featured_router.get(
+    "/featured", response_model=list[FeaturedReviewOut], dependencies=[Depends(rate_limit("reviews_featured", 120, 60))]
+)
+def featured_reviews(
+    lang: Optional[str] = None, limit: int = Query(default=6, ge=1, le=12), db: Session = Depends(get_db)
+) -> list[FeaturedReviewOut]:
+    """Latest approved reviews that have text, for the home page (PRD ТЗ№2 §8.9).
+    Only the reviewer's first name is exposed."""
+    rows = db.execute(
+        select(Review, User.first_name, Product)
+        .join(User, User.id == Review.user_id)
+        .join(Product, Product.id == Review.product_id)
+        .where(Review.status == ReviewStatus.APPROVED, Review.content.is_not(None), Review.content != "")
+        .order_by(Review.id.desc())
+        .limit(limit)
+    ).all()
+    translations = get_product_translations(db, [p.id for _, _, p in rows], lang) if lang else {}
+    return [
+        FeaturedReviewOut(
+            id=review.id,
+            rating=review.rating,
+            content=review.content,
+            author=first_name or None,
+            product_name=translations[product.id].name if product.id in translations else product.name,
+            product_slug=product.slug,
+        )
+        for review, first_name, product in rows
+    ]
 
 
 def _get_product(db: Session, slug: str) -> Product:
