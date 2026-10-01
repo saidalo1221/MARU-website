@@ -60,6 +60,23 @@ def test_create_shipment_marks_order_shipped_and_emails(client, db_session, sku,
     assert sent == ["shipped"]
 
 
+def test_maru_is_default_carrier_and_gets_a_tracking_number(client, db_session, sku):
+    headers = _admin(client, db_session)
+    order = _order(db_session, sku)
+    base = f"/api/v1/admin/orders/{order.id}/shipments"
+
+    first = client.post(base, json={}, headers=headers)
+    assert first.status_code == 201, first.text
+    assert first.json()["carrier"] == "MARU"
+    assert first.json()["tracking_number"] == f"{order.order_number}-1"
+
+    second = client.post(base, json={"carrier": "maru"}, headers=headers).json()
+    assert second["tracking_number"] == f"{order.order_number}-2"
+
+    other = client.post(base, json={"carrier": "DHL"}, headers=headers).json()
+    assert other["tracking_number"] is None
+
+
 def test_cannot_ship_unpacked_order(client, db_session, sku):
     headers = _admin(client, db_session)
     order = _order(db_session, sku, status=OrderStatus.PROCESSING)

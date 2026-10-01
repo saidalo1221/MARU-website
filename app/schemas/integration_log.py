@@ -21,3 +21,12 @@ class IntegrationLogOut(BaseModel):
     attempt: int
     created_at: datetime
     completed_at: Optional[datetime]
+
+
+class IntegrationHealthOut(BaseModel):
+    integration: str
+    status: str  # HEALTHY | DEGRADED | FAILED | DISABLED
+    success_24h: int
+    failed_24h: int
+    dead_letter_24h: int
+    last_success_at: Optional[datetime]

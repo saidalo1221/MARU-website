@@ -24,6 +24,7 @@ const emptyForm = {
   phone: '',
   email: '',
   country: '',
+  region: '',
   city: '',
   address_line: '',
   postal_code: '',
@@ -107,8 +108,14 @@ export default function Checkout() {
   // from the initial page load.
   useEffect(() => {
     if (!form.country) return
-    refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined }).catch(() => {})
-  }, [form.country, form.delivery_method, refresh])
+    // Debounced while a region is being typed: a request per keystroke can
+    // come back out of order and leave the totals on a stale region's tax.
+    const timer = setTimeout(
+      () => refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined, region: form.region.trim() || undefined }).catch(() => {}),
+      form.region ? 400 : 0,
+    )
+    return () => clearTimeout(timer)
+  }, [form.country, form.region, form.delivery_method, refresh])
 
   // Fires when the checkout page is opened with items (not at order placement).
   const checkoutTracked = useRef(false)
@@ -156,7 +163,7 @@ export default function Checkout() {
     setError(null)
     setSubmitting(true)
     try {
-      const payload = { ...form, promo_code: cart.promo_code || null, attribution: getAttribution() }
+      const payload = { ...form, region: form.region.trim() || null, promo_code: cart.promo_code || null, attribution: getAttribution() }
       if (form.order_type !== 'company') {
         delete payload.company_name
         delete payload.company_reg_number
@@ -312,6 +319,7 @@ export default function Checkout() {
                   <option value="">{t('checkout.selectCountry')}</option>
                   {countries.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
+                <input placeholder={t('checkout.region')} aria-label={t('checkout.region')} value={form.region} onChange={update('region')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
                 <input required placeholder={t('checkout.city')} aria-label={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
                 <input placeholder={t('checkout.postalCode')} aria-label={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
                 <input required placeholder={t('checkout.address')} aria-label={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />

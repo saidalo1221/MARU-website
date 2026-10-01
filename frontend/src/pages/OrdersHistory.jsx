@@ -38,7 +38,7 @@ export default function OrdersHistory() {
                 <span className="text-gray-500"> — {new Date(order.created_at).toLocaleDateString()}</span>
               </span>
               <span>
-                {order.status} · {order.currency} {Number(order.total_amount).toFixed(2)}
+                {t(`orderStatus.statusLabels.${order.status}`)} · {order.currency} {Number(order.total_amount).toFixed(2)}
               </span>
             </Link>
           </li>

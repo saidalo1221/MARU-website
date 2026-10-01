@@ -2,7 +2,7 @@ from typing import Optional
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import or_, select, update
 from sqlalchemy.orm import Session
 
 from app.models.cart import Cart
@@ -10,7 +10,7 @@ from app.models.enums import CustomerType
 from app.models.promo_code import PromoCode, PromoDiscountType
 from app.models.quantity_price_tier import QuantityPriceTier
 from app.models.sku import SKU
-from app.services.currency import convert_amount
+from app.services.currency import CurrencyError, convert_amount
 
 
 class PromoCodeError(Exception):
@@ -42,9 +42,21 @@ def resolve_unit_price(
     return convert_amount(db, price, sku.currency, target_currency)
 
 
-def validate_promo(db: Session, code: str, subtotal: Decimal) -> PromoCode:
+def _promo_amount(db: Session, amount: Decimal, promo: PromoCode, currency: Optional[str]) -> Decimal:
+    """promo.min_order_amount and a FIXED discount_value are stated in
+    promo.currency; convert them to the cart's currency. Unchanged when the
+    promo has no currency or the cart has none to compare against."""
+    if not promo.currency or not currency or promo.currency == currency:
+        return amount
+    try:
+        return convert_amount(db, amount, promo.currency, currency)
+    except CurrencyError as exc:
+        raise PromoCodeError(str(exc)) from exc
+
+
+def validate_promo(db: Session, code: str, subtotal: Decimal, currency: Optional[str] = None) -> PromoCode:
     """Read-only validation for cart-preview use. Does not lock the row or
-    increment used_count — checkout re-validates transactionally before redeeming."""
+    increment used_count — checkout redeems atomically (redeem_promo)."""
     promo = db.execute(select(PromoCode).where(PromoCode.code == code)).scalar_one_or_none()
     if promo is None or not promo.is_active:
         raise PromoCodeError("Promo code not found or inactive")
@@ -56,19 +68,38 @@ def validate_promo(db: Session, code: str, subtotal: Decimal) -> PromoCode:
         raise PromoCodeError("Promo code has expired")
     if promo.max_uses is not None and promo.used_count >= promo.max_uses:
         raise PromoCodeError("Promo code usage limit reached")
-    if subtotal < promo.min_order_amount:
-        raise PromoCodeError(f"Order must be at least {promo.min_order_amount} to use this code")
+    minimum = _promo_amount(db, promo.min_order_amount, promo, currency)
+    if subtotal < minimum:
+        raise PromoCodeError(f"Order must be at least {minimum} to use this code")
 
     return promo
 
 
-def apply_promo(subtotal: Decimal, promo: PromoCode) -> Decimal:
+def apply_promo(
+    subtotal: Decimal, promo: PromoCode, db: Optional[Session] = None, currency: Optional[str] = None
+) -> Decimal:
     if promo.discount_type == PromoDiscountType.PERCENT:
         discount = subtotal * (promo.discount_value / Decimal("100"))
+    elif db is not None:
+        discount = _promo_amount(db, promo.discount_value, promo, currency)
     else:
         discount = promo.discount_value
 
     return max(Decimal("0"), min(discount, subtotal))
+
+
+def redeem_promo(db: Session, promo: PromoCode) -> None:
+    """Counts one use atomically. A plain `used_count += 1` after a read lets
+    two concurrent checkouts both take the last use; this UPDATE only succeeds
+    while the cap still has room."""
+    result = db.execute(
+        update(PromoCode)
+        .where(PromoCode.id == promo.id, or_(PromoCode.max_uses.is_(None), PromoCode.used_count < PromoCode.max_uses))
+        .values(used_count=PromoCode.used_count + 1)
+    )
+    if result.rowcount == 0:
+        raise PromoCodeError("Promo code usage limit reached")
+    db.refresh(promo)
 
 
 def compute_cart_totals(
@@ -85,7 +116,7 @@ def compute_cart_totals(
         unit_price = resolve_unit_price(db, item.sku, customer_type, item.quantity, cart.currency)
         subtotal += unit_price * item.quantity
 
-    discount = apply_promo(subtotal, promo) if promo is not None else Decimal("0")
+    discount = apply_promo(subtotal, promo, db, cart.currency) if promo is not None else Decimal("0")
     total = subtotal + delivery_amount - discount
 
     return subtotal, discount, delivery_amount, total

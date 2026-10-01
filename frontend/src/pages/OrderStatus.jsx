@@ -49,7 +49,7 @@ export default function OrderStatus() {
       <div className="border border-gray-200 rounded-lg p-4 mb-6">
         <div className="flex justify-between text-sm mb-2">
           <span className="text-gray-500">{t('orderStatus.status')}</span>
-          <span className="font-medium">{order.status}</span>
+          <span className="font-medium">{t(`orderStatus.statusLabels.${order.status}`)}</span>
         </div>
         <div className="flex justify-between text-sm mb-2">
           <span className="text-gray-500">{t('orderStatus.paymentStatus')}</span>

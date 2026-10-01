@@ -62,7 +62,7 @@ export default function TrackOrder() {
         <div role="status">
           <p className="font-semibold">{result.order_number}</p>
           <p className="text-sm text-gray-500 mb-4">
-            {t('track.status')}: <span className="text-gray-900 font-medium">{result.status}</span>
+            {t('track.status')}: <span className="text-gray-900 font-medium">{t(`orderStatus.statusLabels.${result.status}`)}</span>
           </p>
           <ShipmentList shipments={result.shipments} />
         </div>

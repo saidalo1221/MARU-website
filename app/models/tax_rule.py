@@ -11,20 +11,27 @@ class TaxRule(Base):
     """PRD ТЗ№3 §41: tax is looked up by (country, customer_type, tax_type)
     with "*" fallbacks, same shape as ShippingRate. rate is a percentage
     (12.50 means 12.5%), applied to the post-discount, pre-shipping subtotal
-    (PRD §69's pricing pipeline: ... Discount -> Tax -> Shipping -> Total)."""
+    (PRD §69's pricing pipeline: ... Discount -> Tax -> Shipping -> Total).
+    `region` ("*" = any) narrows a rule to a state/province, and
+    `min_order_amount` (in USD) makes it apply only from that taxable amount
+    up, so one jurisdiction can have order-value tiers."""
 
     __tablename__ = "tax_rules"
     __table_args__ = (
-        UniqueConstraint("country", "customer_type", "tax_type", name="uq_tax_rules_country_customer_type_tax_type"),
+        UniqueConstraint(
+            "country", "region", "customer_type", "tax_type", "min_order_amount", name="uq_tax_rules_lookup"
+        ),
         {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4"},
     )
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     country = Column(String(100), nullable=False)
+    region = Column(String(100), nullable=False, default=ANY, server_default=ANY)
     customer_type = Column(String(20), nullable=False)  # a CustomerType value, or "*"
     tax_type = Column(String(30), nullable=False, default="vat")
 
+    min_order_amount = Column(DECIMAL(12, 2), nullable=False, default=0, server_default="0")  # USD
     rate = Column(DECIMAL(5, 2), nullable=False, default=0)  # percentage, e.g. 12.00
 
     is_active = Column(Boolean, nullable=False, default=True)

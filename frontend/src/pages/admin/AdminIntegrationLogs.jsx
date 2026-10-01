@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
-import { adminListIntegrationLogs, adminRetryIntegrationLog } from '../../api/admin'
+import { adminIntegrationHealth, adminListIntegrationLogs, adminRetryIntegrationLog } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 
 const STATUSES = ['success', 'failed', 'dead_letter']
+const HEALTH_STYLE = {
+  HEALTHY: 'bg-green-50 text-green-800 border-green-200',
+  DEGRADED: 'bg-yellow-50 text-yellow-800 border-yellow-200',
+  FAILED: 'bg-red-50 text-red-800 border-red-200',
+  DISABLED: 'bg-gray-50 text-gray-600 border-gray-200',
+}
 
 export default function AdminIntegrationLogs() {
   const { t } = useLocale()
@@ -12,10 +18,12 @@ export default function AdminIntegrationLogs() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [retryingId, setRetryingId] = useState(null)
+  const [health, setHealth] = useState([])
 
   const load = () => {
     setLoading(true)
     setError(null)
+    adminIntegrationHealth().then(setHealth).catch(() => setHealth([]))
     return adminListIntegrationLogs(statusFilter || undefined)
       .then(setLogs)
       .catch((err) => setError(errorMessage(err, t('admin.integrationLogs.loadFailed'))))
@@ -45,6 +53,25 @@ export default function AdminIntegrationLogs() {
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
+
+      {health.length > 0 && (
+        <section aria-label={t('admin.integrationLogs.healthTitle')} className="mb-4">
+          <h2 className="text-sm font-semibold mb-2">{t('admin.integrationLogs.healthTitle')}</h2>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {health.map((h) => (
+              <li key={h.integration} className={`border rounded-lg p-3 text-sm ${HEALTH_STYLE[h.status] || HEALTH_STYLE.DISABLED}`}>
+                <div className="flex justify-between font-medium">
+                  <span>{h.integration}</span>
+                  <span>{t(`admin.integrationLogs.health.${h.status}`)}</span>
+                </div>
+                <p className="text-xs mt-1">
+                  {h.success_24h} {t('admin.integrationLogs.healthSuccess')} · {h.failed_24h} {t('admin.integrationLogs.healthFailed')} · {h.dead_letter_24h} {t('admin.integrationLogs.healthDead')}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {loading && <p>{t('admin.common.loading')}</p>}
       {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}

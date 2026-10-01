@@ -62,7 +62,7 @@ function ShipmentCard({ orderId, shipment, onChanged }) {
 
 export default function ShipmentsPanel({ order, onChanged }) {
   const { t } = useLocale()
-  const [carrier, setCarrier] = useState('')
+  const [carrier, setCarrier] = useState('MARU')
   const [trackingNumber, setTrackingNumber] = useState('')
   const [trackingUrl, setTrackingUrl] = useState('')
   const [error, setError] = useState(null)
@@ -78,7 +78,7 @@ export default function ShipmentsPanel({ order, onChanged }) {
         tracking_number: trackingNumber || null,
         tracking_url: trackingUrl || null,
       })
-      setCarrier('')
+      setCarrier('MARU')
       setTrackingNumber('')
       setTrackingUrl('')
       await onChanged()

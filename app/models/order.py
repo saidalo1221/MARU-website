@@ -57,6 +57,7 @@ class Order(Base):
     phone = Column(String(30), nullable=False)
     email = Column(String(255), nullable=False)
     country = Column(String(100), nullable=False)
+    region = Column(String(100), nullable=True)
     city = Column(String(100), nullable=False)
     address_line = Column(String(255), nullable=False)
     postal_code = Column(String(20), nullable=False)

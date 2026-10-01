@@ -53,6 +53,10 @@ def create_refund(db: Session, order: Order, amount: Decimal, reason: Optional[s
     status) that never reach the provider. A provider-side failure is
     recorded as a FAILED Refund row and re-raised so the caller still sees
     an error, but the row stays for audit/reconciliation."""
+    # Serialise refunds per order: a concurrent double-submit waits here, then
+    # sees the first refund's COMPLETED row and status instead of both passing
+    # the "would exceed total" check on stale data.
+    db.refresh(order, with_for_update=True)
     if order.status not in _REFUNDABLE_STATUSES:
         raise RefundError(f"Order in status {order.status.value} cannot be refunded")
 

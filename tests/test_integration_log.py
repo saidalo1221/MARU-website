@@ -78,3 +78,28 @@ def test_admin_manual_retry_endpoint(client, db_session, monkeypatch):
     r = client.post(f"/api/v1/admin/integration-logs/{log_id}/retry", headers=headers)
     assert r.status_code == 200, r.text
     assert r.json()["status"] == "success"
+
+
+def test_integration_health_summary(client, db_session, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "BITRIX24_WEBHOOK_URL", "https://example.invalid/hook")
+    for i, st in enumerate([IntegrationLogStatus.SUCCESS, IntegrationLogStatus.FAILED]):
+        db_session.add(IntegrationLog(integration="crm_bitrix24", operation="push_order", internal_entity="order", internal_id=i, status=st))
+    db_session.add(IntegrationLog(integration="other", operation="op", internal_entity="x", internal_id=1, status=IntegrationLogStatus.DEAD_LETTER))
+    db_session.commit()
+
+    make_admin(db_session, "super@example.com", UserRole.SUPER_ADMIN)
+    headers = login(client, "super@example.com")
+    r = client.get("/api/v1/admin/integration-logs/health", headers=headers)
+    assert r.status_code == 200, r.text
+    by_name = {h["integration"]: h for h in r.json()}
+    assert by_name["crm_bitrix24"]["status"] == "DEGRADED"
+    assert by_name["crm_bitrix24"]["success_24h"] == 1 and by_name["crm_bitrix24"]["failed_24h"] == 1
+    assert by_name["crm_bitrix24"]["last_success_at"] is not None
+    assert by_name["other"]["status"] == "FAILED"
+
+    monkeypatch.setattr(settings, "BITRIX24_WEBHOOK_URL", None)
+    r = client.get("/api/v1/admin/integration-logs/health", headers=headers)
+    assert {h["integration"]: h["status"] for h in r.json()}["crm_bitrix24"] == "DISABLED"
+    assert client.get("/api/v1/admin/integration-logs/health").status_code in (401, 403)

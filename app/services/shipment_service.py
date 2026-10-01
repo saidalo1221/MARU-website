@@ -81,10 +81,15 @@ def create_shipment(db: Session, order: Order, data: ShipmentCreate, user: User)
     if order.status not in _SHIPPABLE_ORDER_STATUSES:
         raise ShipmentError(f"Cannot ship an order in status {order.status.value}; it must be packed first")
 
+    tracking_number = data.tracking_number
+    if not tracking_number and data.carrier.strip().lower() == "maru":
+        # Own delivery has no external tracking number, so issue one.
+        tracking_number = f"{order.order_number}-{len(order.shipments) + 1}"
+
     shipment = Shipment(
         order_id=order.id,
         carrier=data.carrier,
-        tracking_number=data.tracking_number,
+        tracking_number=tracking_number,
         tracking_url=data.tracking_url,
         status=ShipmentStatus.SHIPPED,
         shipped_at=_now(),

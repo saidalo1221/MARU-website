@@ -28,7 +28,7 @@ export default function NewsletterForm() {
   return (
     <form onSubmit={submit} className="mt-3">
       <label htmlFor="newsletter-email" className="font-semibold text-gray-900 block mb-1">{t('newsletter.title')}</label>
-      <div className="flex gap-1">
+      <div className="flex flex-wrap gap-1">
         <input
           id="newsletter-email"
           type="email"
@@ -36,7 +36,7 @@ export default function NewsletterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('newsletter.placeholder')}
-          className="min-w-0 flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm"
+          className="min-w-[8rem] flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm"
         />
         <button type="submit" disabled={state === 'sending'} className="bg-brand text-white rounded px-3 py-1.5 text-sm disabled:opacity-40">
           {t('newsletter.subscribe')}

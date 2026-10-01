@@ -15,19 +15,51 @@ a build on 2026-10-01 — not copied from older notes. Read this file, then
 - `Done.md` (2026-09-27 snapshot), `session_notes.md`, `TODO.md`: historical.
 
 ## Verified state (2026-10-01)
-- Branch `feat/client-analytics-events` @ `e0ce4aa`, **1 commit ahead of its
-  origin** (`65a12f5`, unpushed). It is 26 commits ahead of `origin/main`
-  (`703f2ed`); local `main` is `37243bf`, 11 ahead of origin/main. Earlier notes
-  say PR #1 is open — **not verifiable** (`gh` isn't installed; use the web UI).
-  Working tree clean.
-- `python -m pytest -q`: **172 passed in ~6 min** (slow; run single files while
+- Branch `feat/client-analytics-events` @ `412edfc`, in sync with its origin
+  at the last `git status`. Earlier notes say PR #1 is open — **not
+  verifiable** (`gh` isn't installed; use the web UI).
+- **The working tree is NOT clean and nothing from the 2026-10-01 session is
+  committed**: 33 modified files plus two new ones
+  (`app/migration_2026_session10.sql`, `tests/test_pricing_edge_cases.py`).
+  See "Changed 2026-10-01" below. Review and commit when ready.
+- `python -m pytest -q`: **186 passed in ~7 min** (slow; run single files while
   iterating). `npx vite build` in `frontend/`: passes.
-- `dev.db` (gitignored, hand-patched) has all 49 model tables and every column.
+- `dev.db` (gitignored, hand-patched) has all model tables and every column,
+  including the session-10 tax columns (`tax_rules` was rebuilt; `orders.region`
+  added). A backup from before that is NOT in the repo.
 - Python 3.9: no `X | None` left; all 194 `.py` files parse with 3.9 grammar.
   **Never run on a real 3.9** (none installed here; CI and Dockerfile target 3.9).
 - Dev servers are NOT running (ports 8000/5173 empty at last check).
 - Never run, only written: `Dockerfile`, `.github/workflows/ci.yml`,
   `scripts/backup_db.sh`, everything in `deploy/` (nginx, systemd, crontab).
+
+## Changed 2026-10-01 (uncommitted, tested, browser-checked unless noted)
+- **MARU is its own carrier.** `ShipmentCreate.carrier` defaults to `MARU`; the
+  admin form is pre-filled with it. A blank tracking number on a MARU shipment
+  becomes `<order_number>-<n>`. Other carrier names still work (no auto number).
+- **Refunds** lock the order row first (`db.refresh(order, with_for_update=True)`),
+  so a concurrent double-submit can't pass the "exceeds total" check twice.
+  Only proven on SQLite (it ignores row locks) — prove it on MariaDB.
+- **Reconciliation alert:** `reconcile_stock` emails `ALERT_EMAIL` (new setting,
+  not yet in any `.env`) when it finds drift.
+- **Integration health:** `GET /admin/integration-logs/health` + cards on the
+  admin Integration Logs page (HEALTHY / DEGRADED / FAILED / DISABLED over 24h).
+- **B2B minimum order quantity** is now enforced at checkout
+  (`MIN_ORDER_QUANTITY`). It was only a UI hint. Not enforced in the cart on
+  purpose, so the quantity stepper doesn't error.
+- **Promos:** the promo's `currency` is now honoured (minimum order amount and
+  FIXED discount are converted to the cart currency); redemption is an atomic
+  conditional UPDATE (`redeem_promo`), so the last use can't be taken twice.
+- **Tax rules** gained an optional `region` (`*` = any) and `min_order_amount`
+  (USD tiers). Lookup order: country, region, customer type; highest reached
+  tier wins. Checkout has an optional "Region / state" field and `orders.region`
+  stores it. Region field only shows for a *new* address — saved addresses have
+  no region. **Needs `app/migration_2026_session10.sql` on MariaDB (never run).**
+- **Order statuses are translated** on `/track`, the order page and order
+  history (`orderStatus.statusLabels`, en/ru/uz; ru/uz are my draft).
+- UI fixes: footer newsletter input was squeezed to ~40px; checkout region
+  input is debounced (per-keystroke requests came back out of order and left
+  the totals on a stale region's tax).
 
 ## Run it
 Backend MUST override DATABASE_URL or every DB call 500s:
@@ -66,26 +98,29 @@ multi-currency, dark mode, full admin panel. Highlights:
   chooses; footer "Cookie settings" withdraws.
 - Analytics: client events via `POST /analytics/events` + `lib/analytics.js`;
   server events for purchase/refund/etc. Stored only — not forwarded anywhere.
-- Ops: shipments (manual carrier, no carrier API), stock reconciliation report,
+- Ops: shipments (MARU is the carrier; admin-entered events, no carrier API),
+  stock reconciliation report + email alert, integration health view,
   UTM attribution on orders, payment adapters (Payme/Click/Stripe/PayPal —
   real code, no live credentials), Bitrix24 CRM push.
 - Schema: all migrations through `app/migration_2026_session9.sql`, plus
   `app/schema_mariadb.sql` for fresh installs. **SQLite-tested only.**
 
 ## To do — buildable now
-1. **Browser-verify what only has API tests**: newsletter, back-in-stock,
-   privacy/erasure, save-for-later, `/track`, real mp4/webm upload in the admin
-   variant-images panel (YouTube-URL add was verified), real phone,
-   Safari/Firefox. Re-run axe after UI changes.
+1. **Browser checks still open:** real mp4/webm *playback* (the 2026-10-01
+   upload test used an empty webm container, so only the upload/attach path was
+   proven), a real phone, Safari/Firefox, and re-running axe after the
+   2026-10-01 UI changes. Already browser-verified on 2026-10-01: newsletter
+   double opt-in, privacy/erasure, `/track`, back-in-stock, save-for-later,
+   admin tax form + checkout region, MARU shipment form, health cards.
 2. **Native-speaker review** of ru/uz text: FAQ (my draft; `dev.db` has it but is
    gitignored — a real DB needs it via admin "Support Pages Content") and the
    legal pages.
 3. `frontend/public/robots.txt` has a relative `Sitemap:` line (crawlers ignore
    it) — make it absolute once the domain is known.
-4. Per `PRD_AUDIT.md`, partial or unchecked: no unified payments ledger /
-   `payment_status`; refund double-submit; tax-region, promo and B2B-MOQ edge
-   cases; no alerting on the reconciliation report; no integration-health
-   dashboard; no webhook queue / real worker (retries are cron sweeps).
+4. Per `PRD_AUDIT.md`, still open: no unified payments ledger /
+   `payment_status` (**on hold at the user's request**); product-level tax and a
+   region on saved addresses; no webhook queue / real worker (retries are cron
+   sweeps). The order page labels the payment *method* as "Payment status".
 
 ## To do — needs a decision or access from the user (don't guess)
 - **Legal**: `/privacy` and `/terms` are drafts written from what the code does
@@ -95,8 +130,9 @@ multi-currency, dark mode, full admin panel. Highlights:
   (incl. name/address snapshots) — confirm that is acceptable or scrub them.
   Server-side events (`add_to_cart`, `purchase`, …) and OpenStreetMap tiles in
   the address picker are NOT consent-gated — ask the lawyer.
-- Shipping carrier (API adapter + auto tracking) and whether warehouse managers
-  handle shipments.
+- Carrier is decided (MARU itself). Still open: whether warehouse managers can
+  create shipments, and whether MARU delivery needs fees/zones beyond the
+  existing shipping rates.
 - GA4 / Meta forwarding (needs Measurement Protocol secret + Meta token).
 - Object storage (S3-compatible): uploads are local-disk only.
 - Keep or drop Stripe/PayPal. Vendors: SMS/WhatsApp/Telegram, ERP/1C, Uzum
@@ -107,16 +143,19 @@ multi-currency, dark mode, full admin panel. Highlights:
 
 ## To do — deployment blockers
 1. Run on a real Python 3.9 (see `MARIADB_PREFLIGHT.md`).
-2. Run the MariaDB SQL files on a real server (never done) + full smoke test.
+2. Run the MariaDB SQL files on a real server (never done), **including
+   `migration_2026_session10.sql`** (drops and re-adds the tax_rules unique
+   key), + full smoke test. Prove the refund row lock and the atomic promo
+   redeem there too.
 3. Behind a reverse proxy run uvicorn with
    `--proxy-headers --forwarded-allow-ips=<proxy>` or every visitor shares one
    rate-limit bucket. Route `/sitemap.xml` to the backend. The proxy must add
    the static-frontend security headers (`deploy/nginx-security-headers.conf`).
 4. Prod `.env`: `REDIS_URL` (+ Redis running), `BITRIX24_WEBHOOK_URL`,
-   `FRONTEND_URL`, `BACKEND_URL`, Payme/Click credentials. Install the cron
+   `FRONTEND_URL`, `BACKEND_URL`, Payme/Click credentials, `ALERT_EMAIL`. Install the cron
    jobs (`deploy/crontab.example`). Swap Gmail SMTP for a transactional
    provider (env-only change).
-5. Push `e0ce4aa`, merge the PR, deploy. Nothing is deployed.
+5. Commit the 2026-10-01 work, push, merge the PR, deploy. Nothing is deployed.
 
 ## Gotchas that cost time
 - **Windows Python defaults to cp1251.** Always `open(..., encoding="utf-8")`
@@ -152,6 +191,12 @@ multi-currency, dark mode, full admin panel. Highlights:
   pushState loop can stall in a hidden tab — use one full load per page, e.g. in
   an iframe). Inject `*{transition:none!important}` first or contrast reads
   mid-fade values.
+- **Running the real SMTP in dev sends real mail.** `.env` points at Gmail, which
+  hit its daily limit during testing (550). The app still answers 202 and logs
+  the failure. Blank `SMTP_HOST` for local runs, or stub the notifier.
+- The Chrome tool's Enter key did not submit forms and typing into a ref
+  sometimes missed; click the button and click-then-type by coordinates. A hidden
+  tab also stops `MediaRecorder`/canvas capture (empty webm).
 - Browser-testing checkout in dev: no payment provider is configured (no
   payment radios) and seeded products have one variant. Stub the API response
   with a `window.fetch` patch rather than editing `dev.db`.

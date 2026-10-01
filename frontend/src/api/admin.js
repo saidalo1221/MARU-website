@@ -247,6 +247,9 @@ export function adminListIntegrationLogs(statusFilter, integration) {
   const qs = params.toString() ? `?${params.toString()}` : ''
   return apiRequest(`/admin/integration-logs/${qs}`)
 }
+export function adminIntegrationHealth() {
+  return apiRequest('/admin/integration-logs/health')
+}
 export function adminRetryIntegrationLog(logId) {
   return apiRequest(`/admin/integration-logs/${logId}/retry`, { method: 'POST' })
 }

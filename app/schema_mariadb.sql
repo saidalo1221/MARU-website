@@ -101,14 +101,16 @@ CREATE TABLE shipping_rates (
 CREATE TABLE tax_rules (
 	id BIGINT NOT NULL AUTO_INCREMENT, 
 	country VARCHAR(100) NOT NULL, 
+	region VARCHAR(100) NOT NULL DEFAULT '*', 
 	customer_type VARCHAR(20) NOT NULL, 
 	tax_type VARCHAR(30) NOT NULL, 
+	min_order_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
 	rate DECIMAL(5, 2) NOT NULL, 
 	is_active BOOL NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
-	CONSTRAINT uq_tax_rules_country_customer_type_tax_type UNIQUE (country, customer_type, tax_type)
+	CONSTRAINT uq_tax_rules_lookup UNIQUE (country, region, customer_type, tax_type, min_order_amount)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
 CREATE TABLE users (
@@ -303,6 +305,7 @@ CREATE TABLE orders (
 	phone VARCHAR(30) NOT NULL, 
 	email VARCHAR(255) NOT NULL, 
 	country VARCHAR(100) NOT NULL, 
+	region VARCHAR(100), 
 	city VARCHAR(100) NOT NULL, 
 	address_line VARCHAR(255) NOT NULL, 
 	postal_code VARCHAR(20) NOT NULL, 

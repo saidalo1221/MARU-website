@@ -22,7 +22,7 @@ from app.schemas.order import CheckoutRequest
 from app.services.analytics import record_event
 from app.services.audit import log_audit
 from app.services.currency import CurrencyError
-from app.services.pricing import PromoCodeError, apply_promo, resolve_unit_price, validate_promo
+from app.services.pricing import PromoCodeError, apply_promo, redeem_promo, resolve_unit_price, validate_promo
 from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g
 from app.services.tax import calculate_tax
 
@@ -189,6 +189,11 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     for item in cart.items:
         if available_stock(db, item.sku_id) < item.quantity:
             raise OrderError(f"INSUFFICIENT_STOCK: not enough stock for SKU {item.sku.sku_code}")
+        minimum = item.sku.variant.product.min_order_quantity or 1
+        if item.quantity < minimum:
+            raise OrderError(
+                f"MIN_ORDER_QUANTITY: SKU {item.sku.sku_code} requires at least {minimum} units"
+            )
         try:
             unit_price = resolve_unit_price(db, item.sku, customer_type, item.quantity, cart.currency)
         except CurrencyError as exc:
@@ -200,15 +205,20 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     promo: Optional[PromoCode] = None
     if checkout.promo_code:
         try:
-            promo = validate_promo(db, checkout.promo_code, subtotal)
+            promo = validate_promo(db, checkout.promo_code, subtotal, cart.currency)
         except PromoCodeError as exc:
             raise OrderError(str(exc)) from exc
 
-    discount = apply_promo(subtotal, promo) if promo is not None else Decimal("0")
+    try:
+        discount = apply_promo(subtotal, promo, db, cart.currency) if promo is not None else Decimal("0")
+    except PromoCodeError as exc:
+        raise OrderError(str(exc)) from exc
     # PRD §69 pricing pipeline: ... Discount -> Tax -> Shipping -> Total.
     # Tax is computed on the post-discount merchandise subtotal; shipping
     # itself is not taxed (PRD doesn't specify shipping being taxable).
-    tax = calculate_tax(db, checkout.country, customer_type.value, subtotal - discount)
+    tax = calculate_tax(
+        db, checkout.country, customer_type.value, subtotal - discount, region=checkout.region, currency=cart.currency
+    )
     try:
         delivery = calculate_shipping(
             db, checkout.country, checkout.delivery_method, cart_weight_g(cart), subtotal - discount, cart.currency
@@ -238,6 +248,7 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
         phone=checkout.phone,
         email=checkout.email,
         country=checkout.country,
+        region=checkout.region,
         city=checkout.city,
         address_line=checkout.address_line,
         postal_code=checkout.postal_code,
@@ -286,7 +297,10 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     )
 
     if promo is not None:
-        promo.used_count += 1
+        try:
+            redeem_promo(db, promo)
+        except PromoCodeError as exc:
+            raise OrderError(str(exc)) from exc
 
     cart.is_active = False
     cart.converted_at = _now()

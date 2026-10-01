@@ -3,7 +3,7 @@ from decimal import Decimal
 import json
 from typing import Annotated, Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from app.models.enums import OrderStatus
 from app.models.order import OrderType
@@ -32,6 +32,7 @@ class CheckoutRequest(BaseModel):
     phone: str
     email: EmailStr
     country: str
+    region: Optional[str] = Field(default=None, max_length=100)
     city: str
     address_line: str
     postal_code: str

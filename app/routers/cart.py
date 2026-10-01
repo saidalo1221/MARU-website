@@ -52,6 +52,7 @@ def _build_cart_out(
     promo_code: Optional[str],
     country: Optional[str] = None,
     delivery_method: Optional[str] = None,
+    region: Optional[str] = None,
 ) -> CartOut:
     items: list[CartItemOut] = []
     subtotal = Decimal("0")
@@ -95,17 +96,20 @@ def _build_cart_out(
     promo: Optional[PromoCode] = None
     if promo_code:
         try:
-            promo = validate_promo(db, promo_code, subtotal)
+            promo = validate_promo(db, promo_code, subtotal, cart.currency)
         except PromoCodeError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    discount = apply_promo(subtotal, promo) if promo is not None else Decimal("0")
+    try:
+        discount = apply_promo(subtotal, promo, db, cart.currency) if promo is not None else Decimal("0")
+    except PromoCodeError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     # Destination is usually unknown before checkout, so shipping/tax are only
     # estimated when the caller supplies a country (delivery method too, for shipping).
     tax = Decimal("0")
     if country:
-        tax = calculate_tax(db, country, customer_type.value, subtotal - discount)
+        tax = calculate_tax(db, country, customer_type.value, subtotal - discount, region=region, currency=cart.currency)
 
     delivery = Decimal("0")
     if country and delivery_method:
@@ -153,12 +157,13 @@ def get_cart(
     promo_code: Optional[str] = None,
     country: Optional[str] = None,
     delivery_method: Optional[str] = None,
+    region: Optional[str] = None,
     cart: Cart = Depends(get_or_create_cart),
     user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CartOut:
     return _build_cart_out(
-        db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method
+        db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method, region
     )
 
 

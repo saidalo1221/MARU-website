@@ -10,7 +10,7 @@ machine). Treat every step as "verify on staging first".
 | Retry failed CRM pushes | `python -m app.tasks.retry_integrations` | every 10 min |
 | Sync exchange rates | `python -m app.tasks.sync_exchange_rates` | daily |
 | Back-in-stock emails | `python -m app.tasks.notify_back_in_stock` | every 10-15 min |
-| Stock drift report | `python -m app.tasks.reconcile_stock` (add `--fix` only after reading the report; exit 1 = mismatches found) | nightly |
+| Stock drift report | `python -m app.tasks.reconcile_stock` (add `--fix` only after reading the report; exit 1 = mismatches found; also emails `ALERT_EMAIL` if set) | nightly |
 | Database + uploads backup | `scripts/backup_db.sh` | daily, 02:15 |
 
 Run each from the project root with the production `.env` loaded.

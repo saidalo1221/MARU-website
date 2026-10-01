@@ -40,6 +40,13 @@ class EmailNotifier(NotificationBase):
         except (smtplib.SMTPException, OSError):
             logger.exception("Failed to send email: %s -> %s", subject, to_email)
 
+    def admin_alert(self, subject: str, body: str) -> None:
+        """Operational alert to ALERT_EMAIL; a no-op when it is not set."""
+        if not settings.ALERT_EMAIL:
+            logger.warning("Alert not sent (ALERT_EMAIL not set): %s", subject)
+            return
+        self._send(settings.ALERT_EMAIL, subject, body)
+
     def email_verification(self, to_email: str, token: str, db: Optional[Session] = None) -> None:
         link = f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?token={token}"
         context = {"link": link, "to_email": to_email}

@@ -83,6 +83,8 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: Optional[str] = None
     SMTP_FROM_EMAIL: Optional[str] = None
     SMTP_USE_TLS: bool = True
+    # Where operational alerts (e.g. stock reconciliation mismatches) go.
+    ALERT_EMAIL: Optional[str] = None
 
 
 settings = Settings()

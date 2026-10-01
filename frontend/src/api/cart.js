@@ -1,10 +1,11 @@
 import { apiRequest } from './client'
 
-export function getCart({ promoCode, country, deliveryMethod } = {}) {
+export function getCart({ promoCode, country, deliveryMethod, region } = {}) {
   const params = new URLSearchParams()
   if (promoCode) params.set('promo_code', promoCode)
   if (country) params.set('country', country)
   if (deliveryMethod) params.set('delivery_method', deliveryMethod)
+  if (region) params.set('region', region)
   const qs = params.toString() ? `?${params.toString()}` : ''
   return apiRequest(`/cart/${qs}`)
 }

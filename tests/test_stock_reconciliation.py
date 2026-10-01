@@ -76,3 +76,25 @@ def test_cancelled_orders_hold_nothing(db_session, sku):
     inv.reserved = 2  # stale counter for an order that no longer holds stock
     db_session.commit()
     assert [m.problem for m in find_mismatches(db_session)] == ["reserved_drift"]
+
+
+def test_alert_sent_only_when_there_is_drift(db_session, sku):
+    from app.tasks.reconcile_stock import alert_on_mismatches
+
+    class _Recorder:
+        def __init__(self):
+            self.sent = []
+
+        def admin_alert(self, subject, body):
+            self.sent.append((subject, body))
+
+    rec = _Recorder()
+    assert alert_on_mismatches([], rec) is False
+    assert rec.sent == []
+
+    inv = db_session.query(Inventory).filter_by(sku_id=sku.id).first()
+    inv.reserved = 7
+    db_session.commit()
+    assert alert_on_mismatches(find_mismatches(db_session), rec) is True
+    assert "1 mismatch" in rec.sent[0][0]
+    assert f"sku={sku.id}" in rec.sent[0][1]

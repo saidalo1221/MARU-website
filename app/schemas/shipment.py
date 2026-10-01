@@ -21,7 +21,8 @@ def _check_http_url(value: Optional[str]) -> Optional[str]:
 
 
 class ShipmentCreate(BaseModel):
-    carrier: CarrierName
+    # MARU delivers its own parcels (Uzbekistan); other names are still allowed.
+    carrier: CarrierName = "MARU"
     tracking_number: Optional[TrackingNumber] = None
     tracking_url: Optional[str] = None
     location: Optional[str] = None
