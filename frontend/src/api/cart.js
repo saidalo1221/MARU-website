@@ -6,6 +6,13 @@ export function getCart({ promoCode, country, deliveryMethod, region } = {}) {
   if (country) params.set('country', country)
   if (deliveryMethod) params.set('delivery_method', deliveryMethod)
   if (region) params.set('region', region)
+  // Product names in the cart follow the language the visitor picked.
+  try {
+    const lang = localStorage.getItem('maru_locale')
+    if (lang) params.set('lang', lang)
+  } catch {
+    // storage blocked: the cart simply shows default-language names
+  }
   const qs = params.toString() ? `?${params.toString()}` : ''
   return apiRequest(`/cart/${qs}`)
 }

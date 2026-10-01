@@ -128,3 +128,27 @@ def test_retry_payment_refuses_paid_card_and_foreign_orders(client, db_session, 
     mine = _unpaid_order(db_session, sku, user_id=uid)
     assert client.post(f"/api/v1/orders/{mine.id}/payment", headers=other).status_code == 404
     assert client.post(f"/api/v1/orders/{mine.id}/payment").status_code == 404  # anonymous without the guest token
+
+
+def test_login_with_phone_number(client, db_session):
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={"email": "phoney@example.com", "password": "Maru2026box", "phone": "+998 (90) 111-22-33"},
+    )
+    assert reg.status_code == 201, reg.text
+
+    # Same formatting-insensitive number signs in (new-device challenge applies as for email logins).
+    assert login(client, "+998901112233", password="Maru2026box")
+    assert login(client, "+998 90 111 22 33", password="Maru2026box")
+    assert client.post("/api/v1/auth/login", json={"email": "+998901112233", "password": "nope", "device_id": "d"}).status_code == 401
+    assert client.post("/api/v1/auth/login", json={"email": "+998900000000", "password": "Maru2026box", "device_id": "d"}).status_code == 401
+    assert client.post("/api/v1/auth/login", json={"email": "phoney@example.com", "password": "Maru2026box", "device_id": "test-device"}).status_code == 200
+
+
+def test_ambiguous_phone_number_never_logs_in(client, db_session):
+    for email in ("a1@example.com", "a2@example.com"):
+        r = client.post("/api/v1/auth/register", json={"email": email, "password": "Maru2026box", "phone": "+998907776655"})
+        assert r.status_code == 201, r.text
+    r = client.post("/api/v1/auth/login", json={"email": "+998907776655", "password": "Maru2026box", "device_id": "d"})
+    assert r.status_code == 401
+    assert r.json()["detail"] == "Invalid email or password"

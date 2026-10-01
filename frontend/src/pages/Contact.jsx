@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useLocale } from '../context/LocaleContext'
 import { getSiteSettings } from '../api/siteSettings'
 import { listPageSections } from '../api/pageSections'
@@ -61,6 +62,10 @@ export default function Contact() {
         <div className="border border-gray-200 rounded-lg p-6 h-fit">
           <h2 className="text-lg font-semibold mb-4">{t('contact.formTitle')}</h2>
           <InquiryForm defaultType="quote" lockType ctaKey="contact.send" />
+          <ul className="mt-4 text-sm space-y-1">
+            <li><Link to="/b2b" className="text-brand underline">{t('contact.businessInquiries')}</Link></li>
+            <li><Link to="/wholesale" className="text-brand underline">{t('contact.wholesaleInquiries')}</Link></li>
+          </ul>
         </div>
       </div>
     </div>

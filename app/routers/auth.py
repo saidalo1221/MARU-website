@@ -1,6 +1,7 @@
 import hashlib
 from datetime import datetime, timedelta, timezone
 from secrets import randbelow, token_urlsafe
+from typing import Optional
 
 import pyotp
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -24,6 +25,7 @@ from app.schemas.extras import ForgotPasswordRequest, ResetPasswordRequest, Veri
 from app.services.analytics import record_event
 from app.services.notifications.email import EmailNotifier
 from app.schemas.user import (
+    normalize_phone,
     AdminLoginRequest,
     AdminVerifyRequest,
     ChangePasswordRequest,
@@ -126,10 +128,24 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
     return Token(access_token=create_access_token(str(user.id)))
 
 
+def _find_user_by_identifier(db: Session, identifier: str) -> Optional[User]:
+    """An email address, or a phone number that belongs to exactly one active
+    account (an ambiguous or unknown number never matches, and gets the same
+    "invalid credentials" answer as a wrong password)."""
+    if "@" in identifier:
+        return db.execute(select(User).where(User.email == identifier)).scalar_one_or_none()
+    try:
+        phone = normalize_phone(identifier)
+    except ValueError:
+        return None
+    matches = db.execute(select(User).where(User.phone == phone, User.is_active.is_(True)).limit(2)).scalars().all()
+    return matches[0] if len(matches) == 1 else None
+
+
 @router.post("/login", response_model=LoginResult, dependencies=[Depends(rate_limit("login", 10, 60))])
 def login(payload: UserLogin, db: Session = Depends(get_db)) -> LoginResult:
     try:
-        user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+        user = _find_user_by_identifier(db, payload.email)
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to authenticate") from exc
@@ -189,7 +205,7 @@ def login(payload: UserLogin, db: Session = Depends(get_db)) -> LoginResult:
 )
 def verify_login_device(payload: VerifyDeviceRequest, db: Session = Depends(get_db)) -> Token:
     try:
-        user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+        user = _find_user_by_identifier(db, payload.email)
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to verify code") from exc

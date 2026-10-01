@@ -42,3 +42,18 @@ Newest entries last. Blocked items are marked `[!]` in the BUILD STATUS block at
 19. **Search stays client-side** (catalog is small): typo tolerance is edit distance 1 for words of 4-6 letters and 2 for
     7+, none for 1-3 letters. `frontend/tests/search.test.mjs` checks the logic (`node tests/search.test.mjs`, no new dependency).
 20. **Product-page "benefits"** are the product description and specification table; no separate benefits field was added.
+21. **Sale price**: a `special_price` below the retail price is treated as the SKU's sale price - it drives the Sale
+    badge, the struck-through old price and the discount in the storefront, and (new) is charged to retail customers.
+    Other customer types keep their own price column; `special` customers pay it as before.
+22. **Guest checkout** is open (no login redirect). After a guest order the order page offers "Create an account"
+    (email prefilled). Orders stay reachable through the per-order token kept in the browser session.
+23. **Login by phone** uses the same login form field: an `@` means email, otherwise a phone normalised to digits with an
+    optional `+`. A number shared by several accounts never matches. The new-device emailed-code step still applies.
+24. **Local payment gateways (Payme, Click) are Uzbekistan-only** (assumption: they settle in UZ); other destinations do
+    not see them, and checkout rejects them with a 400. Stripe and PayPal are offered everywhere.
+25. **FAQ topics** are an optional category on FAQ page sections (products, orders, payment, delivery, returns, wholesale,
+    international); sections without one appear first as "General". The old hard-coded FAQ strings in the translation file
+    are unused and were left in place.
+26. **Country choice can switch the currency** (e.g. Germany -> EUR) but only to a currency the store has a rate for;
+    the visitor can change it back with the currency selector.
+27. **Wholesale page tables** list the real minimum order quantity, price and quantity tiers per product; nothing is invented.

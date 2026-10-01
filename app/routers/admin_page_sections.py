@@ -42,6 +42,7 @@ def _to_out(section: PageSection, display_title: Optional[str] = None) -> PageSe
         title=section.title,
         body=section.body,
         display_title=display_title or section.title,
+        category=section.category,
         sort_order=section.sort_order,
         created_at=section.created_at,
         updated_at=section.updated_at,
@@ -69,6 +70,8 @@ def create_section(
     max_order = db.execute(
         select(PageSection.sort_order).where(PageSection.page == payload.page).order_by(PageSection.sort_order.desc())
     ).scalars().first()
+    if payload.category is not None and payload.page != "faq":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only FAQ sections have a category")
     section = PageSection(**payload.model_dump(), sort_order=(max_order or 0) + 1)
     db.add(section)
     try:

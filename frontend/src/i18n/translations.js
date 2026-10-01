@@ -176,6 +176,7 @@ export const translations = {
     },
     common: { loading: 'Loading...', skipToContent: 'Skip to main content', close: 'Close', breadcrumb: 'Breadcrumb' },
     cart: {
+      estimatedDelivery: 'Estimated delivery',
       loading: 'Loading...',
       saveForLater: 'Save for later',
       minOrder: 'Minimum order: {n} units',
@@ -202,6 +203,7 @@ export const translations = {
       checkoutButton: 'Proceed to Checkout',
     },
     checkout: {
+      guestHint: 'You can check out without an account.',
       empty: 'Your cart is empty.',
       title: 'Checkout',
       orderType: 'Order type',
@@ -242,6 +244,7 @@ export const translations = {
       processing: 'Processing...',
     },
     login: {
+      identifier: 'Email or phone',
       title: 'Login',
       password: 'Password',
       submitting: 'Logging in...',
@@ -306,6 +309,8 @@ export const translations = {
       invalidLink: 'This link is invalid or has expired.',
     },
     orderStatus: {
+      createAccount: 'Create an account to track your orders faster.',
+      createAccountLink: 'Create account',
       date: 'Order date',
       paymentState: 'Payment',
       deliveryMethod: 'Delivery method',
@@ -942,6 +947,7 @@ export const translations = {
         deleteFailed: 'Failed to delete',
       },
       pageSections: {
+        category: 'FAQ topic',
         subtitle: 'Add, edit, reorder, and remove the content shown on each support page.',
         add: 'Add Section',
         body: 'Text',
@@ -970,6 +976,11 @@ export const translations = {
       internationalSupply: 'International supply',
     },
     wholesale: {
+      tableTitle: 'Sizes, minimum orders and quantity prices',
+      tableProduct: 'Product',
+      tableMoq: 'Minimum order (pcs)',
+      tablePrice: 'Price per piece',
+      tableTiers: 'Quantity prices (from, pcs)',
       title: 'Wholesale',
       subtitle: 'Buy MARU containers at wholesale prices for your business.',
       benefit1: 'Volume-based pricing tiers',
@@ -1024,6 +1035,8 @@ export const translations = {
       marketsText: 'Serving retail, wholesale, and distributor customers in Uzbekistan and beyond.',
     },
     contact: {
+      businessInquiries: 'Business inquiries',
+      wholesaleInquiries: 'Wholesale inquiries',
       title: 'Contact',
       subtitle: 'Get in touch with our team.',
       phone: 'Phone',
@@ -1035,6 +1048,10 @@ export const translations = {
       send: 'Send Message',
     },
     delivery: {
+      tableTitle: 'Delivery time and cost by country',
+      tableTime: 'Delivery time',
+      tableCost: 'Delivery cost',
+      tableFree: 'Free delivery from',
       title: 'Delivery',
       subtitle: 'How we ship your order.',
       uzbekistanTitle: 'Uzbekistan',
@@ -1046,6 +1063,8 @@ export const translations = {
       noCountries: 'Delivery information is being updated — please check back soon.',
     },
     payment: {
+      forCountry: 'Payment methods available for delivery to {country}:',
+      chooseCountry: 'Choose a delivery country in the header to see the methods available there.',
       title: 'Payment',
       subtitle: 'Payment methods currently available at checkout.',
       available: 'Available',
@@ -1069,6 +1088,7 @@ export const translations = {
       title: 'Frequently Asked Questions',
       empty: 'No questions yet — check back soon.',
       category: {
+        general: 'General',
         products: 'Products',
         orders: 'Orders',
         payment: 'Payment',
@@ -1348,6 +1368,7 @@ export const translations = {
     },
     common: { loading: 'Загрузка...', skipToContent: 'Перейти к основному содержимому', close: 'Закрыть', breadcrumb: 'Хлебные крошки' },
     cart: {
+      estimatedDelivery: 'Ожидаемая доставка',
       loading: 'Загрузка...',
       saveForLater: 'Отложить',
       minOrder: 'Минимальный заказ: {n} шт.',
@@ -1374,6 +1395,7 @@ export const translations = {
       checkoutButton: 'Оформить заказ',
     },
     checkout: {
+      guestHint: 'Оформить заказ можно без регистрации.',
       empty: 'Ваша корзина пуста.',
       title: 'Оформление заказа',
       orderType: 'Тип заказа',
@@ -1414,6 +1436,7 @@ export const translations = {
       processing: 'Обработка...',
     },
     login: {
+      identifier: 'Email или телефон',
       title: 'Вход',
       password: 'Пароль',
       submitting: 'Выполняется вход...',
@@ -1478,6 +1501,8 @@ export const translations = {
       invalidLink: 'Ссылка недействительна или устарела.',
     },
     orderStatus: {
+      createAccount: 'Создайте аккаунт, чтобы быстрее отслеживать заказы.',
+      createAccountLink: 'Создать аккаунт',
       date: 'Дата заказа',
       paymentState: 'Оплата',
       deliveryMethod: 'Способ доставки',
@@ -2114,6 +2139,7 @@ export const translations = {
         deleteFailed: 'Не удалось удалить',
       },
       pageSections: {
+        category: 'Тема вопроса',
         subtitle: 'Добавляйте, редактируйте, меняйте порядок и удаляйте контент на страницах поддержки.',
         add: 'Добавить раздел',
         body: 'Текст',
@@ -2142,6 +2168,11 @@ export const translations = {
       internationalSupply: 'Международные поставки',
     },
     wholesale: {
+      tableTitle: 'Объёмы, минимальные заказы и цены за количество',
+      tableProduct: 'Товар',
+      tableMoq: 'Мин. заказ (шт.)',
+      tablePrice: 'Цена за штуку',
+      tableTiers: 'Цены за количество (от, шт.)',
       title: 'Оптовые продажи',
       subtitle: 'Покупайте контейнеры MARU по оптовым ценам для вашего бизнеса.',
       benefit1: 'Ценовые уровни в зависимости от объёма',
@@ -2196,6 +2227,8 @@ export const translations = {
       marketsText: 'Обслуживаем розничных, оптовых клиентов и дистрибьюторов в Узбекистане и за его пределами.',
     },
     contact: {
+      businessInquiries: 'Вопросы для бизнеса',
+      wholesaleInquiries: 'Оптовые запросы',
       title: 'Контакты',
       subtitle: 'Свяжитесь с нашей командой.',
       phone: 'Телефон',
@@ -2207,6 +2240,10 @@ export const translations = {
       send: 'Отправить сообщение',
     },
     delivery: {
+      tableTitle: 'Сроки и стоимость доставки по странам',
+      tableTime: 'Срок доставки',
+      tableCost: 'Стоимость доставки',
+      tableFree: 'Бесплатно от',
       title: 'Доставка',
       subtitle: 'Как мы доставляем ваш заказ.',
       uzbekistanTitle: 'Узбекистан',
@@ -2218,6 +2255,8 @@ export const translations = {
       noCountries: 'Информация о доставке обновляется — загляните позже.',
     },
     payment: {
+      forCountry: 'Способы оплаты при доставке в {country}:',
+      chooseCountry: 'Выберите страну доставки в шапке сайта, чтобы увидеть доступные способы оплаты.',
       title: 'Оплата',
       subtitle: 'Способы оплаты, доступные сейчас при оформлении заказа.',
       available: 'Доступен',
@@ -2241,6 +2280,7 @@ export const translations = {
       title: 'Часто задаваемые вопросы',
       empty: 'Пока нет вопросов — загляните позже.',
       category: {
+        general: 'Общие вопросы',
         products: 'Товары',
         orders: 'Заказы',
         payment: 'Оплата',
@@ -2520,6 +2560,7 @@ export const translations = {
     },
     common: { loading: 'Yuklanmoqda...', skipToContent: "Asosiy kontentga o'tish", close: 'Yopish', breadcrumb: 'Sahifa yo\'li' },
     cart: {
+      estimatedDelivery: 'Taxminiy yetkazib berish',
       loading: 'Yuklanmoqda...',
       saveForLater: 'Keyinroqqa saqlash',
       minOrder: 'Minimal buyurtma: {n} dona',
@@ -2546,6 +2587,7 @@ export const translations = {
       checkoutButton: 'Buyurtmani rasmiylashtirish',
     },
     checkout: {
+      guestHint: 'Buyurtmani ro\'yxatdan o\'tmasdan ham rasmiylashtirish mumkin.',
       empty: "Savatingiz bo'sh.",
       title: 'Buyurtmani rasmiylashtirish',
       orderType: 'Buyurtma turi',
@@ -2586,6 +2628,7 @@ export const translations = {
       processing: 'Amalga oshirilmoqda...',
     },
     login: {
+      identifier: 'Email yoki telefon',
       title: 'Kirish',
       password: 'Parol',
       submitting: 'Kirilmoqda...',
@@ -2650,6 +2693,8 @@ export const translations = {
       invalidLink: 'Havola yaroqsiz yoki muddati tugagan.',
     },
     orderStatus: {
+      createAccount: 'Buyurtmalarni tezroq kuzatish uchun hisob yarating.',
+      createAccountLink: 'Hisob yaratish',
       date: 'Buyurtma sanasi',
       paymentState: 'To\'lov',
       deliveryMethod: 'Yetkazib berish usuli',
@@ -3286,6 +3331,7 @@ export const translations = {
         deleteFailed: "O'chirib bo'lmadi",
       },
       pageSections: {
+        category: 'Savol mavzusi',
         subtitle: "Qo'llab-quvvatlash sahifalaridagi kontentni qo'shing, tahrirlang, tartibini o'zgartiring va o'chiring.",
         add: "Bo'lim qo'shish",
         body: 'Matn',
@@ -3314,6 +3360,11 @@ export const translations = {
       internationalSupply: "Xalqaro ta'minot",
     },
     wholesale: {
+      tableTitle: 'Hajmlar, minimal buyurtmalar va miqdor narxlari',
+      tableProduct: 'Mahsulot',
+      tableMoq: 'Minimal buyurtma (dona)',
+      tablePrice: 'Dona narxi',
+      tableTiers: 'Miqdor narxlari (dan, dona)',
       title: 'Ulgurji savdo',
       subtitle: 'Biznesingiz uchun MARU idishlarini ulgurji narxlarda xarid qiling.',
       benefit1: 'Hajmga qarab narx darajalari',
@@ -3368,6 +3419,8 @@ export const translations = {
       marketsText: "O'zbekiston va undan tashqarida chakana, ulgurji va distribyutor mijozlarga xizmat ko'rsatamiz.",
     },
     contact: {
+      businessInquiries: 'Biznes so\'rovlari',
+      wholesaleInquiries: 'Ulgurji so\'rovlar',
       title: 'Aloqa',
       subtitle: 'Jamoamiz bilan bogʻlaning.',
       phone: 'Telefon',
@@ -3379,6 +3432,10 @@ export const translations = {
       send: 'Xabar yuborish',
     },
     delivery: {
+      tableTitle: 'Davlatlar bo\'yicha yetkazib berish muddati va narxi',
+      tableTime: 'Yetkazib berish muddati',
+      tableCost: 'Yetkazib berish narxi',
+      tableFree: 'Bepul yetkazib berish',
       title: 'Yetkazib berish',
       subtitle: 'Buyurtmangizni qanday yetkazamiz.',
       uzbekistanTitle: "O'zbekiston",
@@ -3390,6 +3447,8 @@ export const translations = {
       noCountries: "Yetkazib berish ma'lumotlari yangilanmoqda — birozdan so'ng qayta tekshiring.",
     },
     payment: {
+      forCountry: '{country} ga yetkazib berishda mavjud to\'lov usullari:',
+      chooseCountry: 'Mavjud to\'lov usullarini ko\'rish uchun sahifa tepasida yetkazib berish davlatini tanlang.',
       title: "To'lov",
       subtitle: "Buyurtma rasmiylashtirishda hozir mavjud bo'lgan to'lov usullari.",
       available: 'Mavjud',
@@ -3413,6 +3472,7 @@ export const translations = {
       title: "Tez-tez so'raladigan savollar",
       empty: "Hozircha savollar yo'q — birozdan so'ng qayta tekshiring.",
       category: {
+        general: 'Umumiy savollar',
         products: 'Mahsulotlar',
         orders: 'Buyurtmalar',
         payment: "To'lov",

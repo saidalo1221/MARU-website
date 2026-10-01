@@ -11,12 +11,12 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ2 §11, §48-49 Product card (price, old price, discount, availability, rating, Add to Cart, Quick View, Wishlist), badges
 - [x] TZ2 §12-17 Product page (gallery, variants, quantity tiers, CTAs incl. Request a Quote, delivery block)
 - [x] TZ2 §18-19 Search (autocomplete, suggestions, SKU, typo tolerance, results page)
-- [ ] TZ2 §20-21 Cart and upsell
-- [ ] TZ2 §22-25 Checkout, payment states, order success
-- [ ] TZ2 §26-29 Login/registration, account (dashboard, orders, wishlist, addresses, profile)
-- [ ] TZ2 §30-33 B2B, wholesale, request a quote, distributor
-- [ ] TZ2 §34-40 About (company, manufacturing, quality), contact, delivery, payment, returns, FAQ by category, blog
-- [ ] TZ2 §41-42 International UX (country, language, currency)
+- [x] TZ2 §20-21 Cart and upsell
+- [x] TZ2 §22-25 Checkout, payment states, order success
+- [x] TZ2 §26-29 Login/registration, account (dashboard, orders, wishlist, addresses, profile)
+- [x] TZ2 §30-33 B2B, wholesale, request a quote, distributor
+- [x] TZ2 §34-40 About (company, manufacturing, quality), contact, delivery, payment, returns, FAQ by category, blog
+- [x] TZ2 §41-42 International UX (country, language, currency)
 - [ ] TZ2 §43 CRO (packs, quantity discounts, reorder, free-shipping threshold)
 - [ ] TZ2 §45-47, §60 Design system and tokens, buttons, form components
 - [ ] TZ2 §51-56 Responsive, loading/empty/error states, accessibility

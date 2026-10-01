@@ -24,6 +24,10 @@ def normalize_phone(value: Optional[str]) -> Optional[str]:
     return cleaned
 
 
+# Customers may sign in with their email or their phone number (PRD ТЗ№2 §26).
+LoginIdentifier = Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True, min_length=3, max_length=255)]
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
@@ -57,7 +61,7 @@ class ChangePasswordRequest(BaseModel):
 
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: LoginIdentifier  # an email address or a phone number
     password: str
     mfa_code: Optional[str] = None
     # Opaque per-browser token the frontend generates once and persists in
@@ -96,7 +100,7 @@ class LoginResult(BaseModel):
 
 
 class VerifyDeviceRequest(BaseModel):
-    email: EmailStr
+    email: LoginIdentifier  # same identifier the login used
     code: str
     device_id: str
 

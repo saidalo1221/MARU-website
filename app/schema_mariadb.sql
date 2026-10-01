@@ -669,6 +669,7 @@ CREATE TABLE page_sections (
 	title VARCHAR(255) NOT NULL,
 	body TEXT NOT NULL,
 	sort_order INTEGER NOT NULL,
+	category VARCHAR(30),
 	created_at DATETIME NOT NULL DEFAULT now(),
 	updated_at DATETIME NOT NULL DEFAULT now(),
 	PRIMARY KEY (id)

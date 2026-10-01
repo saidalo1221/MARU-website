@@ -27,6 +27,13 @@ class CartItemOut(BaseModel):
     min_order_quantity: int = 1
     unit_price: Decimal
     line_total: Decimal
+    # What the line shows: product, variant, picture and, when the customer's
+    # price is below the list (retail) price, that old price (PRD ТЗ№2 §20).
+    product_name: Optional[str] = None
+    product_slug: Optional[str] = None
+    variant_name: Optional[str] = None
+    image_url: Optional[str] = None
+    list_price: Optional[Decimal] = None
 
 
 class CartOut(BaseModel):

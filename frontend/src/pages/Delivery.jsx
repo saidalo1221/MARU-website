@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
-import { listShippingCountries, listShippingMethods } from '../api/shipping'
+import { getShippingEstimate, listShippingCountries, listShippingMethods } from '../api/shipping'
 import { listPageSections } from '../api/pageSections'
 import Seo from '../components/Seo'
 
@@ -12,6 +12,7 @@ export default function Delivery() {
   const [domesticMethods, setDomesticMethods] = useState([])
   const [internationalCountries, setInternationalCountries] = useState([])
   const [sections, setSections] = useState([])
+  const [estimates, setEstimates] = useState([])
 
   useEffect(() => {
     listShippingCountries().then(async (list) => {
@@ -23,6 +24,13 @@ export default function Delivery() {
       }
     }).catch(() => {})
   }, [])
+
+  // One row per country: how long delivery takes and what it costs from.
+  useEffect(() => {
+    if (countries.length === 0) return
+    Promise.all(countries.map((c) => getShippingEstimate(c).then((e) => ({ country: c, ...e })).catch(() => ({ country: c }))))
+      .then(setEstimates)
+  }, [countries])
 
   useEffect(() => {
     listPageSections('delivery', locale).then(setSections).catch(() => {})
@@ -66,6 +74,40 @@ export default function Delivery() {
       {restSections.length > 0 && (
         <section className="text-sm text-gray-600 space-y-2">
           {restSections.map((s) => <p key={s.id}>{s.body}</p>)}
+        </section>
+      )}
+
+      {estimates.length > 0 && (
+        <section className="mb-10 overflow-x-auto">
+          <h2 className="text-xl font-semibold mb-3">{t('delivery.tableTitle')}</h2>
+          <table className="w-full text-sm border border-gray-200">
+            <thead className="bg-gray-50 text-left">
+              <tr>
+                <th scope="col" className="px-3 py-2">{t('admin.common.country')}</th>
+                <th scope="col" className="px-3 py-2">{t('delivery.tableTime')}</th>
+                <th scope="col" className="px-3 py-2">{t('delivery.tableCost')}</th>
+                <th scope="col" className="px-3 py-2">{t('delivery.tableFree')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {estimates.map((e) => (
+                <tr key={e.country}>
+                  <th scope="row" className="px-3 py-2 text-left font-medium">{e.country}</th>
+                  <td className="px-3 py-2">
+                    {e.max_days != null
+                      ? t('orderStatus.estimatedDays', { days: e.min_days != null && e.min_days !== e.max_days ? `${e.min_days}–${e.max_days}` : e.max_days })
+                      : '—'}
+                  </td>
+                  <td className="px-3 py-2">
+                    {e.from_fee == null ? '—' : Number(e.from_fee) === 0 ? t('productDetail.deliveryFree') : `${e.fee_currency} ${Number(e.from_fee).toFixed(2)}`}
+                  </td>
+                  <td className="px-3 py-2">
+                    {e.free_shipping_threshold != null ? `${e.currency} ${Number(e.free_shipping_threshold).toFixed(0)}` : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </section>
       )}
 

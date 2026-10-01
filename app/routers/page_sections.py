@@ -27,6 +27,7 @@ def list_page_sections(page: PageKey, lang: Optional[str] = None, db: Session = 
             id=s.id,
             title=(translations[s.id].title if s.id in translations else s.title),
             body=(translations[s.id].body if s.id in translations else s.body),
+            category=s.category,
         )
         for s in sections
     ]

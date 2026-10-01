@@ -82,10 +82,23 @@ function SectionTranslations({ sectionId }) {
   )
 }
 
+const FAQ_CATEGORIES = ['products', 'orders', 'payment', 'delivery', 'returns', 'wholesale', 'international']
+
+// Topic of a FAQ question (PRD ТЗ№2 §39); empty = general.
+function CategorySelect({ value, onChange }) {
+  const { t } = useLocale()
+  return (
+    <select value={value} onChange={onChange} aria-label={t('admin.pageSections.category')} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm">
+      <option value="">{t('faq.category.general')}</option>
+      {FAQ_CATEGORIES.map((c) => <option key={c} value={c}>{t(`faq.category.${c}`)}</option>)}
+    </select>
+  )
+}
+
 function SectionBlock({ section, isFirst, isLast, onChanged }) {
   const { t } = useLocale()
   const [expanded, setExpanded] = useState(false)
-  const [form, setForm] = useState({ title: section.title, body: section.body })
+  const [form, setForm] = useState({ title: section.title, body: section.body, category: section.category || '' })
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
 
@@ -96,7 +109,7 @@ function SectionBlock({ section, isFirst, isLast, onChanged }) {
     setError(null)
     setSaving(true)
     try {
-      await adminUpdatePageSection(section.id, form)
+      await adminUpdatePageSection(section.id, { ...form, category: form.category || null })
       await onChanged()
     } catch (err) {
       setError(errorMessage(err, t('admin.pageSections.saveFailed')))
@@ -144,6 +157,7 @@ function SectionBlock({ section, isFirst, isLast, onChanged }) {
           <form onSubmit={save} className="space-y-2 mt-3">
             <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.title} onChange={update('title')} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
             <textarea required placeholder={t('admin.pageSections.body')} aria-label={t('admin.pageSections.body')} value={form.body} onChange={update('body')} rows={3} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
+            {section.page === 'faq' && <CategorySelect value={form.category} onChange={update('category')} />}
             {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
             <button type="submit" disabled={saving} className="bg-brand text-white px-3 py-1.5 rounded text-xs disabled:opacity-40">
               {saving ? t('admin.common.saving') : t('admin.common.save')}
@@ -162,7 +176,7 @@ export default function AdminPageSections() {
   const [sections, setSections] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [form, setForm] = useState({ title: '', body: '' })
+  const [form, setForm] = useState({ title: '', body: '', category: '' })
   const [formOpen, setFormOpen] = useState(false)
   const [formError, setFormError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -185,8 +199,8 @@ export default function AdminPageSections() {
     setFormError(null)
     setSubmitting(true)
     try {
-      await adminCreatePageSection({ page, ...form })
-      setForm({ title: '', body: '' })
+      await adminCreatePageSection({ page, ...form, category: page === 'faq' && form.category ? form.category : null })
+      setForm({ title: '', body: '', category: '' })
       setFormOpen(false)
       await load()
     } catch (err) {
@@ -221,6 +235,7 @@ export default function AdminPageSections() {
         <form onSubmit={handleAdd} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
           <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
           <textarea required placeholder={t('admin.pageSections.body')} aria-label={t('admin.pageSections.body')} value={form.body} onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} rows={3} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          {page === 'faq' && <CategorySelect value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} />}
           {formError && <p role="alert" className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">

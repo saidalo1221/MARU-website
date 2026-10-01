@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import { listProducts } from '../api/products'
@@ -48,6 +49,41 @@ export default function Wholesale() {
           <dd className="text-gray-600">{t('wholesale.deliveryText')}</dd>
         </div>
       </dl>
+
+      {products.length > 0 && (
+        <div className="mb-10 overflow-x-auto">
+          <h2 className="text-xl font-semibold mb-3">{t('wholesale.tableTitle')}</h2>
+          <table className="w-full text-sm border border-gray-200">
+            <thead className="bg-gray-50 text-left">
+              <tr>
+                <th scope="col" className="px-3 py-2">{t('wholesale.tableProduct')}</th>
+                <th scope="col" className="px-3 py-2">{t('productDetail.volume')}</th>
+                <th scope="col" className="px-3 py-2">{t('wholesale.tableMoq')}</th>
+                <th scope="col" className="px-3 py-2">{t('wholesale.tablePrice')}</th>
+                <th scope="col" className="px-3 py-2">{t('wholesale.tableTiers')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {products.map((p) => {
+                const sku = p.variants.flatMap((v) => v.skus).filter((s) => s.is_active)[0]
+                return (
+                  <tr key={p.id}>
+                    <td className="px-3 py-2"><Link to={`/products/${p.slug}`} className="text-brand underline">{p.name}</Link></td>
+                    <td className="px-3 py-2">{t('catalog.ml', { n: p.volume_ml })}</td>
+                    <td className="px-3 py-2">{p.min_order_quantity || 1}</td>
+                    <td className="px-3 py-2">{sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}</td>
+                    <td className="px-3 py-2">
+                      {sku && sku.quantity_tiers?.length > 0
+                        ? sku.quantity_tiers.map((tier) => `${tier.min_quantity}+: ${Number(tier.price).toFixed(2)}`).join(' · ')
+                        : '—'}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {products.length > 0 && (
         <div className="mb-10">

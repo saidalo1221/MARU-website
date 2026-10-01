@@ -25,6 +25,7 @@ from app.services.order_service import InsufficientStockError, OrderError, creat
 from app.services.payment.errors import PaymentConfigError
 from app.services.payment.registry import (
     ensure_payment_method_configured,
+    method_available_in_country,
     get_payment_gateway,
     payment_reference_kind,
 )
@@ -140,6 +141,8 @@ def checkout(
     try:
         # Check configuration before mutating the cart/order. Network errors
         # are rolled back below because create_order no longer commits itself.
+        if not method_available_in_country(payload.payment_method, payload.country):
+            raise OrderError(f"{payload.payment_method} is not available in {payload.country}")
         ensure_payment_method_configured(payload.payment_method)
         order = create_order(db, cart, payload, user)
         order.idempotency_key = idempotency_key

@@ -112,6 +112,12 @@ export default function OrderStatus() {
       <h1 className="text-2xl font-bold mb-1">{t('orderStatus.title')}</h1>
       <p className="text-gray-500 mb-4">{t('orderStatus.orderNumber', { number: order.order_number })}</p>
 
+      {!user && orderToken && (
+        <p className="mb-4 rounded border border-gray-200 px-3 py-2 text-sm">
+          {t('orderStatus.createAccount')}{' '}
+          <Link to={`/register?email=${encodeURIComponent(order.email)}&next=/account/orders`} className="text-brand underline">{t('orderStatus.createAccountLink')}</Link>
+        </p>
+      )}
       {payState === 'Paid' && (
         <p role="status" className="mb-4 rounded border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-800">{t('orderStatus.paymentSuccessful')}</p>
       )}

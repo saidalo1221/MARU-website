@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getShippingEstimate } from '../api/shipping'
+import { useShipCountry } from '../lib/shipCountry'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import { getCartRecommendations } from '../api/cart'
@@ -8,6 +10,26 @@ import QuantitySelector from '../components/product/QuantitySelector'
 import { errorMessage } from '../api/client'
 import { trackEvent } from '../lib/analytics'
 import Seo from '../components/Seo'
+
+// "Estimated delivery: 2-5 days" for the country picked in the header (PRD ТЗ№2 §20).
+function EstimatedDelivery() {
+  const { t } = useLocale()
+  const country = useShipCountry()
+  const [estimate, setEstimate] = useState(null)
+  useEffect(() => {
+    getShippingEstimate(country).then(setEstimate).catch(() => setEstimate(null))
+  }, [country])
+  if (!estimate || estimate.max_days == null) return null
+  const days = estimate.min_days != null && estimate.min_days !== estimate.max_days
+    ? `${estimate.min_days}–${estimate.max_days}`
+    : `${estimate.max_days}`
+  return (
+    <div className="flex justify-between">
+      <dt className="text-gray-500">{t('cart.estimatedDelivery')}</dt>
+      <dd>{t('orderStatus.estimatedDays', { days })}</dd>
+    </div>
+  )
+}
 
 function SavedForLater({ cart, removeItem, moveToCart }) {
   const { t } = useLocale()
@@ -33,7 +55,8 @@ function SavedForLater({ cart, removeItem, moveToCart }) {
         {cart.saved_items.map((item) => (
           <div key={item.id} className="py-3 flex items-center gap-4 text-sm">
             <div className="flex-1">
-              <p className="font-medium">{item.sku_code}</p>
+              <p className="font-medium">{item.product_name || item.sku_code}</p>
+              <p className="text-xs text-gray-500">{[item.variant_name, item.sku_code].filter(Boolean).join(' · ')}</p>
               <p className="text-xs text-gray-500">
                 {item.quantity} × {cart.currency} {Number(item.unit_price).toFixed(2)}
               </p>
@@ -69,6 +92,17 @@ export default function Cart() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartKey, locale])
+
+  // Names come from the server in the chosen language; reload them when it changes.
+  const firstLocale = useRef(true)
+  useEffect(() => {
+    if (firstLocale.current) {
+      firstLocale.current = false
+      return
+    }
+    refresh().catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale])
 
   const cartItemCount = cart?.items.length ?? 0
   const cartViewTracked = useRef(false)
@@ -117,10 +151,29 @@ export default function Cart() {
         <div className="divide-y divide-gray-200">
           {cart.items.map((item) => (
             <div key={item.id} className="py-4 flex items-center gap-4">
-              <div className="flex-1">
-                <p className="font-medium text-sm">{item.sku_code}</p>
+              <Link to={item.product_slug ? `/products/${item.product_slug}` : '/shop'} className="shrink-0" tabIndex={-1} aria-hidden="true">
+                {item.image_url ? (
+                  <img src={item.image_url} alt="" className="h-16 w-16 rounded object-cover bg-gray-100" />
+                ) : (
+                  <span className="block h-16 w-16 rounded bg-gray-100" />
+                )}
+              </Link>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm">
+                  {item.product_slug ? <Link to={`/products/${item.product_slug}`} className="hover:underline">{item.product_name || item.sku_code}</Link> : item.sku_code}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {[item.variant_name, item.sku_code].filter(Boolean).join(' · ')}
+                </p>
                 <p className="text-xs text-gray-500">
                   {t('cart.each', { currency: cart.currency, price: Number(item.unit_price).toFixed(2) })}
+                  {item.list_price != null && (
+                    <>
+                      {' '}
+                      <s>{Number(item.list_price).toFixed(2)}</s>{' '}
+                      <span className="text-red-600">−{Math.round((1 - Number(item.unit_price) / Number(item.list_price)) * 100)}%</span>
+                    </>
+                  )}
                 </p>
                 {item.min_order_quantity > 1 && (
                   <p className={`text-xs mt-0.5 ${item.quantity < item.min_order_quantity ? 'text-red-600' : 'text-gray-500'}`}>
@@ -192,6 +245,7 @@ export default function Cart() {
               <dt className="text-gray-500">{t('productDetail.delivery')}</dt>
               <dd>{Number(cart.delivery) > 0 ? `${cart.currency} ${Number(cart.delivery).toFixed(2)}` : t('cart.calculatedAtCheckout')}</dd>
             </div>
+            <EstimatedDelivery />
             <div className="flex justify-between font-semibold text-base border-t border-gray-200 pt-2 mt-2">
               <dt>{t('cart.total')}</dt>
               <dd>{cart.currency} {Number(cart.total).toFixed(2)}</dd>

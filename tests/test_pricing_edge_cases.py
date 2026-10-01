@@ -104,3 +104,39 @@ def test_cart_lines_report_the_product_minimum(client, db_session, sku):
     r = client.post("/api/v1/cart/items", json={"sku_id": sku.id, "quantity": 1})
     assert r.status_code == 201, r.text
     assert r.json()["items"][0]["min_order_quantity"] == 5
+
+
+def test_sale_price_applies_to_retail_customers_but_not_other_types(db_session, sku):
+    from app.models.enums import CustomerType
+    from app.services.pricing import resolve_unit_price
+
+    sku.special_price = Decimal("7")
+    sku.wholesale_price = Decimal("8")
+    db_session.commit()
+
+    assert resolve_unit_price(db_session, sku, CustomerType.RETAIL, 1, "USD") == Decimal("7")
+    assert resolve_unit_price(db_session, sku, CustomerType.SPECIAL, 1, "USD") == Decimal("7")
+    assert resolve_unit_price(db_session, sku, CustomerType.WHOLESALE, 1, "USD") == Decimal("8")  # own column
+
+    sku.special_price = Decimal("12")  # above retail: not a sale, ignored for retail
+    db_session.commit()
+    assert resolve_unit_price(db_session, sku, CustomerType.RETAIL, 1, "USD") == Decimal("10")
+
+
+def test_cart_lines_carry_product_details_and_the_old_price(client, db_session, sku):
+    sku.special_price = Decimal("7")
+    sku.variant.photo_url = "https://img.example/box.jpg"
+    db_session.commit()
+
+    r = client.post("/api/v1/cart/items", json={"sku_id": sku.id, "quantity": 2})
+    assert r.status_code == 201, r.text
+    line = r.json()["items"][0]
+    assert line["product_name"] == "Food Container" and line["product_slug"] == "food-container"
+    assert line["variant_name"] == "1000ml" and line["image_url"] == "https://img.example/box.jpg"
+    assert Decimal(line["unit_price"]) == Decimal("7") and Decimal(line["list_price"]) == Decimal("10")
+
+    sku.special_price = None
+    db_session.commit()
+    cart = {"X-Cart-Token": r.headers["X-Cart-Token"]}
+    again = client.get("/api/v1/cart/", headers=cart).json()["items"][0]
+    assert again["list_price"] is None  # no discount, no old price

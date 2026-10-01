@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
@@ -60,8 +60,17 @@ export default function Checkout() {
 
   useEffect(() => {
     listShippingCountries().then(setCountries).catch(() => {})
-    getPaymentMethods().then(setPaymentMethods).catch(() => {})
   }, [])
+
+  // Local gateways are only offered for deliveries to their home market (PRD ТЗ№2 §37).
+  useEffect(() => {
+    getPaymentMethods(form.country || undefined)
+      .then((methods) => {
+        setPaymentMethods(methods)
+        setForm((f) => (f.payment_method && !methods.some((m) => m.id === f.payment_method && m.enabled) ? { ...f, payment_method: '' } : f))
+      })
+      .catch(() => {})
+  }, [form.country])
 
   useEffect(() => {
     if (!user) return
@@ -127,11 +136,11 @@ export default function Checkout() {
   const idempotencyKey = useRef(null)
   const cartItemCount = cart?.items.length ?? 0
   useEffect(() => {
-    if (!user || cartItemCount === 0 || checkoutTracked.current) return
+    if (authLoading || cartItemCount === 0 || checkoutTracked.current) return
     checkoutTracked.current = true
     trackEvent('begin_checkout', { item_count: cartItemCount, value: cart.total, currency: cart.currency })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, cartItemCount])
+  }, [authLoading, cartItemCount])
 
   useEffect(() => {
     if (form.payment_method) trackEvent('add_payment_info', { payment_method: form.payment_method })
@@ -139,8 +148,8 @@ export default function Checkout() {
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
+  // Guests can buy without an account (PRD ТЗ№2 §26); only wait for the sign-in check.
   if (authLoading) return null
-  if (!user) return <Navigate to="/login?next=/checkout" replace />
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -233,7 +242,13 @@ export default function Checkout() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
       <Seo title={t('checkout.title')} noindex />
-      <h1 className="text-2xl font-bold mb-4">{t('checkout.title')}</h1>
+      <h1 className="text-2xl font-bold mb-2">{t('checkout.title')}</h1>
+      {!user && (
+        <p className="text-sm text-gray-500 mb-4">
+          {t('checkout.guestHint')}{' '}
+          <Link to="/login?next=/checkout" className="text-brand underline">{t('header.login')}</Link>
+        </p>
+      )}
 
       <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -376,7 +391,7 @@ export default function Checkout() {
             disabled={submitting}
             className="w-full bg-brand text-white rounded py-3 font-medium disabled:opacity-40 sticky bottom-0"
           >
-            {submitting ? t('checkout.placingOrder') : t('checkout.placeOrder')}
+            {submitting ? t('checkout.placingOrder') : (form.payment_method ? t('checkout.payNow') : t('checkout.placeOrder'))}
           </button>
           <LegalNotice />
         </form>
@@ -386,7 +401,7 @@ export default function Checkout() {
           <ul className="text-sm space-y-1 mb-3">
             {cart.items.map((item) => (
               <li key={item.id} className="flex justify-between">
-                <span>{item.sku_code} × {item.quantity}</span>
+                <span>{item.product_name || item.sku_code} × {item.quantity}</span>
                 <span>{cart.currency} {Number(item.line_total).toFixed(2)}</span>
               </li>
             ))}

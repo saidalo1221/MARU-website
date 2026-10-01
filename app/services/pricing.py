@@ -31,6 +31,15 @@ def resolve_unit_price(
     The result is converted from the SKU's own currency into target_currency
     (PRD section 14) — a no-op when they already match. May raise CurrencyError."""
     base_price = getattr(sku, f"{customer_type.value}_price", None) or sku.retail_price
+    # A special price below retail is the SKU's sale price (it drives the "Sale"
+    # badge and the struck-through old price in the storefront), so retail
+    # customers pay it too; other customer types keep their own price column.
+    if (
+        customer_type == CustomerType.RETAIL
+        and sku.special_price is not None
+        and sku.special_price < base_price
+    ):
+        base_price = sku.special_price
 
     tier = db.execute(
         select(QuantityPriceTier)

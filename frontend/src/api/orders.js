@@ -28,8 +28,10 @@ export function getMyOrder(orderId) {
   return apiRequest(`/orders/me/${orderId}`)
 }
 
-export function getPaymentMethods() {
-  return apiRequest('/payments/methods')
+// With a country, methods that cannot be used for that destination come back disabled.
+export function getPaymentMethods(country) {
+  const qs = country ? `?country=${encodeURIComponent(country)}` : ''
+  return apiRequest(`/payments/methods${qs}`)
 }
 
 export function retryPayment(orderId, orderToken) {

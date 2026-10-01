@@ -29,10 +29,10 @@ from app.schemas.cart import (
 )
 from app.routers.products import _apply_translation, _convert_product_prices
 from app.services.badges import compute_badges_batch
-from app.services.i18n import get_product_translations
+from app.services.i18n import get_product_translation, get_product_translations
 from app.services.order_service import available_stock
 from app.services.recommendations import recommended_product_ids
-from app.services.currency import CurrencyError, get_rate_to_usd
+from app.services.currency import CurrencyError, convert_amount, get_rate_to_usd
 from app.services.analytics import record_event
 from app.services.pricing import PromoCodeError, apply_promo, resolve_unit_price, validate_promo
 from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g, free_shipping_progress
@@ -45,6 +45,34 @@ def _resolve_customer_type(user: Optional[User]) -> CustomerType:
     return user.customer_type if user is not None else CustomerType.RETAIL
 
 
+def _line_details(db: Session, item, unit_price: Decimal, currency: str, lang: Optional[str]) -> dict:
+    """Display fields for a cart line; never raises for missing optional data."""
+    sku = item.sku
+    variant = sku.variant
+    product = variant.product
+    name = product.name
+    if lang:
+        translation = get_product_translation(db, product.id, lang)
+        if translation is not None and translation.name:
+            name = translation.name
+    images = sorted(variant.images, key=lambda i: i.sort_order) if variant.images else []
+    image_url = images[0].image_url if images else variant.photo_url
+    list_price = None
+    try:
+        retail = convert_amount(db, sku.retail_price, sku.currency, currency)
+        if unit_price < retail:
+            list_price = retail
+    except CurrencyError:
+        pass
+    return {
+        "product_name": name,
+        "product_slug": product.slug,
+        "variant_name": variant.name,
+        "image_url": image_url,
+        "list_price": list_price,
+    }
+
+
 def _build_cart_out(
     db: Session,
     cart: Cart,
@@ -53,6 +81,7 @@ def _build_cart_out(
     country: Optional[str] = None,
     delivery_method: Optional[str] = None,
     region: Optional[str] = None,
+    lang: Optional[str] = None,
 ) -> CartOut:
     items: list[CartItemOut] = []
     subtotal = Decimal("0")
@@ -72,6 +101,7 @@ def _build_cart_out(
                 min_order_quantity=item.sku.variant.product.min_order_quantity or 1,
                 unit_price=unit_price,
                 line_total=line_total,
+                **_line_details(db, item, unit_price, cart.currency, lang),
             )
         )
 
@@ -89,6 +119,7 @@ def _build_cart_out(
                 quantity=item.quantity,
                 unit_price=saved_price,
                 line_total=saved_price * item.quantity,
+                **_line_details(db, item, saved_price, cart.currency, lang),
             )
         )
 
@@ -159,12 +190,13 @@ def get_cart(
     country: Optional[str] = None,
     delivery_method: Optional[str] = None,
     region: Optional[str] = None,
+    lang: Optional[str] = None,
     cart: Cart = Depends(get_or_create_cart),
     user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CartOut:
     return _build_cart_out(
-        db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method, region
+        db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method, region, lang
     )
 
 

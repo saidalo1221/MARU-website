@@ -15,7 +15,8 @@ export default function Register() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const next = params.get('next') || '/account/orders'
-  const [form, setForm] = useState(emptyForm)
+  // The order page links here with ?email= after a guest checkout.
+  const [form, setForm] = useState({ ...emptyForm, email: params.get('email') || '' })
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 

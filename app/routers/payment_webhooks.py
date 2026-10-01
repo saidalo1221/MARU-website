@@ -45,9 +45,10 @@ def _now_ms() -> int:
     tags=["payments"],
     dependencies=[Depends(rate_limit("payment_methods", 120, 60))],
 )
-def payment_methods() -> list[dict]:
-    """Frontend-safe capabilities list; secrets are never exposed."""
-    return list_payment_methods()
+def payment_methods(country: Optional[str] = None) -> list[dict]:
+    """Frontend-safe capabilities list; secrets are never exposed. With ?country=,
+    methods that cannot be used for that destination come back disabled."""
+    return list_payment_methods(country)
 
 
 # ===========================================================================
