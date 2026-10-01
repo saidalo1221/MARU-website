@@ -257,3 +257,33 @@ CREATE TABLE sku_bundle_items (
 	FOREIGN KEY(component_sku_id) REFERENCES skus (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_sku_bundle_items_bundle_sku_id ON sku_bundle_items (bundle_sku_id);
+
+-- Loyalty programme (PRD ТЗ№1 §11, §62).
+ALTER TABLE orders
+    ADD COLUMN loyalty_points_used INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN loyalty_discount_amount DECIMAL(12, 2) NOT NULL DEFAULT 0;
+CREATE TABLE loyalty_settings (
+	id BIGINT NOT NULL,
+	enabled TINYINT(1) NOT NULL,
+	earn_per_usd DECIMAL(8, 2) NOT NULL,
+	point_value_usd DECIMAL(8, 4) NOT NULL,
+	max_redeem_percent INTEGER NOT NULL,
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE TABLE loyalty_transactions (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	kind VARCHAR(20) NOT NULL,
+	points INTEGER NOT NULL,
+	order_id BIGINT,
+	note VARCHAR(300),
+	created_by_user_id BIGINT,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_loyalty_order_kind UNIQUE (order_id, kind),
+	FOREIGN KEY(user_id) REFERENCES users (id),
+	FOREIGN KEY(order_id) REFERENCES orders (id),
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_loyalty_transactions_user_id ON loyalty_transactions (user_id);

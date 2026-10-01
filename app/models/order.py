@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, DECIMAL, ForeignKey, String, Text, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, DECIMAL, ForeignKey, Integer, String, Text, func
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import relationship
 
@@ -63,6 +63,9 @@ class Order(Base):
     postal_code = Column(String(20), nullable=False)
     delivery_method = Column(String(50), nullable=False)
     payment_method = Column(String(50), nullable=False)
+    # Loyalty points the customer spent on this order and what they were worth (already inside discount_amount).
+    loyalty_points_used = Column(Integer, nullable=False, default=0, server_default="0")
+    loyalty_discount_amount = Column(DECIMAL(12, 2), nullable=False, default=0, server_default="0")
     # Site language at checkout (ru/uz/en) and whether the customer agreed to WhatsApp updates.
     language = Column(String(5), nullable=True)
     whatsapp_opt_in = Column(Boolean, nullable=False, default=False)

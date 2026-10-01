@@ -19,7 +19,7 @@ from app.models.promo_code import PromoCode
 from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.order import CheckoutRequest
-from app.services import document_generator, outbound_webhooks, payment_ledger
+from app.services import document_generator, loyalty, outbound_webhooks, payment_ledger
 from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
 from app.services.audit import log_audit
@@ -237,6 +237,19 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     except PromoCodeError as exc:
         raise OrderError(str(exc)) from exc
     discount = sum(line_discounts, Decimal("0"))
+    # Loyalty points pay for part of the goods; the discount is spread over the lines like a promo discount.
+    loyalty_points = int(checkout.loyalty_points or 0)
+    loyalty_discount = Decimal("0.00")
+    if loyalty_points:
+        if user is None:
+            raise OrderError("LOYALTY: sign in to use loyalty points")
+        allowed = loyalty.max_points_for(db, user, subtotal - discount, cart.currency)
+        if loyalty_points > allowed:
+            raise OrderError(f"LOYALTY: you can use at most {allowed} points on this order")
+        loyalty_discount = min(loyalty.spend_amount(db, loyalty_points, cart.currency), subtotal - discount)
+        shares = loyalty.split(loyalty_discount, [total - line_discounts[i] for i, (_item, _price, total) in enumerate(line_data)])
+        line_discounts = [a + b for a, b in zip(line_discounts, shares)]
+        discount = sum(line_discounts, Decimal("0"))
     # PRD §69 pricing pipeline: ... Discount -> Tax -> Shipping -> Total.
     # Tax is computed on the post-discount merchandise subtotal; shipping
     # itself is not taxed (PRD doesn't specify shipping being taxable).
@@ -266,6 +279,8 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
         currency=cart.currency,
         subtotal_amount=subtotal,
         discount_amount=discount,
+        loyalty_points_used=loyalty_points,
+        loyalty_discount_amount=loyalty_discount,
         tax_amount=tax,
         delivery_amount=delivery,
         total_amount=total,
@@ -351,6 +366,8 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     # without consuming the customer's cart, promo usage, or reservation.
     db.flush()
     payment_ledger.open_payment(db, order)
+    if loyalty_points and user is not None:
+        loyalty.record_redeem(db, user.id, order.id, loyalty_points)
     return order
 
 
@@ -381,6 +398,7 @@ def set_order_status(
 
     order.status = new_status
     payment_ledger.apply_order_status(db, order, new_status, changed_by)
+    loyalty.on_status_change(db, order, old_status, new_status)
     log_audit(
         db, changed_by, "order_status_change", "order", order.id, {"status": old_status.value}, {"status": new_status.value}
     )

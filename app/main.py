@@ -30,6 +30,7 @@ from app.routers import (
     admin_dashboard,
     admin_jobs,
     order_documents,
+    loyalty,
     prerender,
     integration_webhooks,
     admin_inventory,
@@ -155,6 +156,8 @@ api_v1.include_router(admin_customers.router)
 api_v1.include_router(admin_dashboard.router)
 api_v1.include_router(admin_jobs.router)
 api_v1.include_router(order_documents.router)
+api_v1.include_router(loyalty.router)
+api_v1.include_router(loyalty.admin_router)
 api_v1.include_router(order_documents.admin_router)
 api_v1.include_router(integration_webhooks.router)
 api_v1.include_router(admin_inventory.router)

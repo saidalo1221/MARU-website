@@ -54,6 +54,10 @@ class CartOut(BaseModel):
     free_shipping_remaining: Optional[Decimal] = None
     # Boxes / weight / volume of the cart (app/services/packaging.py); None for an empty cart.
     packaging: Optional[dict] = None
+    # Loyalty points: what the signed-in retail customer can spend, what is applied now (already inside `discount`).
+    loyalty: Optional[dict] = None
+    loyalty_points_applied: int = 0
+    loyalty_discount: Decimal = Decimal("0")
 
 
 class CartRecommendationsOut(BaseModel):

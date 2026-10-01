@@ -47,6 +47,7 @@ export default function Checkout() {
   const { t, locale } = useLocale()
   const navigate = useNavigate()
   const [whatsappEnabled, setWhatsappEnabled] = useState(false)
+  const [points, setPoints] = useState('')
   useEffect(() => {
     getSiteSettings().then((s) => setWhatsappEnabled(Boolean(s.whatsapp_enabled))).catch(() => {})
   }, [])
@@ -130,11 +131,11 @@ export default function Checkout() {
     // Debounced while a region is being typed: a request per keystroke can
     // come back out of order and leave the totals on a stale region's tax.
     const timer = setTimeout(
-      () => refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined, region: form.region.trim() || undefined }).catch(() => {}),
-      form.region ? 400 : 0,
+      () => refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined, region: form.region.trim() || undefined, loyaltyPoints: Number(points) || undefined }).catch(() => {}),
+      form.region || points ? 400 : 0,
     )
     return () => clearTimeout(timer)
-  }, [form.country, form.region, form.delivery_method, refresh])
+  }, [form.country, form.region, form.delivery_method, points, refresh])
 
   // Fires when the checkout page is opened with items (not at order placement).
   const checkoutTracked = useRef(false)
@@ -188,6 +189,7 @@ export default function Checkout() {
         promo_code: cart.promo_code || null,
         attribution: getAttribution(),
         language: locale,
+        loyalty_points: cart.loyalty_points_applied || 0,
         whatsapp_opt_in: whatsappEnabled && form.whatsapp_opt_in,
       }
       if (form.order_type !== 'company') {
@@ -422,6 +424,18 @@ export default function Checkout() {
               </li>
             ))}
           </ul>
+          {cart.loyalty && (cart.loyalty.max_points > 0 || cart.loyalty.balance > 0) && (
+            <div className="border border-gray-200 rounded p-3 mb-3 text-sm">
+              <p className="font-medium mb-1">{t('checkout.loyaltyTitle')}</p>
+              <p className="text-xs text-gray-500 mb-2">{t('checkout.loyaltyBalance', { balance: cart.loyalty.balance, value: `${cart.currency} ${cart.loyalty.point_value.toFixed(4)}` })}</p>
+              {cart.loyalty.max_points > 0 && (
+                <div className="flex gap-2">
+                  <input type="number" min="0" max={cart.loyalty.max_points} step="1" value={points} onChange={(e) => setPoints(e.target.value)} placeholder={t('checkout.loyaltyUse', { max: cart.loyalty.max_points })} aria-label={t('checkout.loyaltyUse', { max: cart.loyalty.max_points })} className="flex-1 min-w-0 border border-gray-300 rounded px-2 py-1.5 text-sm" />
+                  <button type="button" onClick={() => setPoints(String(cart.loyalty.max_points))} className="border border-gray-300 rounded px-2 py-1.5 text-xs">{t('checkout.loyaltyMax')}</button>
+                </div>
+              )}
+            </div>
+          )}
           <dl className="text-sm space-y-1 border-t border-gray-200 pt-2">
             <div className="flex justify-between">
               <dt className="text-gray-500">{t('cart.subtotal')}</dt>
@@ -431,6 +445,12 @@ export default function Checkout() {
               <div className="flex justify-between text-green-700">
                 <dt>{t('cart.discount')}</dt>
                 <dd>-{cart.currency} {Number(cart.discount).toFixed(2)}</dd>
+              </div>
+            )}
+            {cart.loyalty_points_applied > 0 && (
+              <div className="flex justify-between text-xs text-green-700">
+                <dt>{t('checkout.loyaltyApplied', { n: cart.loyalty_points_applied })}</dt>
+                <dd>-{cart.currency} {Number(cart.loyalty_discount).toFixed(2)}</dd>
               </div>
             )}
             <div className="flex justify-between">

@@ -41,6 +41,7 @@ class CheckoutRequest(BaseModel):
     delivery_method: str
     payment_method: PaymentMethod
     language: Optional[Literal["ru", "uz", "en"]] = None
+    loyalty_points: int = Field(default=0, ge=0, le=10_000_000)
     whatsapp_opt_in: bool = False
     source: OrderSource = "website"
     promo_code: Optional[str] = None
@@ -109,6 +110,8 @@ class OrderOut(BaseModel):
     delivery_method: Optional[str] = None
     source: str
     payment_method: str
+    loyalty_points_used: int = 0
+    loyalty_discount_amount: Decimal = Decimal("0")
     payment_status: PaymentStatus
     created_at: datetime
     items: list[OrderItemOut]

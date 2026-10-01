@@ -42,6 +42,7 @@ export default function AdminLayout() {
       title: t('admin.sectionMarketing'),
       links: [
         ['/admin/reviews', t('admin.nav.reviews')],
+        ['/admin/loyalty', t('admin.nav.loyalty')],
         ['/admin/blog/posts', t('admin.nav.blog')],
         ['/admin/blog/categories', t('admin.blog.categoriesTitle')],
         ['/admin/site-settings', t('admin.nav.siteSettings')],

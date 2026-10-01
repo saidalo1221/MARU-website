@@ -36,6 +36,7 @@ from app.services.currency import CurrencyError, convert_amount, get_rate_to_usd
 from app.services.analytics import record_event
 from app.services.pricing import PromoCodeError, promo_line_discounts, resolve_unit_price, validate_promo
 from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g, free_shipping_progress
+from app.services import loyalty
 from app.services.packaging import packaging_for
 from app.services.tax import calculate_lines_tax
 
@@ -84,6 +85,8 @@ def _build_cart_out(
     region: Optional[str] = None,
     lang: Optional[str] = None,
     user_id: Optional[int] = None,
+    user: Optional[User] = None,
+    loyalty_points: int = 0,
 ) -> CartOut:
     items: list[CartItemOut] = []
     cart_lines: list = []  # (sku, line_total): what promo targeting and per-line tax work on
@@ -145,6 +148,15 @@ def _build_cart_out(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     discount = sum(line_discounts, Decimal("0"))
 
+    loyalty_info = loyalty.summary(db, user, subtotal - discount, cart.currency)
+    points_applied = min(max(loyalty_points, 0), loyalty_info["max_points"]) if loyalty_info else 0
+    loyalty_discount = Decimal("0.00")
+    if points_applied:
+        loyalty_discount = min(loyalty.spend_amount(db, points_applied, cart.currency), subtotal - discount)
+        shares = loyalty.split(loyalty_discount, [total - line_discounts[i] for i, (_sku, total) in enumerate(cart_lines)])
+        line_discounts = [a + b for a, b in zip(line_discounts, shares)]
+        discount = sum(line_discounts, Decimal("0"))
+
     # Destination is usually unknown before checkout, so shipping/tax are only
     # estimated when the caller supplies a country (delivery method too, for shipping).
     tax = Decimal("0")
@@ -185,6 +197,9 @@ def _build_cart_out(
         free_shipping_remaining=remaining,
         saved_items=saved_items,
         packaging=packaging_for((i.sku, i.quantity) for i in cart.items).as_dict() if cart.items else None,
+        loyalty=loyalty_info,
+        loyalty_points_applied=points_applied,
+        loyalty_discount=loyalty_discount,
     )
 
 
@@ -207,13 +222,14 @@ def get_cart(
     delivery_method: Optional[str] = None,
     region: Optional[str] = None,
     lang: Optional[str] = None,
+    loyalty_points: int = Query(default=0, ge=0, le=10_000_000),
     cart: Cart = Depends(get_or_create_cart),
     user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> CartOut:
     return _build_cart_out(
         db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method, region, lang,
-        user_id=user.id if user is not None else None,
+        user_id=user.id if user is not None else None, user=user, loyalty_points=loyalty_points,
     )
 
 

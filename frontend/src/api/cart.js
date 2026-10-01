@@ -1,11 +1,12 @@
 import { apiRequest } from './client'
 
-export function getCart({ promoCode, country, deliveryMethod, region } = {}) {
+export function getCart({ promoCode, country, deliveryMethod, region, loyaltyPoints } = {}) {
   const params = new URLSearchParams()
   if (promoCode) params.set('promo_code', promoCode)
   if (country) params.set('country', country)
   if (deliveryMethod) params.set('delivery_method', deliveryMethod)
   if (region) params.set('region', region)
+  if (loyaltyPoints) params.set('loyalty_points', String(loyaltyPoints))
   // Product names in the cart follow the language the visitor picked.
   try {
     const lang = localStorage.getItem('maru_locale')
