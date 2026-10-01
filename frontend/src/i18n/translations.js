@@ -850,6 +850,7 @@ export const translations = {
         retryFailed: 'Retry failed',
       },
       auditLog: {
+        requestId: 'request',
         title: 'Audit Log',
         filterPlaceholder: 'Filter by entity (e.g. sku)',
         byUser: 'by user #{id}',
@@ -2054,6 +2055,7 @@ export const translations = {
         retryFailed: 'Повтор не удался',
       },
       auditLog: {
+        requestId: 'запрос',
         title: 'Журнал аудита',
         filterPlaceholder: 'Фильтр по объекту (например, sku)',
         byUser: 'пользователем №{id}',
@@ -3258,6 +3260,7 @@ export const translations = {
         retryFailed: "Qayta urinish amalga oshmadi",
       },
       auditLog: {
+        requestId: 'so\'rov',
         title: 'Audit jurnali',
         filterPlaceholder: "Ob'ekt bo'yicha filtr (masalan, sku)",
         byUser: 'foydalanuvchi №{id} tomonidan',

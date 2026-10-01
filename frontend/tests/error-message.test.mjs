@@ -6,6 +6,7 @@ const { ApiError, errorMessage } = await import('../src/api/client.js')
 const FALLBACK = 'Something went wrong. Please try again.'
 const checks = [
   ['400 keeps a short plain sentence', errorMessage(new ApiError(400, 'Email already registered'), FALLBACK), 'Email already registered'],
+  ['coded business error shows only the message', errorMessage(new ApiError(400, 'INSUFFICIENT_STOCK: not enough stock for SKU X'), FALLBACK), 'not enough stock for SKU X'],
   ['500 is hidden', errorMessage(new ApiError(500, 'Failed to fetch products'), FALLBACK), FALLBACK],
   ['502 is hidden', errorMessage(new ApiError(502, 'Bad gateway'), FALLBACK), FALLBACK],
   ['HTML body is hidden', errorMessage(new ApiError(404, '<html><body>Not Found</body></html>'), FALLBACK), FALLBACK],

@@ -9,6 +9,9 @@ from contextvars import ContextVar
 from uuid import uuid4
 
 request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
+# The caller's address for the current request (audit log, PRD ТЗ№3 §81). Behind a reverse proxy
+# this is the real client once uvicorn runs with --proxy-headers (see OPS_RUNBOOK.md).
+client_ip_var: ContextVar[Optional[str]] = ContextVar("client_ip", default=None)
 
 # Accept an id from the proxy/client only if it is short and boring; anything
 # else (log-injection attempts, huge values) is replaced with a fresh one.

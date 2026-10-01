@@ -7,8 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.core.errors import install_error_handlers
 from app.core.logging_config import configure_logging, init_error_tracking
-from app.core.request_id import install_log_record_factory, new_request_id, request_id_var
+from app.core.request_id import client_ip_var, install_log_record_factory, new_request_id, request_id_var
 from app.database import get_db
 from app.models.blog_post import BlogPost
 from app.models.category import Category
@@ -83,10 +84,12 @@ init_error_tracking()
 async def request_id_middleware(request, call_next):
     request_id = new_request_id(request.headers.get("X-Request-ID"))
     token = request_id_var.set(request_id)
+    ip_token = client_ip_var.set(request.client.host if request.client else None)
     try:
         response = await call_next(request)
     finally:
         request_id_var.reset(token)
+        client_ip_var.reset(ip_token)
     response.headers["X-Request-ID"] = request_id
     return response
 
@@ -108,6 +111,8 @@ async def security_headers(request, call_next):
         response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
     return response
 
+
+install_error_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,

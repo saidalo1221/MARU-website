@@ -1,9 +1,10 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import require_role
 from app.models.enums import UserRole
@@ -20,14 +21,16 @@ router = APIRouter(prefix="/admin/quotes", tags=["admin-quotes"])
 
 @router.get("/", response_model=list[QuoteOut])
 def list_quotes(
+    response: Response,
     status_filter: Optional[QuoteStatus] = None,
+    params: PageParams = Depends(page_params),
     user: User = Depends(require_role(UserRole.SALES_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[QuoteRequest]:
     stmt = select(QuoteRequest).order_by(QuoteRequest.id.desc())
     if status_filter is not None:
         stmt = stmt.where(QuoteRequest.status == status_filter)
-    return list(db.execute(stmt).scalars().all())
+    return paged(db, response, stmt, stmt, params)
 
 
 @router.get("/{quote_id}", response_model=QuoteOut)

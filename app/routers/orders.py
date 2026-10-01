@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.rate_limit import rate_limit
+from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import get_current_user_optional, get_current_user_required, get_or_create_cart
 from app.models.cart import Cart
@@ -192,18 +193,20 @@ def track_order(payload: TrackOrderRequest, db: Session = Depends(get_db)) -> Or
 
 
 @router.get("/me", response_model=list[OrderOut], dependencies=[Depends(rate_limit("orders_me", 60, 60))])
-def list_my_orders(user: User = Depends(get_current_user_required), db: Session = Depends(get_db)) -> list[Order]:
+def list_my_orders(
+    response: Response,
+    params: PageParams = Depends(page_params),
+    user: User = Depends(get_current_user_required),
+    db: Session = Depends(get_db),
+) -> list[Order]:
     try:
-        orders = (
-            db.execute(
-                select(Order)
-                .where(Order.user_id == user.id)
-                .options(*_ORDER_LOAD_OPTIONS)
-                .order_by(Order.id.desc())
-            )
-            .unique()
-            .scalars()
-            .all()
+        orders = paged(
+            db,
+            response,
+            select(Order).where(Order.user_id == user.id).options(*_ORDER_LOAD_OPTIONS).order_by(Order.id.desc()),
+            select(Order.id).where(Order.user_id == user.id),
+            params,
+            unique=True,
         )
     except SQLAlchemyError as exc:
         db.rollback()

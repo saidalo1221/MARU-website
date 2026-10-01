@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { adminListNewsletter } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import { formatDateTime } from '../../lib/format'
 
 const STATUSES = ['', 'confirmed', 'pending', 'unsubscribed']
 
@@ -52,7 +53,7 @@ export default function AdminNewsletter() {
                   <td className="px-3 py-2">{s.email}</td>
                   <td className="px-3 py-2">{t(`admin.newsletter.${s.status}`)}</td>
                   <td className="px-3 py-2 uppercase">{s.locale}</td>
-                  <td className="px-3 py-2 text-gray-500">{new Date(s.created_at).toLocaleString()}</td>
+                  <td className="px-3 py-2 text-gray-500">{formatDateTime(s.created_at)}</td>
                 </tr>
               ))}
               {data.subscribers.length === 0 && <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-500">{t('admin.newsletter.none')}</td></tr>}

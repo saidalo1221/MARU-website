@@ -66,3 +66,14 @@ Newest entries last. Blocked items are marked `[!]` in the BUILD STATUS block at
     `ErrorBoundary` wraps the app. `html { overflow-x: hidden }` (pre-existing) can mask overflow, so layout was checked
     element by element at 375px instead.
 31. **No Figma**: design-file artifacts (§59, §65) are marked blocked in PRD.md.
+32. **Error body**: every API error keeps FastAPI's `detail` and now also has `error: {code, message, request_id}` (TZ3 §50).
+    Business errors raised as "CODE: message" supply their own code; unhandled exceptions return a generic 500 with a request id
+    and no stack trace (the traceback is in the log).
+33. **Paging**: orders (admin and customer), quotes, reviews, integration logs and blog posts take `?page` and `?limit` (default 50,
+    max 100) and return `X-Total-Count`. Audit log (<=500), analytics events (<=500), newsletter (<=1000) and the public blog
+    (<=100) keep their existing caps because they are admin-internal.
+34. **Dates**: the API returns UTC without a marker; `frontend/src/lib/format.js` parses them as UTC and shows them in the visitor's
+    timezone and the site language (this fixes times being shown as if they were local).
+35. **Audit rows** record the caller's IP (as seen by the app; behind a proxy it needs `--proxy-headers`) and the request id.
+36. **Roles**: PRD lists B2B_CUSTOMER and ADMIN; the code has customer types (retail/wholesale/distributor/export/special) for B2B
+    customers and SUPER_ADMIN plus the five manager roles. Treated as equivalent; no new roles were added.

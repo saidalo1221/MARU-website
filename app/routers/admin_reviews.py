@@ -1,9 +1,10 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import require_role
 from app.models.enums import UserRole
@@ -16,14 +17,16 @@ router = APIRouter(prefix="/admin/reviews", tags=["admin-reviews"])
 
 @router.get("/", response_model=list[ReviewOut])
 def list_reviews(
+    response: Response,
     status_filter: Optional[ReviewStatus] = None,
+    params: PageParams = Depends(page_params),
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[Review]:
     stmt = select(Review).order_by(Review.id.desc())
     if status_filter is not None:
         stmt = stmt.where(Review.status == status_filter)
-    return list(db.execute(stmt).scalars().all())
+    return paged(db, response, stmt, stmt, params)
 
 
 @router.patch("/{review_id}", response_model=ReviewOut)

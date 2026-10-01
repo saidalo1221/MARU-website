@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { adminListAnalyticsEvents } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import { formatDateTime } from '../../lib/format'
 
 export default function AdminAnalyticsEvents() {
   const { t } = useLocale()
@@ -45,7 +46,7 @@ export default function AdminAnalyticsEvents() {
                   <td className="px-3 py-2 font-medium">{e.event_name}</td>
                   <td className="px-3 py-2 text-gray-500">{e.user_id ?? t('admin.analyticsEvents.guest')}</td>
                   <td className="px-3 py-2 max-w-sm truncate" title={e.properties || ''}>{e.properties || '—'}</td>
-                  <td className="px-3 py-2 text-gray-500">{new Date(e.created_at).toLocaleString()}</td>
+                  <td className="px-3 py-2 text-gray-500">{formatDateTime(e.created_at)}</td>
                 </tr>
               ))}
               {events.length === 0 && <tr><td colSpan={4} className="px-3 py-6 text-center text-gray-500">{t('admin.analyticsEvents.none')}</td></tr>}

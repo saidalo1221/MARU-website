@@ -1,4 +1,5 @@
 import { useLocale } from '../context/LocaleContext'
+import { formatDateTime } from '../lib/format'
 
 // Customer-facing shipment cards with a per-parcel event timeline. Shared by
 // the order page and the public Track Order page.
@@ -30,7 +31,7 @@ export default function ShipmentList({ shipments }) {
               {[...s.events].reverse().map((e, i) => (
                 <li key={i}>
                   <span className="text-gray-900">{t(`orderStatus.shipmentStatus.${e.status}`)}</span>
-                  {e.location ? ` · ${e.location}` : ''} · {new Date(e.occurred_at).toLocaleString()}
+                  {e.location ? ` · ${e.location}` : ''} · {formatDateTime(e.occurred_at)}
                   {e.note ? <span className="block">{e.note}</span> : null}
                 </li>
               ))}

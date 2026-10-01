@@ -90,3 +90,15 @@ def test_role_changes_are_audited(client, db_session):
     assert json.loads(rows[0].old_value) == {"role": "customer"}
     assert json.loads(rows[0].new_value) == {"role": "accountant"}
     assert json.loads(rows[1].new_value) == {"role": "customer"}
+
+
+def test_audit_rows_record_the_request_id_and_client_ip(client, db_session):
+    h = _admin(client, db_session)
+    r = client.post(
+        f"{BASE}/exchange-rates/", json={"currency": "EUR", "units_per_usd": "0.9"},
+        headers={**h, "X-Request-ID": "audit-req-0001"},
+    )
+    assert r.status_code == 201, r.text
+    (row,) = _rows(db_session, "exchange_rate_create")
+    assert row.request_id == "audit-req-0001"
+    assert row.ip_address == "testclient"  # Starlette's TestClient host

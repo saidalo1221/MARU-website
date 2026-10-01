@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { adminListReviews, adminModerateReview } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import Pagination from '../../components/ui/Pagination'
+import { PAGE_SIZE } from '../../api/client'
 
 const STATUSES = ['pending', 'approved', 'rejected']
 
@@ -11,17 +13,23 @@ export default function AdminReviews() {
   const [statusFilter, setStatusFilter] = useState('pending')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
   const load = () => {
     setLoading(true)
     setError(null)
-    return adminListReviews(statusFilter || undefined)
-      .then(setReviews)
+    return adminListReviews(statusFilter || undefined, page)
+      .then(({ data, total: n }) => {
+        setReviews(data)
+        setTotal(n)
+      })
       .catch((err) => setError(errorMessage(err, t('admin.reviews.loadFailed'))))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setPage(1), [statusFilter])
+  useEffect(() => { load() }, [statusFilter, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const moderate = async (id, status) => {
     await adminModerateReview(id, status)
@@ -63,6 +71,7 @@ export default function AdminReviews() {
           {reviews.length === 0 && <li className="text-gray-500 text-center py-6">{t('admin.reviews.none')}</li>}
         </ul>
       )}
+      <Pagination page={page} pageCount={Math.max(1, Math.ceil(total / PAGE_SIZE))} onChange={setPage} />
     </div>
   )
 }

@@ -16,3 +16,8 @@ ALTER TABLE categories
 ALTER TABLE category_translations
     ADD COLUMN description TEXT NULL,
     ADD COLUMN seo_content TEXT NULL;
+
+-- Audit rows record the caller's IP and the request id (PRD ТЗ№3 §81).
+ALTER TABLE audit_logs
+    ADD COLUMN ip_address VARCHAR(45) NULL,
+    ADD COLUMN request_id VARCHAR(64) NULL;

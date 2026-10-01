@@ -29,9 +29,16 @@ export function adminUpsertSiteSettingsTranslation(locale, payload) {
 }
 
 // Orders
-export function adminListOrders(statusFilter) {
-  const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''
-  return apiRequest(`/admin/orders/${qs}`)
+// Paged lists resolve to { data, total } (see apiRequest `meta`).
+function pagedQuery(statusFilter, page, extra = {}) {
+  const params = new URLSearchParams()
+  if (statusFilter) params.set('status_filter', statusFilter)
+  Object.entries(extra).forEach(([k, v]) => v && params.set(k, v))
+  if (page > 1) params.set('page', String(page))
+  return params.toString() ? `?${params.toString()}` : ''
+}
+export function adminListOrders(statusFilter, page = 1) {
+  return apiRequest(`/admin/orders/${pagedQuery(statusFilter, page)}`, { meta: true })
 }
 export function adminGetOrder(orderId) {
   return apiRequest(`/admin/orders/${orderId}`)
@@ -50,9 +57,8 @@ export function adminRefundOrder(orderId, amount, reason) {
 }
 
 // Quotes
-export function adminListQuotes(statusFilter) {
-  const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''
-  return apiRequest(`/admin/quotes/${qs}`)
+export function adminListQuotes(statusFilter, page = 1) {
+  return apiRequest(`/admin/quotes/${pagedQuery(statusFilter, page)}`, { meta: true })
 }
 export function adminGetQuote(quoteId) {
   return apiRequest(`/admin/quotes/${quoteId}`)
@@ -65,9 +71,8 @@ export function adminConvertQuote(quoteId, payload) {
 }
 
 // Reviews
-export function adminListReviews(statusFilter) {
-  const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''
-  return apiRequest(`/admin/reviews/${qs}`)
+export function adminListReviews(statusFilter, page = 1) {
+  return apiRequest(`/admin/reviews/${pagedQuery(statusFilter, page)}`, { meta: true })
 }
 export function adminModerateReview(reviewId, status) {
   return apiRequest(`/admin/reviews/${reviewId}`, { method: 'PATCH', body: { status } })
@@ -250,12 +255,8 @@ export function adminUpdateNotificationTemplate(templateId, payload) {
 }
 
 // Integration logs
-export function adminListIntegrationLogs(statusFilter, integration) {
-  const params = new URLSearchParams()
-  if (statusFilter) params.set('status_filter', statusFilter)
-  if (integration) params.set('integration', integration)
-  const qs = params.toString() ? `?${params.toString()}` : ''
-  return apiRequest(`/admin/integration-logs/${qs}`)
+export function adminListIntegrationLogs(statusFilter, integration, page = 1) {
+  return apiRequest(`/admin/integration-logs/${pagedQuery(statusFilter, page, { integration })}`, { meta: true })
 }
 export function adminIntegrationHealth() {
   return apiRequest('/admin/integration-logs/health')
@@ -345,8 +346,8 @@ export function adminDeleteBlogCategory(categoryId) {
 }
 
 // Blog posts
-export function adminListBlogPosts() {
-  return apiRequest('/admin/blog/posts')
+export function adminListBlogPosts(page = 1) {
+  return apiRequest(`/admin/blog/posts${page > 1 ? `?page=${page}` : ''}`, { meta: true })
 }
 export function adminGetBlogPost(postId) {
   return apiRequest(`/admin/blog/posts/${postId}`)

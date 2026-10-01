@@ -5,6 +5,7 @@ import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import Money from '../../components/admin/Money'
 import ShipmentsPanel from '../../components/admin/ShipmentsPanel'
+import { formatDateTime } from '../../lib/format'
 
 const STATUSES = [
   'new', 'payment_pending', 'paid', 'processing', 'packed', 'shipped', 'in_transit',
@@ -101,7 +102,7 @@ export default function AdminOrderDetail() {
           <h2 className="font-semibold mt-6 mb-2">{t('admin.orderDetail.history')}</h2>
           <ul className="text-xs text-gray-500 space-y-1">
             {order.status_history.map((h, i) => (
-              <li key={i}>{h.from_status ? t(`orderStatus.statusLabels.${h.from_status}`) : '—'} → {t(`orderStatus.statusLabels.${h.to_status}`)} · {new Date(h.created_at).toLocaleString()}{h.note ? ` · ${h.note}` : ''}</li>
+              <li key={i}>{h.from_status ? t(`orderStatus.statusLabels.${h.from_status}`) : '—'} → {t(`orderStatus.statusLabels.${h.to_status}`)} · {formatDateTime(h.created_at)}{h.note ? ` · ${h.note}` : ''}</li>
             ))}
           </ul>
         </div>

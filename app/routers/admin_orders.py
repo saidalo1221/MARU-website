@@ -1,9 +1,10 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
+from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import require_role
 from app.models.enums import OrderStatus, UserRole
@@ -40,10 +41,13 @@ def _load_order(db: Session, order_id: int) -> Optional[Order]:
 
 @router.get("/", response_model=list[OrderOut])
 def list_orders(
+    response: Response,
     status_filter: Optional[OrderStatus] = None,
+    params: PageParams = Depends(page_params),
     user: User = Depends(require_role(UserRole.SALES_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[Order]:
+    count_stmt = select(Order.id)
     stmt = (
         select(Order)
         .options(
@@ -55,9 +59,10 @@ def list_orders(
     )
     if status_filter is not None:
         stmt = stmt.where(Order.status == status_filter)
+        count_stmt = count_stmt.where(Order.status == status_filter)
 
     try:
-        orders = db.execute(stmt).unique().scalars().all()
+        orders = paged(db, response, stmt, count_stmt, params, unique=True)
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to fetch orders") from exc

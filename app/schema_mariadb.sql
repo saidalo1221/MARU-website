@@ -6,6 +6,8 @@ CREATE TABLE audit_logs (
 	entity_id VARCHAR(50), 
 	old_value TEXT, 
 	new_value TEXT, 
+	ip_address VARCHAR(45), 
+	request_id VARCHAR(64), 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;

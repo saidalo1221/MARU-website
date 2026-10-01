@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { adminCreateBlogPost, adminListBlogCategories, adminListBlogPosts } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import Pagination from '../../components/ui/Pagination'
+import { PAGE_SIZE } from '../../api/client'
 
 const emptyForm = { category_id: '', slug: '', title: '', excerpt: '', content: '', cover_image_url: '', author_name: '' }
 
@@ -17,13 +19,16 @@ export default function AdminBlogPosts() {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState(null)
 
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+
   const load = () =>
-    Promise.all([adminListBlogPosts(), adminListBlogCategories()])
-      .then(([p, c]) => { setPosts(p); setCategories(c) })
+    Promise.all([adminListBlogPosts(page), adminListBlogCategories()])
+      .then(([p, c]) => { setPosts(p.data); setTotal(p.total); setCategories(c) })
       .catch((err) => setError(errorMessage(err, t('admin.blog.loadFailed'))))
       .finally(() => setLoading(false))
 
-  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load() }, [page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
@@ -108,6 +113,7 @@ export default function AdminBlogPosts() {
           </table>
         </div>
       )}
+      <Pagination page={page} pageCount={Math.max(1, Math.ceil(total / PAGE_SIZE))} onChange={setPage} />
     </div>
   )
 }

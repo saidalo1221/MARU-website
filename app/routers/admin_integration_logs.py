@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import require_role
 from app.models.enums import UserRole
@@ -20,8 +21,10 @@ router = APIRouter(prefix="/admin/integration-logs", tags=["admin-integration-lo
 
 @router.get("/", response_model=list[IntegrationLogOut])
 def list_integration_logs(
+    response: Response,
     status_filter: Optional[IntegrationLogStatus] = None,
     integration: Optional[str] = None,
+    params: PageParams = Depends(page_params),
     user: User = Depends(require_role(UserRole.SUPER_ADMIN)),
     db: Session = Depends(get_db),
 ) -> list[IntegrationLog]:
@@ -30,7 +33,7 @@ def list_integration_logs(
         stmt = stmt.where(IntegrationLog.status == status_filter)
     if integration is not None:
         stmt = stmt.where(IntegrationLog.integration == integration)
-    return list(db.execute(stmt).scalars().all())
+    return paged(db, response, stmt, stmt, params)
 
 
 _HEALTH_WINDOW = timedelta(hours=24)

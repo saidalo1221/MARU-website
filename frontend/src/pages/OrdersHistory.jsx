@@ -7,11 +7,16 @@ import { useCart } from '../context/CartContext'
 import { reorder } from '../lib/reorder'
 import AccountNav from '../components/account/AccountNav'
 import Seo from '../components/Seo'
+import Pagination from '../components/ui/Pagination'
+import { PAGE_SIZE } from '../api/client'
+import { formatDate } from '../lib/format'
 
 export default function OrdersHistory() {
   const { t } = useLocale()
   const { user, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState([])
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const { addItem } = useCart()
   const navigate = useNavigate()
@@ -20,8 +25,14 @@ export default function OrdersHistory() {
 
   useEffect(() => {
     if (!user) return
-    listMyOrders().then(setOrders).finally(() => setLoading(false))
-  }, [user])
+    setLoading(true)
+    listMyOrders(page)
+      .then(({ data, total: n }) => {
+        setOrders(data)
+        setTotal(n)
+      })
+      .finally(() => setLoading(false))
+  }, [user, page])
 
   const handleReorder = async (order) => {
     setReorderError(null)
@@ -57,7 +68,7 @@ export default function OrdersHistory() {
             <Link to={`/orders/${order.id}`} className="flex flex-1 justify-between text-sm">
               <span>
                 <span className="font-medium">{order.order_number}</span>
-                <span className="text-gray-500"> — {new Date(order.created_at).toLocaleDateString()}</span>
+                <span className="text-gray-500"> — {formatDate(order.created_at)}</span>
               </span>
               <span>
                 {t(`orderStatus.statusLabels.${order.status}`)} · {order.currency} {Number(order.total_amount).toFixed(2)}
@@ -76,6 +87,7 @@ export default function OrdersHistory() {
           </li>
         ))}
       </ul>
+      <Pagination page={page} pageCount={Math.max(1, Math.ceil(total / PAGE_SIZE))} onChange={setPage} />
     </div>
   )
 }

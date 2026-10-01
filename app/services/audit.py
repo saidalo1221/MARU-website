@@ -3,6 +3,7 @@ import json
 
 from sqlalchemy.orm import Session
 
+from app.core.request_id import client_ip_var, request_id_var
 from app.models.audit_log import AuditLog
 from app.models.user import User
 
@@ -17,6 +18,8 @@ def log_audit(db: Session, user: Optional[User], action: str, entity: str, entit
             entity_id=str(entity_id),
             old_value=json.dumps(old, default=str) if old is not None else None,
             new_value=json.dumps(new, default=str) if new is not None else None,
+            ip_address=client_ip_var.get(),
+            request_id=(request_id_var.get() if request_id_var.get() != "-" else None),
         )
     )
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { adminAddShipmentEvent, adminCreateShipment } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import { formatDateTime } from '../../lib/format'
 
 const NEXT_STATUSES = {
   shipped: ['in_transit', 'delivered', 'returned'],
@@ -42,7 +43,7 @@ function ShipmentCard({ orderId, shipment, onChanged }) {
       <ol className="mt-2 text-xs text-gray-500 space-y-0.5">
         {shipment.events.map((ev, i) => (
           <li key={i}>
-            {t(`orderStatus.shipmentStatus.${ev.status}`)}{ev.location ? ` · ${ev.location}` : ''} · {new Date(ev.occurred_at).toLocaleString()}
+            {t(`orderStatus.shipmentStatus.${ev.status}`)}{ev.location ? ` · ${ev.location}` : ''} · {formatDateTime(ev.occurred_at)}
           </li>
         ))}
       </ol>

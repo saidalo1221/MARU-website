@@ -11,6 +11,7 @@ import Seo from '../components/Seo'
 import Alert from '../components/ui/Alert'
 import Button from '../components/ui/Button'
 import ShipmentList from '../components/ShipmentList'
+import { formatDate, formatDateTime } from '../lib/format'
 
 const CANCELLABLE = new Set(['new', 'payment_pending', 'paid', 'processing'])
 const PAID_STATUSES = new Set(['paid', 'processing', 'packed', 'shipped', 'in_transit', 'delivered', 'returned'])
@@ -141,7 +142,7 @@ export default function OrderStatus() {
       <div className="border border-gray-200 rounded-lg p-4 mb-6">
         <div className={row}>
           <span className="text-gray-500">{t('orderStatus.date')}</span>
-          <span className="font-medium">{new Date(order.created_at).toLocaleDateString()}</span>
+          <span className="font-medium">{formatDate(order.created_at)}</span>
         </div>
         <div className={row}>
           <span className="text-gray-500">{t('orderStatus.status')}</span>
@@ -199,7 +200,7 @@ export default function OrderStatus() {
           <h2 className="font-semibold mb-2">{t('orderStatus.history')}</h2>
           <ul className="text-xs text-gray-500 space-y-1">
             {order.status_history.map((h, i) => (
-              <li key={i}>{t(`orderStatus.statusLabels.${h.to_status}`)} — {new Date(h.created_at).toLocaleString()}</li>
+              <li key={i}>{t(`orderStatus.statusLabels.${h.to_status}`)} — {formatDateTime(h.created_at)}</li>
             ))}
           </ul>
         </div>

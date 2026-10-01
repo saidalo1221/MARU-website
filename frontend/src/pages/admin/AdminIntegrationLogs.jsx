@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { adminIntegrationHealth, adminListIntegrationLogs, adminRetryIntegrationLog } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import Pagination from '../../components/ui/Pagination'
+import { PAGE_SIZE } from '../../api/client'
 
 const STATUSES = ['success', 'failed', 'dead_letter']
 const HEALTH_STYLE = {
@@ -19,18 +21,24 @@ export default function AdminIntegrationLogs() {
   const [error, setError] = useState(null)
   const [retryingId, setRetryingId] = useState(null)
   const [health, setHealth] = useState([])
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
   const load = () => {
     setLoading(true)
     setError(null)
     adminIntegrationHealth().then(setHealth).catch(() => setHealth([]))
-    return adminListIntegrationLogs(statusFilter || undefined)
-      .then(setLogs)
+    return adminListIntegrationLogs(statusFilter || undefined, undefined, page)
+      .then(({ data, total: n }) => {
+        setLogs(data)
+        setTotal(n)
+      })
       .catch((err) => setError(errorMessage(err, t('admin.integrationLogs.loadFailed'))))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setPage(1), [statusFilter])
+  useEffect(() => { load() }, [statusFilter, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const retry = async (id) => {
     setRetryingId(id)
@@ -118,6 +126,7 @@ export default function AdminIntegrationLogs() {
           </table>
         </div>
       )}
+      <Pagination page={page} pageCount={Math.max(1, Math.ceil(total / PAGE_SIZE))} onChange={setPage} />
     </div>
   )
 }

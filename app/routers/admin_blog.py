@@ -1,10 +1,11 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import require_role
 from app.models.blog_category import BlogCategory
@@ -104,11 +105,14 @@ def delete_category(
 
 @router.get("/posts", response_model=list[BlogPostAdminOut])
 def list_posts(
+    response: Response,
+    params: PageParams = Depends(page_params),
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[BlogPost]:
     """Every post regardless of published state (unlike the public /blog/posts)."""
-    return list(db.execute(select(BlogPost).order_by(BlogPost.id.desc())).scalars().all())
+    stmt = select(BlogPost).order_by(BlogPost.id.desc())
+    return paged(db, response, stmt, stmt, params)
 
 
 @router.post("/posts", response_model=BlogPostAdminOut, status_code=status.HTTP_201_CREATED)

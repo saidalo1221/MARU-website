@@ -159,6 +159,8 @@ class AuditLogOut(BaseModel):
     entity_id: Optional[str]
     old_value: Optional[str]
     new_value: Optional[str]
+    ip_address: Optional[str] = None
+    request_id: Optional[str] = None
     created_at: datetime
 
 

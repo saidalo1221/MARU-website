@@ -7,6 +7,7 @@ import AccountNav from '../components/account/AccountNav'
 import Seo from '../components/Seo'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
+import { formatDate } from '../lib/format'
 
 // Account dashboard (PRD ТЗ№2 §27): recent orders with status, plus shortcuts to
 // the wishlist, addresses and profile.
@@ -19,7 +20,7 @@ export default function AccountDashboard() {
 
   useEffect(() => {
     if (!user) return
-    listMyOrders().then(setOrders).catch(() => setOrders([]))
+    listMyOrders().then(({ data }) => setOrders(data)).catch(() => setOrders([]))
     getWishlist().then((items) => setWishlistCount(items.length)).catch(() => setWishlistCount(0))
     listAddresses().then((items) => setAddressCount(items.length)).catch(() => setAddressCount(0))
   }, [user])
@@ -55,7 +56,7 @@ export default function AccountDashboard() {
               <Link to={`/orders/${order.id}`} className="flex flex-wrap justify-between gap-2 py-2 text-sm">
                 <span>
                   <span className="font-medium">{order.order_number}</span>
-                  <span className="text-gray-500"> — {new Date(order.created_at).toLocaleDateString()}</span>
+                  <span className="text-gray-500"> — {formatDate(order.created_at)}</span>
                 </span>
                 <span>
                   {t(`orderStatus.statusLabels.${order.status}`)} · {order.currency} {Number(order.total_amount).toFixed(2)}

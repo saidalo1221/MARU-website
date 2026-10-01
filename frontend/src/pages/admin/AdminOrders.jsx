@@ -4,6 +4,9 @@ import { adminListOrders } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import Money from '../../components/admin/Money'
+import Pagination from '../../components/ui/Pagination'
+import { PAGE_SIZE } from '../../api/client'
+import { formatDate } from '../../lib/format'
 
 const STATUSES = [
   'new', 'payment_pending', 'paid', 'processing', 'packed', 'shipped', 'in_transit',
@@ -16,15 +19,21 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
+  useEffect(() => setPage(1), [statusFilter])
   useEffect(() => {
     setLoading(true)
     setError(null)
-    adminListOrders(statusFilter || undefined)
-      .then(setOrders)
+    adminListOrders(statusFilter || undefined, page)
+      .then(({ data, total: n }) => {
+        setOrders(data)
+        setTotal(n)
+      })
       .catch((err) => setError(errorMessage(err, t('admin.orders.loadFailed'))))
       .finally(() => setLoading(false))
-  }, [statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [statusFilter, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div>
@@ -60,7 +69,7 @@ export default function AdminOrders() {
                   <td className="px-3 py-2">{o.first_name} {o.last_name}</td>
                   <td className="px-3 py-2">{t(`orderStatus.statusLabels.${o.status}`)}</td>
                   <td className="px-3 py-2"><Money amount={o.total_amount} currency={o.currency} showOriginal /></td>
-                  <td className="px-3 py-2 text-gray-500">{new Date(o.created_at).toLocaleDateString()}</td>
+                  <td className="px-3 py-2 text-gray-500">{formatDate(o.created_at)}</td>
                 </tr>
               ))}
               {orders.length === 0 && (
@@ -70,6 +79,7 @@ export default function AdminOrders() {
           </table>
         </div>
       )}
+      <Pagination page={page} pageCount={Math.max(1, Math.ceil(total / PAGE_SIZE))} onChange={setPage} />
     </div>
   )
 }

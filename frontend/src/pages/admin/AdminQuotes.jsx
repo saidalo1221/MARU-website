@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { adminListQuotes } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import Pagination from '../../components/ui/Pagination'
+import { PAGE_SIZE } from '../../api/client'
 
 const STATUSES = ['new', 'in_review', 'offered', 'accepted', 'rejected', 'expired']
 
@@ -12,15 +14,21 @@ export default function AdminQuotes() {
   const [statusFilter, setStatusFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
+  useEffect(() => setPage(1), [statusFilter])
   useEffect(() => {
     setLoading(true)
     setError(null)
-    adminListQuotes(statusFilter || undefined)
-      .then(setQuotes)
+    adminListQuotes(statusFilter || undefined, page)
+      .then(({ data, total: n }) => {
+        setQuotes(data)
+        setTotal(n)
+      })
       .catch((err) => setError(errorMessage(err, t('admin.quotes.loadFailed'))))
       .finally(() => setLoading(false))
-  }, [statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [statusFilter, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div>
@@ -66,6 +74,7 @@ export default function AdminQuotes() {
           </table>
         </div>
       )}
+      <Pagination page={page} pageCount={Math.max(1, Math.ceil(total / PAGE_SIZE))} onChange={setPage} />
     </div>
   )
 }

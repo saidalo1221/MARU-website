@@ -20,8 +20,8 @@ export function trackOrder(orderNumber, email) {
   return apiRequest('/orders/track', { method: 'POST', body: { order_number: orderNumber, email } })
 }
 
-export function listMyOrders() {
-  return apiRequest('/orders/me')
+export function listMyOrders(page = 1) {
+  return apiRequest(`/orders/me${page > 1 ? `?page=${page}` : ''}`, { meta: true })
 }
 
 export function getMyOrder(orderId) {

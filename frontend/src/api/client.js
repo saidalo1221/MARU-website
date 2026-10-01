@@ -55,7 +55,8 @@ export function errorMessage(err, fallback) {
   if (err.status >= 500) return fallback
   const { detail } = err
   if (typeof detail === 'string' && (detail.length > 300 || /<\/?[a-z][\s\S]*>/i.test(detail))) return fallback
-  if (typeof detail === 'string' && detail) return detail
+  // Business errors are raised as "CODE: message" (see app/core/errors.py); show only the message.
+  if (typeof detail === 'string' && detail) return detail.replace(/^[A-Z][A-Z0-9_]{2,40}:\s*/, '')
   if (Array.isArray(detail) && detail.length) {
     return detail.map((d) => (typeof d === 'string' ? d : d.msg)).filter(Boolean).join(', ') || fallback
   }
@@ -64,9 +65,12 @@ export function errorMessage(err, fallback) {
 
 // Guest order tokens are per-order (not global like the cart token), so
 // callers pass them in explicitly rather than this module tracking one.
+export const PAGE_SIZE = 50 // the API's default page size (app/core/pagination.py)
+
+// With `meta: true` the result is { data, total } - total is the X-Total-Count header of a paged list.
 export async function apiRequest(
   path,
-  { method = 'GET', body, orderToken, idempotencyKey, skipAuth = false, ...rest } = {}
+  { method = 'GET', body, orderToken, idempotencyKey, skipAuth = false, meta = false, ...rest } = {}
 ) {
   const headers = { ...(rest.headers || {}) }
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
@@ -109,5 +113,6 @@ export async function apiRequest(
     throw new ApiError(res.status, data?.detail ?? data)
   }
 
+  if (meta) return { data, total: Number(res.headers.get('X-Total-Count') ?? (Array.isArray(data) ? data.length : 0)) }
   return data
 }
