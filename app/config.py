@@ -102,6 +102,10 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_BOT_USERNAME: str = ""
     TELEGRAM_ADMIN_CHAT_ID: str = ""  # chat/group id that receives operational alerts
+    # Google Analytics 4 Measurement Protocol (app/services/integrations/ga4.py). Keep the secret in .env only.
+    GA4_MEASUREMENT_ID: str = ""
+    GA4_API_SECRET: str = ""
+    GA4_DEBUG: bool = False  # true = send to Google's validator instead of recording
     JOBS_ASYNC: bool = False
     # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
     CACHE_ENABLED: bool = True
