@@ -233,3 +233,27 @@ def test_checkout_without_attribution_leaves_it_empty(client, sku):
     client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 1})
     r = client.post("/api/v1/orders/", headers=headers, json=CHECKOUT_PAYLOAD)
     assert r.status_code == 201 and r.json()["attribution"] is None
+
+
+def test_two_buyers_cannot_oversell_the_last_units(db_session, sku):
+    """PRD ТЗ№3 §59 acceptance: 100 units in stock, buyer A wants 70 and buyer B wants 50 -
+    exactly one order succeeds and stock is never reserved beyond 100. (Sequential on SQLite; the
+    real guarantee under parallel requests is the row lock taken on MariaDB.)"""
+    inv = _inventory_row(db_session, sku.id)
+    inv.stock = 100
+    db_session.commit()
+
+    outcomes = []
+    for qty in (70, 50):
+        cart = _cart_with(db_session, sku, qty)
+        try:
+            create_order(db_session, cart, CheckoutRequest(**CHECKOUT_PAYLOAD), None)
+            db_session.commit()
+            outcomes.append("ok")
+        except OrderError:
+            db_session.rollback()
+            outcomes.append("rejected")
+
+    assert outcomes == ["ok", "rejected"]
+    inv = _inventory_row(db_session, sku.id)
+    assert inv.reserved == 70 and inv.reserved <= inv.stock
