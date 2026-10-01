@@ -13,6 +13,12 @@
 # Frontend build (its default API address is localhost, so this is required):
 #   VITE_API_BASE_URL=https://shop.example.com/api/v1 npm run build
 
+# User agents that read pages without running JavaScript (see the /prerender route in the API).
+map $http_user_agent $is_preview_bot {
+    default 0;
+    ~*(googlebot|bingbot|yandex|duckduckbot|baiduspider|facebookexternalhit|twitterbot|telegrambot|whatsapp|linkedinbot|slackbot|discordbot|applebot) 1;
+}
+
 server {
     listen 80;
     server_name shop.example.com;
@@ -59,6 +65,18 @@ server {
         root /srv/maru/frontend/dist;
         expires 1y;
         add_header Cache-Control "public, immutable";
+        include /etc/nginx/snippets/maru-security-headers.conf;
+    }
+
+    # Crawlers and link-preview bots do not run JavaScript, so they get a server-rendered page
+    # (title, description, Open Graph, structured data) from the API instead of the empty SPA shell.
+    location ~ ^/(products|shop|blog)/[^/]+$ {
+        if ($is_preview_bot) {
+            rewrite ^(.*)$ /prerender$1 break;
+            proxy_pass http://127.0.0.1:8000;
+        }
+        root /srv/maru/frontend/dist;
+        try_files $uri /index.html;
         include /etc/nginx/snippets/maru-security-headers.conf;
     }
 

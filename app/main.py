@@ -30,6 +30,7 @@ from app.routers import (
     admin_dashboard,
     admin_jobs,
     order_documents,
+    prerender,
     integration_webhooks,
     admin_inventory,
     admin_newsletter,
@@ -197,6 +198,7 @@ api_v1.include_router(stock_alerts.router)
 api_v1.include_router(wishlist.router)
 
 app.include_router(api_v1)
+app.include_router(prerender.router)
 
 
 @app.get("/sitemap.xml", include_in_schema=False)
