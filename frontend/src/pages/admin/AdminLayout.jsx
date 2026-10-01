@@ -21,6 +21,7 @@ export default function AdminLayout() {
       title: t('admin.sectionSales'),
       links: [
         ['/admin/orders', t('admin.nav.orders')],
+        ['/admin/customers', t('admin.nav.customers')],
         ['/admin/quotes', t('admin.nav.quotes')],
         ['/admin/promo-codes', t('admin.nav.promoCodes')],
         ['/admin/shipping-rates', t('admin.nav.shippingRates')],
