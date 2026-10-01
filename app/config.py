@@ -110,6 +110,9 @@ class Settings(BaseSettings):
     META_PIXEL_ID: str = ""
     META_CAPI_TOKEN: str = ""
     META_TEST_EVENT_CODE: str = ""  # from Events Manager > Test events; events then show there only
+    # WhatsApp Business Cloud API (app/services/integrations/whatsapp.py). Keep the token in .env only.
+    WHATSAPP_TOKEN: str = ""
+    WHATSAPP_PHONE_NUMBER_ID: str = ""
     JOBS_ASYNC: bool = False
     # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
     CACHE_ENABLED: bool = True

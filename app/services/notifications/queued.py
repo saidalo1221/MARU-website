@@ -11,6 +11,7 @@ from app.config import settings
 from app.models.order import Order
 from app.models.shipment import Shipment
 from app.services.jobs import PermanentJobError, enqueue, job_handler
+from app.services.integrations import whatsapp
 from app.services.notifications.email import EmailNotifier
 
 
@@ -26,6 +27,12 @@ class QueuedNotifier:
             enqueue(db, "notify.order_created", {"order_id": order.id}, dedupe_key=f"order_created:{order.id}")
         else:
             self._inline.order_created(order, db=db)
+        if whatsapp.enabled():
+            whatsapp.notify_order(
+                db, order, whatsapp.ORDER_CREATED,
+                [order.first_name, order.order_number, f"{order.total_amount} {order.currency}"],
+                dedupe_key=f"order_created:{order.id}",
+            )
 
     def order_status_changed(self, order: Order, old_status: str, new_status: str, db: Optional[Session] = None) -> None:
         if self._queue(db):
@@ -36,6 +43,13 @@ class QueuedNotifier:
             )
         else:
             self._inline.order_status_changed(order, old_status, new_status, db=db)
+        if whatsapp.enabled():
+            lang = getattr(order, "language", None) or "ru"
+            whatsapp.notify_order(
+                db, order, whatsapp.ORDER_STATUS,
+                [order.first_name, order.order_number, whatsapp.status_text(new_status, lang)],
+                dedupe_key=f"order_status:{order.id}:{old_status}:{new_status}",
+            )
 
     def shipment_updated(self, order: Order, shipment: Shipment, db: Optional[Session] = None) -> None:
         if self._queue(db):
@@ -45,6 +59,13 @@ class QueuedNotifier:
             )
         else:
             self._inline.shipment_updated(order, shipment, db=db)
+        if whatsapp.enabled():
+            lang = getattr(order, "language", None) or "ru"
+            whatsapp.notify_order(
+                db, order, whatsapp.SHIPMENT_UPDATE,
+                [order.first_name, order.order_number, whatsapp.status_text(shipment.status.value, lang), shipment.tracking_number or "-"],
+                dedupe_key=f"shipment:{shipment.id}:{shipment.status.value}",
+            )
 
 
 def _order(db: Session, order_id: int) -> Order:

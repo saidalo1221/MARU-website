@@ -40,6 +40,8 @@ class CheckoutRequest(BaseModel):
     postal_code: str
     delivery_method: str
     payment_method: PaymentMethod
+    language: Optional[Literal["ru", "uz", "en"]] = None
+    whatsapp_opt_in: bool = False
     source: OrderSource = "website"
     promo_code: Optional[str] = None
     # Free-form on purpose: the service keeps only a whitelist of keys.

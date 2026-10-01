@@ -256,6 +256,8 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
         postal_code=checkout.postal_code,
         delivery_method=checkout.delivery_method,
         payment_method=checkout.payment_method,
+        language=checkout.language,
+        whatsapp_opt_in=checkout.whatsapp_opt_in,
         source=checkout.source,
         company_name=checkout.company_name,
         company_reg_number=checkout.company_reg_number,

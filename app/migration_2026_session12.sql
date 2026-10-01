@@ -125,3 +125,8 @@ FROM orders o
 WHERE NOT EXISTS (SELECT 1 FROM payments p WHERE p.order_id = o.id);
 
 UPDATE orders o JOIN payments p ON p.order_id = o.id SET o.payment_status = p.status;
+
+-- WhatsApp updates: checkout language and the customer's opt-in (PRD ТЗ№4 §40-44).
+ALTER TABLE orders
+    ADD COLUMN language VARCHAR(5) NULL,
+    ADD COLUMN whatsapp_opt_in TINYINT(1) NOT NULL DEFAULT 0;

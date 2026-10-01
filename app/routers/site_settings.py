@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core import cache
+from app.services.integrations import whatsapp
 from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.site_settings import SiteSettings
@@ -15,10 +16,12 @@ router = APIRouter(prefix="/site-settings", tags=["site-settings"], dependencies
 
 @router.get("", response_model=SiteSettingsOut)
 def get_site_settings(lang: Optional[str] = None, db: Session = Depends(get_db)) -> dict:
-    return cache.get_or_set(
+    data = cache.get_or_set(
         "site", f"settings:{lang or ''}", settings.CACHE_TTL_SECONDS,
         lambda: _load_site_settings(lang, db).model_dump(mode="json"),
     )
+    data["whatsapp_enabled"] = whatsapp.enabled()  # config, not data: never cached
+    return data
 
 
 def _load_site_settings(lang: Optional[str], db: Session) -> SiteSettingsOut:

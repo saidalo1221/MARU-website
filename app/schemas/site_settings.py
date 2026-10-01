@@ -19,6 +19,7 @@ class SiteSettingsOut(BaseModel):
     instagram_url: Optional[str] = None
     telegram_url: Optional[str] = None
     youtube_url: Optional[str] = None
+    whatsapp_enabled: bool = False
 
 
 class SiteSettingsUpdate(BaseModel):

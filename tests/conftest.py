@@ -32,6 +32,8 @@ os.environ["GA4_API_SECRET"] = ""
 os.environ["META_PIXEL_ID"] = ""  # tests must never send to the real pixel
 os.environ["META_CAPI_TOKEN"] = ""
 os.environ["META_TEST_EVENT_CODE"] = ""
+os.environ["WHATSAPP_TOKEN"] = ""  # tests must never message real customers
+os.environ["WHATSAPP_PHONE_NUMBER_ID"] = ""
 
 import pytest
 from fastapi.testclient import TestClient

@@ -16,6 +16,7 @@ import { trackEvent } from '../lib/analytics'
 import { getAttribution } from '../lib/attribution'
 import Seo from '../components/Seo'
 import LegalNotice from '../components/LegalNotice'
+import { getSiteSettings } from '../api/siteSettings'
 
 const NEW_ADDRESS = 'new'
 
@@ -37,13 +38,18 @@ const emptyForm = {
   company_tax_number: '',
   company_address: '',
   contact_person: '',
+  whatsapp_opt_in: false,
 }
 
 export default function Checkout() {
   const { user, loading: authLoading } = useAuth()
   const { cart, refresh } = useCart()
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const navigate = useNavigate()
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false)
+  useEffect(() => {
+    getSiteSettings().then((s) => setWhatsappEnabled(Boolean(s.whatsapp_enabled))).catch(() => {})
+  }, [])
 
   // The country picked in the header / delivery block is the default delivery country.
   const [form, setForm] = useState(() => ({ ...emptyForm, country: getShipCountry() }))
@@ -176,7 +182,14 @@ export default function Checkout() {
     setError(null)
     setSubmitting(true)
     try {
-      const payload = { ...form, region: form.region.trim() || null, promo_code: cart.promo_code || null, attribution: getAttribution() }
+      const payload = {
+        ...form,
+        region: form.region.trim() || null,
+        promo_code: cart.promo_code || null,
+        attribution: getAttribution(),
+        language: locale,
+        whatsapp_opt_in: whatsappEnabled && form.whatsapp_opt_in,
+      }
       if (form.order_type !== 'company') {
         delete payload.company_name
         delete payload.company_reg_number
@@ -281,6 +294,12 @@ export default function Checkout() {
             <input required placeholder={t('checkout.lastName')} aria-label={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
             <input required type="tel" placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
             <input required type="email" placeholder={t('checkout.email')} aria-label={t('checkout.email')} value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            {whatsappEnabled && (
+              <label className="col-span-2 flex items-start gap-2 text-sm text-gray-600">
+                <input type="checkbox" checked={form.whatsapp_opt_in} onChange={(e) => setForm((f) => ({ ...f, whatsapp_opt_in: e.target.checked }))} className="mt-0.5" />
+                <span>{t('checkout.whatsappOptIn')}</span>
+              </label>
+            )}
           </fieldset>
 
           {form.order_type === 'company' && (

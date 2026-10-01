@@ -321,6 +321,8 @@ CREATE TABLE orders (
 	delivery_method VARCHAR(50) NOT NULL, 
 	payment_method VARCHAR(50) NOT NULL, 
 	payment_status VARCHAR(24) NOT NULL DEFAULT 'created', 
+	language VARCHAR(5), 
+	whatsapp_opt_in TINYINT(1) NOT NULL DEFAULT 0, 
 	source VARCHAR(20) NOT NULL, 
 	company_name VARCHAR(255), 
 	company_reg_number VARCHAR(100), 

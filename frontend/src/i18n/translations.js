@@ -204,6 +204,7 @@ export const translations = {
       checkoutButton: 'Proceed to Checkout',
     },
     checkout: {
+      whatsappOptIn: 'Send me order updates on WhatsApp (to the phone number above). You can stop at any time.',
       guestHint: 'You can check out without an account.',
       empty: 'Your cart is empty.',
       title: 'Checkout',
@@ -1445,6 +1446,7 @@ export const translations = {
       checkoutButton: 'Оформить заказ',
     },
     checkout: {
+      whatsappOptIn: 'Присылать обновления по заказу в WhatsApp (на указанный номер телефона). Можно отказаться в любое время.',
       guestHint: 'Оформить заказ можно без регистрации.',
       empty: 'Ваша корзина пуста.',
       title: 'Оформление заказа',
@@ -2686,6 +2688,7 @@ export const translations = {
       checkoutButton: 'Buyurtmani rasmiylashtirish',
     },
     checkout: {
+      whatsappOptIn: 'Buyurtma yangiliklarini WhatsApp orqali yuborish (yuqoridagi telefon raqamiga). Istalgan vaqtda to\'xtatish mumkin.',
       guestHint: 'Buyurtmani ro\'yxatdan o\'tmasdan ham rasmiylashtirish mumkin.',
       empty: "Savatingiz bo'sh.",
       title: 'Buyurtmani rasmiylashtirish',
