@@ -157,7 +157,7 @@ export default function ProductDetail() {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: product.description || undefined,
+    description: product.meta_description || product.description || undefined,
     image: coverImage || undefined,
     aggregateRating: product.rating_count > 0
       ? { '@type': 'AggregateRating', ratingValue: product.rating_average, reviewCount: product.rating_count }
@@ -174,7 +174,7 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
-      <Seo title={product.name} description={product.description} image={coverImage} type="product" jsonLd={jsonLd} />
+      <Seo title={product.seo_title || product.name} description={product.meta_description || product.description} image={coverImage} type="product" jsonLd={jsonLd} />
       <Breadcrumbs
         items={[{ to: '/', label: t('header.home') }, { to: '/shop', label: t('header.shop') }]}
         current={product.name}
@@ -310,6 +310,21 @@ export default function ProductDetail() {
               <p className="text-sm text-gray-700 whitespace-pre-line">{product.description}</p>
             </div>
           )}
+
+          {[['contentAdvantages', product.advantages, true], ['contentUsage', product.usage_scenarios, true], ['contentMaterial', product.material_info, false], ['contentInstructions', product.instructions, false]].map(([key, text, asList]) => {
+            const lines = (text || '').split('\n').map((l) => l.trim()).filter(Boolean)
+            if (!lines.length) return null
+            return (
+              <div key={key} className="mt-6 border-t border-gray-200 pt-4">
+                <p className="text-sm font-medium mb-2">{t(`productDetail.${key}`)}</p>
+                {asList ? (
+                  <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
+                ) : (
+                  <p className="text-sm text-gray-700 whitespace-pre-line">{lines.join('\n')}</p>
+                )}
+              </div>
+            )
+          })}
 
           <dl className="mt-6 border-t border-gray-200 pt-4 text-sm grid grid-cols-2 gap-y-1">
             <dt className="text-gray-500">{t('productDetail.volume')}</dt>

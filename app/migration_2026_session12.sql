@@ -201,3 +201,19 @@ CREATE TABLE webhook_endpoints (
 
 -- Abandoned-cart reminder bookkeeping (PRD ТЗ№1 §39).
 ALTER TABLE carts ADD COLUMN abandoned_email_sent_at DATETIME NULL;
+
+-- Product page content and SEO fields (PRD ТЗ№1 §29-30), also per language.
+ALTER TABLE products
+    ADD COLUMN seo_title VARCHAR(255) NULL,
+    ADD COLUMN meta_description VARCHAR(320) NULL,
+    ADD COLUMN advantages TEXT NULL,
+    ADD COLUMN usage_scenarios TEXT NULL,
+    ADD COLUMN instructions TEXT NULL,
+    ADD COLUMN material_info TEXT NULL;
+ALTER TABLE product_translations
+    ADD COLUMN seo_title VARCHAR(255) NULL,
+    ADD COLUMN meta_description VARCHAR(320) NULL,
+    ADD COLUMN advantages TEXT NULL,
+    ADD COLUMN usage_scenarios TEXT NULL,
+    ADD COLUMN instructions TEXT NULL,
+    ADD COLUMN material_info TEXT NULL;

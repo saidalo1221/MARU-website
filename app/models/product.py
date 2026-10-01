@@ -58,6 +58,13 @@ class Product(Base):
     # app/services/tax.py: zero and exempt are never taxed; reduced looks for a 'reduced' tax rule
     # and falls back to the general one; standard uses the general rule.
     tax_class = Column(String(20), nullable=False, default="standard", server_default="standard")
+    # Page content (PRD ТЗ№1 §29-30). advantages / usage_scenarios: one item per line.
+    seo_title = Column(String(255), nullable=True)
+    meta_description = Column(String(320), nullable=True)
+    advantages = Column(Text, nullable=True)
+    usage_scenarios = Column(Text, nullable=True)
+    instructions = Column(Text, nullable=True)
+    material_info = Column(Text, nullable=True)
 
     # Product badges (New / Sale / Best Seller — see app/services/badges.py).
     # "auto" computes them from created_at/SKU special_price/sales volume;

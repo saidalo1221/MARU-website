@@ -93,6 +93,12 @@ class ProductOut(BaseModel):
     country_of_origin: Optional[str]
     min_order_quantity: int
     tax_class: str = "standard"
+    seo_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    advantages: Optional[str] = None
+    usage_scenarios: Optional[str] = None
+    instructions: Optional[str] = None
+    material_info: Optional[str] = None
     badge_mode: str
     badge_new: Optional[bool]
     badge_sale: Optional[bool]
@@ -177,6 +183,12 @@ class ProductCreate(BaseModel):
     country_of_origin: Optional[str] = Field(default=None, max_length=100)
     min_order_quantity: int = Field(default=1, ge=1)
     tax_class: Literal["standard", "reduced", "zero", "exempt"] = "standard"
+    seo_title: Optional[str] = Field(default=None, max_length=255)
+    meta_description: Optional[str] = Field(default=None, max_length=320)
+    advantages: Optional[str] = None
+    usage_scenarios: Optional[str] = None
+    instructions: Optional[str] = None
+    material_info: Optional[str] = None
     badge_mode: Literal["auto", "manual"] = "auto"
     badge_new: Optional[bool] = None
     badge_sale: Optional[bool] = None
@@ -205,6 +217,12 @@ class ProductUpdate(BaseModel):
     country_of_origin: Optional[str] = Field(default=None, max_length=100)
     min_order_quantity: Optional[int] = Field(default=None, ge=1)
     tax_class: Optional[Literal["standard", "reduced", "zero", "exempt"]] = None
+    seo_title: Optional[str] = Field(default=None, max_length=255)
+    meta_description: Optional[str] = Field(default=None, max_length=320)
+    advantages: Optional[str] = None
+    usage_scenarios: Optional[str] = None
+    instructions: Optional[str] = None
+    material_info: Optional[str] = None
     badge_mode: Optional[Literal["auto", "manual"]] = None
     badge_new: Optional[bool] = None
     badge_sale: Optional[bool] = None
@@ -224,6 +242,12 @@ class ProductTranslationIn(BaseModel):
     shape: Optional[str] = Field(default=None, max_length=100)
     purpose: Optional[str] = Field(default=None, max_length=255)
     country_of_origin: Optional[str] = Field(default=None, max_length=100)
+    seo_title: Optional[str] = Field(default=None, max_length=255)
+    meta_description: Optional[str] = Field(default=None, max_length=320)
+    advantages: Optional[str] = None
+    usage_scenarios: Optional[str] = None
+    instructions: Optional[str] = None
+    material_info: Optional[str] = None
 
 
 class ProductTranslationOut(BaseModel):
@@ -236,3 +260,9 @@ class ProductTranslationOut(BaseModel):
     shape: Optional[str]
     purpose: Optional[str]
     country_of_origin: Optional[str]
+    seo_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    advantages: Optional[str] = None
+    usage_scenarios: Optional[str] = None
+    instructions: Optional[str] = None
+    material_info: Optional[str] = None

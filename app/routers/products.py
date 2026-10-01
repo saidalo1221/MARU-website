@@ -33,6 +33,10 @@ def _apply_translation(product: Product, translation: Optional[ProductTranslatio
             out.purpose = translation.purpose
         if translation.country_of_origin is not None:
             out.country_of_origin = translation.country_of_origin
+        for field in ("seo_title", "meta_description", "advantages", "usage_scenarios", "instructions", "material_info"):
+            value = getattr(translation, field)
+            if value:
+                setattr(out, field, value)
     return out
 
 

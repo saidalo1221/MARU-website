@@ -424,7 +424,7 @@ function VariantBlock({ variant, warehouses, onChanged }) {
 }
 
 const TRANSLATION_LOCALES = ['ru', 'uz', 'en']
-const emptyTranslation = { name: '', description: '', shape: '', purpose: '', country_of_origin: '' }
+const emptyTranslation = { name: '', description: '', shape: '', purpose: '', country_of_origin: '', seo_title: '', meta_description: '', advantages: '', usage_scenarios: '', instructions: '', material_info: '' }
 
 function ProductTranslations({ productId }) {
   const { t } = useLocale()
@@ -453,6 +453,12 @@ function ProductTranslations({ productId }) {
             shape: existing.shape || '',
             purpose: existing.purpose || '',
             country_of_origin: existing.country_of_origin || '',
+            seo_title: existing.seo_title || '',
+            meta_description: existing.meta_description || '',
+            advantages: existing.advantages || '',
+            usage_scenarios: existing.usage_scenarios || '',
+            instructions: existing.instructions || '',
+            material_info: existing.material_info || '',
           }
         : emptyTranslation
     )
@@ -472,6 +478,12 @@ function ProductTranslations({ productId }) {
         shape: translationForm.shape || null,
         purpose: translationForm.purpose || null,
         country_of_origin: translationForm.country_of_origin || null,
+        seo_title: translationForm.seo_title || null,
+        meta_description: translationForm.meta_description || null,
+        advantages: translationForm.advantages || null,
+        usage_scenarios: translationForm.usage_scenarios || null,
+        instructions: translationForm.instructions || null,
+        material_info: translationForm.material_info || null,
       }
       const saved = await adminUpsertProductTranslation(productId, activeLocale, payload)
       setTranslations((t2) => ({ ...t2, [activeLocale]: saved }))
@@ -507,6 +519,12 @@ function ProductTranslations({ productId }) {
           <input placeholder={t('admin.products.purpose')} aria-label={t('admin.products.purpose')} value={translationForm.purpose} onChange={update('purpose')} className={inputCls} />
           <input placeholder={t('admin.products.countryOfOrigin')} aria-label={t('admin.products.countryOfOrigin')} value={translationForm.country_of_origin} onChange={update('country_of_origin')} className={inputCls} />
         </div>
+        <input maxLength={255} placeholder={t('admin.products.seoTitle')} aria-label={t('admin.products.seoTitle')} value={translationForm.seo_title} onChange={update('seo_title')} className={`${inputCls} w-full`} />
+        <input maxLength={320} placeholder={t('admin.products.metaDescription')} aria-label={t('admin.products.metaDescription')} value={translationForm.meta_description} onChange={update('meta_description')} className={`${inputCls} w-full`} />
+        <textarea rows={3} placeholder={t('admin.products.advantages')} aria-label={t('admin.products.advantages')} value={translationForm.advantages} onChange={update('advantages')} className={`${inputCls} w-full`} />
+        <textarea rows={3} placeholder={t('admin.products.usageScenarios')} aria-label={t('admin.products.usageScenarios')} value={translationForm.usage_scenarios} onChange={update('usage_scenarios')} className={`${inputCls} w-full`} />
+        <textarea rows={3} placeholder={t('admin.products.instructions')} aria-label={t('admin.products.instructions')} value={translationForm.instructions} onChange={update('instructions')} className={`${inputCls} w-full`} />
+        <textarea rows={3} placeholder={t('admin.products.materialInfo')} aria-label={t('admin.products.materialInfo')} value={translationForm.material_info} onChange={update('material_info')} className={`${inputCls} w-full`} />
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={saving} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
           {saving ? t('admin.common.saving') : t('admin.common.save')}
@@ -534,7 +552,7 @@ export default function AdminProductDetail() {
     setProduct(p)
     setForm({
       name: p.name, slug: p.slug, volume_ml: p.volume_ml, shape: p.shape || '', purpose: p.purpose || '',
-      description: p.description || '', country_of_origin: p.country_of_origin || '', min_order_quantity: p.min_order_quantity, tax_class: p.tax_class || 'standard',
+      description: p.description || '', country_of_origin: p.country_of_origin || '', min_order_quantity: p.min_order_quantity, tax_class: p.tax_class || 'standard', seo_title: p.seo_title || '', meta_description: p.meta_description || '', advantages: p.advantages || '', usage_scenarios: p.usage_scenarios || '', instructions: p.instructions || '', material_info: p.material_info || '',
       badge_mode: p.badge_mode, badge_new: !!p.badge_new, badge_sale: !!p.badge_sale, badge_bestseller: !!p.badge_bestseller,
     })
   }).catch((err) => setError(errorMessage(err, t('admin.productDetail.loadFailed'))))
@@ -595,6 +613,12 @@ export default function AdminProductDetail() {
         <input placeholder={t('admin.products.purpose')} aria-label={t('admin.products.purpose')} value={form.purpose} onChange={update('purpose')} className={inputCls} />
         <input placeholder={t('admin.products.countryOfOrigin')} aria-label={t('admin.products.countryOfOrigin')} value={form.country_of_origin} onChange={update('country_of_origin')} className={`${inputCls} col-span-2`} />
         <textarea placeholder={t('admin.products.description')} aria-label={t('admin.products.description')} value={form.description} onChange={update('description')} rows={3} className={`${inputCls} col-span-2`} />
+        <input maxLength={255} placeholder={t('admin.products.seoTitle')} aria-label={t('admin.products.seoTitle')} value={form.seo_title} onChange={update('seo_title')} className={`${inputCls} col-span-2`} />
+        <input maxLength={320} placeholder={t('admin.products.metaDescription')} aria-label={t('admin.products.metaDescription')} value={form.meta_description} onChange={update('meta_description')} className={`${inputCls} col-span-2`} />
+        <textarea rows={3} placeholder={t('admin.products.advantages')} aria-label={t('admin.products.advantages')} value={form.advantages} onChange={update('advantages')} className={`${inputCls} col-span-2`} />
+        <textarea rows={3} placeholder={t('admin.products.usageScenarios')} aria-label={t('admin.products.usageScenarios')} value={form.usage_scenarios} onChange={update('usage_scenarios')} className={`${inputCls} col-span-2`} />
+        <textarea rows={3} placeholder={t('admin.products.instructions')} aria-label={t('admin.products.instructions')} value={form.instructions} onChange={update('instructions')} className={`${inputCls} col-span-2`} />
+        <textarea rows={3} placeholder={t('admin.products.materialInfo')} aria-label={t('admin.products.materialInfo')} value={form.material_info} onChange={update('material_info')} className={`${inputCls} col-span-2`} />
 
         <div className="col-span-2 border-t border-gray-100 pt-3 mt-1">
           <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('admin.productDetail.badges')}</p>
