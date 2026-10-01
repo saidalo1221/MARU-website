@@ -464,6 +464,9 @@ export const translations = {
       remove: 'Remove from wishlist',
     },
     quoteRequest: {
+      searchProducts: 'Search products to add',
+      noProductMatches: 'No products match.',
+      removeProduct: 'Remove',
       title: 'Request a Quote',
       subtitle: 'Tell us what you need and our team will get back to you with pricing.',
       typeQuote: 'Quote request',
@@ -1186,6 +1189,7 @@ export const translations = {
       internationalSupply: 'International supply',
     },
     wholesale: {
+      seeFullCatalogue: 'See the full catalogue',
       tableTitle: 'Sizes, minimum orders and quantity prices',
       tableProduct: 'Product',
       tableMoq: 'Minimum order (pcs)',
@@ -1870,6 +1874,9 @@ export const translations = {
       remove: 'Убрать из избранного',
     },
     quoteRequest: {
+      searchProducts: 'Найти товары для добавления',
+      noProductMatches: 'Подходящих товаров нет.',
+      removeProduct: 'Убрать',
       title: 'Запрос цены',
       subtitle: 'Расскажите, что вам нужно, и наша команда свяжется с вами по поводу цены.',
       typeQuote: 'Запрос цены',
@@ -2592,6 +2599,7 @@ export const translations = {
       internationalSupply: 'Международные поставки',
     },
     wholesale: {
+      seeFullCatalogue: 'Смотреть весь каталог',
       tableTitle: 'Объёмы, минимальные заказы и цены за количество',
       tableProduct: 'Товар',
       tableMoq: 'Мин. заказ (шт.)',
@@ -3276,6 +3284,9 @@ export const translations = {
       remove: 'Sevimlilardan olib tashlash',
     },
     quoteRequest: {
+      searchProducts: 'Qo\'shish uchun mahsulot qidirish',
+      noProductMatches: 'Mos mahsulot topilmadi.',
+      removeProduct: 'Olib tashlash',
       title: 'Narx soʻrash',
       subtitle: "Nima kerakligini ayting, jamoamiz narx bo'yicha siz bilan bog'lanadi.",
       typeQuote: 'Narx soʻrovi',
@@ -3998,6 +4009,7 @@ export const translations = {
       internationalSupply: "Xalqaro ta'minot",
     },
     wholesale: {
+      seeFullCatalogue: 'To\'liq katalogni ko\'rish',
       tableTitle: 'Hajmlar, minimal buyurtmalar va miqdor narxlari',
       tableProduct: 'Mahsulot',
       tableMoq: 'Minimal buyurtma (dona)',

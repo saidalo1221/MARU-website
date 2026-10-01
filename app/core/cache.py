@@ -25,6 +25,10 @@ TABLE_NAMESPACES = {
     "site_settings": "site",
     "site_settings_translations": "site",
     "exchange_rates": "fx",
+    "products": "catalog",
+    "product_variants": "catalog",
+    "skus": "catalog",
+    "product_translations": "catalog",
 }
 
 _memory: dict[str, tuple[float, str]] = {}

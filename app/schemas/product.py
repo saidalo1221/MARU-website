@@ -98,6 +98,36 @@ class ProductBadges(BaseModel):
     is_out_of_stock: bool
 
 
+class ProductSuggestionOut(BaseModel):
+    """A light search hit for the autocomplete box: no variants or prices."""
+
+    id: int
+    name: str
+    slug: str
+    volume_ml: int
+    category_id: int
+
+
+class CategorySuggestionOut(BaseModel):
+    id: int
+    name: str
+    slug: str
+
+
+class SuggestOut(BaseModel):
+    products: list[ProductSuggestionOut]
+    categories: list[CategorySuggestionOut]
+
+
+class FacetsOut(BaseModel):
+    """What the catalogue filters can offer, computed over the sellable products."""
+
+    capacities: list[int]
+    colors: list[str]
+    materials: list[str]
+    category_ids: list[int]
+
+
 class ProductOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '../../context/LocaleContext'
 import { listShippingCountries } from '../../api/shipping'
-import { listProducts } from '../../api/products'
+import { listProducts, suggestProducts } from '../../api/products'
 import { createQuote } from '../../api/quotes'
 import { errorMessage } from '../../api/client'
 
@@ -28,6 +28,7 @@ export default function InquiryForm({ defaultType = 'quote', lockType = false, c
   const [form, setForm] = useState({ ...emptyForm, request_type: defaultType, quantity: initialQuantity || '' })
   const [countries, setCountries] = useState([])
   const [products, setProducts] = useState([])
+  const [productQuery, setProductQuery] = useState('')
   const [selectedProducts, setSelectedProducts] = useState(initialProduct ? [initialProduct] : [])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
@@ -35,8 +36,23 @@ export default function InquiryForm({ defaultType = 'quote', lockType = false, c
 
   useEffect(() => {
     listShippingCountries().then(setCountries).catch(() => {})
-    listProducts(locale).then(setProducts).catch(() => {})
-  }, [locale])
+  }, [])
+
+  // Pick products by searching (the catalogue can be huge): the most popular ones show until you type.
+  useEffect(() => {
+    let current = true
+    const q = productQuery.trim()
+    const id = setTimeout(() => {
+      const request = q
+        ? suggestProducts(q, locale).then((r) => r.products)
+        : listProducts(locale, undefined, { sort: 'popularity', limit: 8 })
+      request.then((rows) => current && setProducts(rows)).catch(() => current && setProducts([]))
+    }, q ? 250 : 0)
+    return () => {
+      current = false
+      clearTimeout(id)
+    }
+  }, [locale, productQuery])
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
@@ -98,8 +114,19 @@ export default function InquiryForm({ defaultType = 'quote', lockType = false, c
       <input type="tel" placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
       <div>
         <p className="text-sm text-gray-600 mb-1">{t('quoteRequest.products')}</p>
+        {selectedProducts.length > 0 && (
+          <ul className="flex flex-wrap gap-2 mb-2">
+            {selectedProducts.map((name) => (
+              <li key={name} className="flex items-center gap-1 bg-gray-100 rounded px-2 py-1 text-sm">
+                {name}
+                <button type="button" onClick={() => toggleProduct(name)} aria-label={`${t('quoteRequest.removeProduct')}: ${name}`} className="text-gray-500">×</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <input type="search" value={productQuery} onChange={(e) => setProductQuery(e.target.value)} placeholder={t('quoteRequest.searchProducts')} aria-label={t('quoteRequest.searchProducts')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-1" />
         <div className="border border-gray-300 rounded px-3 py-2 max-h-40 overflow-y-auto space-y-1">
-          {products.length === 0 && <p className="text-sm text-gray-500">{t('quoteRequest.productsLoading')}</p>}
+          {products.length === 0 && <p className="text-sm text-gray-500">{productQuery.trim() ? t('quoteRequest.noProductMatches') : t('quoteRequest.productsLoading')}</p>}
           {products.map((p) => (
             <label key={p.id} className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={selectedProducts.includes(p.name)} onChange={() => toggleProduct(p.name)} />

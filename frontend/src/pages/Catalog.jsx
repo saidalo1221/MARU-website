@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Link } from 'react-router-dom'
-import { listCategories, listProducts } from '../api/products'
+import { getFacets, listCategories, queryProducts } from '../api/products'
 import { listPageSections } from '../api/pageSections'
 import FaqItem from '../components/FaqItem'
 import { useLocale } from '../context/LocaleContext'
@@ -17,11 +17,6 @@ import useDialogFocus from '../lib/useDialogFocus'
 const PAGE_SIZE = 12
 const SORT_VALUES = ['default', 'price_asc', 'price_desc', 'newest', 'rating']
 
-function minPrice(product) {
-  const prices = product.variants.flatMap((v) => v.skus.map((s) => Number(s.retail_price)))
-  return prices.length ? Math.min(...prices) : Infinity
-}
-
 function flattenCategories(nodes) {
   return nodes.flatMap((c) => [c, ...flattenCategories(c.children || [])])
 }
@@ -33,6 +28,8 @@ export default function Catalog({ category = null }) {
   const { cart } = useCart()
   const currency = cart?.currency
   const [products, setProducts] = useState([])
+  const [total, setTotal] = useState(0)
+  const [facets, setFacets] = useState({ capacities: [], colors: [], category_ids: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   // The header menus and home page link here with ?capacity=<ml> and ?sort=<value>.
@@ -46,6 +43,7 @@ export default function Catalog({ category = null }) {
   const [colorFilter, setColorFilter] = useState('')
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
+  const [debouncedPrice, setDebouncedPrice] = useState({ min: '', max: '' })
   const [categories, setCategories] = useState([])
   const [faq, setFaq] = useState([])
   const [page, setPage] = useState(1)
@@ -80,69 +78,72 @@ export default function Catalog({ category = null }) {
     listCategories(locale).then((tree) => setCategories(flattenCategories(tree))).catch(() => setCategories([]))
   }, [locale])
 
+  // Typing a price must not fire a request per keystroke.
   useEffect(() => {
-    setLoading(true)
-    listProducts(locale, currency)
-      .then((list) => {
-        setProducts(list)
-        // Refetches on currency/locale change must not count as new list views.
-        if (!listTracked.current) {
-          listTracked.current = true
-          trackEvent('view_item_list', { item_list_name: 'catalog', item_count: list.length })
-        }
-      })
-      .catch(setError)
-      .finally(() => setLoading(false))
-  }, [locale, currency])
+    const id = setTimeout(() => setDebouncedPrice({ min: priceMin, max: priceMax }), 350)
+    return () => clearTimeout(id)
+  }, [priceMin, priceMax])
 
-  const volumes = useMemo(
-    () => [...new Set(products.map((p) => p.volume_ml))].sort((a, b) => a - b),
-    [products]
-  )
-
-  const colors = useMemo(
-    () => [...new Set(products.flatMap((p) => p.variants.map((v) => v.color)))].sort(),
-    [products]
-  )
   // Product category ids the pinned category page covers (itself and its children).
-  const pinnedIds = useMemo(
-    () => (category ? new Set([String(category.id), ...(category.children || []).map((c) => String(c.id))]) : null),
+  const pinnedList = useMemo(
+    () => (category ? [category.id, ...(category.children || []).map((c) => c.id)].join(',') : ''),
     [category]
   )
+
+  // Filter choices come from the server (it knows the whole catalogue; we only ever hold one page).
+  useEffect(() => {
+    getFacets(pinnedList).then(setFacets).catch(() => {})
+  }, [pinnedList])
+
+  // The server filters, sorts and pages; stale answers (the visitor kept clicking) are ignored.
+  useEffect(() => {
+    let current = true
+    setLoading(true)
+    setError(null)
+    queryProducts({
+      lang: locale,
+      currency,
+      categoryIds: pinnedList || categoryFilter,
+      capacity: volumeFilter,
+      color: colorFilter,
+      availability: availabilityFilter ? 'in_stock' : undefined,
+      priceMin: debouncedPrice.min,
+      priceMax: debouncedPrice.max,
+      sort,
+      page,
+      limit: PAGE_SIZE,
+    })
+      .then(({ data, total: n }) => {
+        if (!current) return
+        setProducts(data)
+        setTotal(n)
+        // Refetches on filter/page/currency change must not count as new list views.
+        if (!listTracked.current) {
+          listTracked.current = true
+          trackEvent('view_item_list', { item_list_name: 'catalog', item_count: n })
+        }
+      })
+      .catch((err) => current && setError(err))
+      .finally(() => current && setLoading(false))
+    return () => { current = false }
+  }, [locale, currency, pinnedList, categoryFilter, volumeFilter, colorFilter, availabilityFilter, debouncedPrice, sort, page])
+
+  const volumes = facets.capacities
+  const colors = facets.colors
   useEffect(() => {
     if (category) listPageSections('faq', locale).then((rows) => setFaq(rows.slice(0, 4))).catch(() => {})
   }, [category, locale])
 
   const categoryOptions = useMemo(() => {
-    const used = new Set(products.map((p) => p.category_id))
+    const used = new Set(facets.category_ids)
     return categories.filter((c) => used.has(c.id))
-  }, [categories, products])
-
-  const filtered = useMemo(() => {
-    let list = [...products]
-    if (volumeFilter) list = list.filter((p) => String(p.volume_ml) === volumeFilter)
-    if (pinnedIds) list = list.filter((p) => pinnedIds.has(String(p.category_id)))
-    else if (categoryFilter) list = list.filter((p) => String(p.category_id) === categoryFilter)
-    if (colorFilter) list = list.filter((p) => p.variants.some((v) => v.color === colorFilter))
-    if (priceMin !== '') list = list.filter((p) => minPrice(p) >= Number(priceMin))
-    if (priceMax !== '') list = list.filter((p) => minPrice(p) <= Number(priceMax))
-    if (availabilityFilter) {
-      list = list.filter((p) =>
-        p.variants.some((v) => v.skus.some((s) => s.available_quantity > 0))
-      )
-    }
-    if (sort === 'price_asc') list.sort((a, b) => minPrice(a) - minPrice(b))
-    if (sort === 'price_desc') list.sort((a, b) => minPrice(b) - minPrice(a))
-    if (sort === 'newest') list.sort((a, b) => b.id - a.id)
-    if (sort === 'rating') list.sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0))
-    return list
-  }, [products, volumeFilter, categoryFilter, colorFilter, priceMin, priceMax, availabilityFilter, sort])
+  }, [categories, facets])
 
   // Any filter or sort change starts again from the first page.
   useEffect(() => setPage(1), [volumeFilter, categoryFilter, colorFilter, priceMin, priceMax, availabilityFilter, sort])
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const visible = products
   const hasFilters = volumeFilter || categoryFilter || colorFilter || priceMin !== '' || priceMax !== '' || availabilityFilter
   const clearFilters = () => {
     setVolumeFilter('')
@@ -313,7 +314,7 @@ export default function Catalog({ category = null }) {
 
           {loading && products.length === 0 && <ProductGridSkeleton />}
           {error && <p role="alert" className="text-red-600">{t('catalog.loadError')}</p>}
-          {!loading && !error && filtered.length === 0 && (
+          {!loading && !error && total === 0 && (
             <div className="text-gray-500">
               <p>{t('catalog.noProducts')}</p>
               {hasFilters && (
@@ -321,8 +322,8 @@ export default function Catalog({ category = null }) {
               )}
             </div>
           )}
-          {!loading && !error && filtered.length > 0 && (
-            <p className="text-sm text-gray-500 mb-3" role="status">{t('catalog.results', { n: filtered.length })}</p>
+          {!loading && !error && total > 0 && (
+            <p className="text-sm text-gray-500 mb-3" role="status">{t('catalog.results', { n: total })}</p>
           )}
 
           <h2 className="sr-only">{t('catalog.title')}</h2>

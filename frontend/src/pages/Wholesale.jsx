@@ -14,7 +14,8 @@ export default function Wholesale() {
   const [products, setProducts] = useState([])
 
   useEffect(() => {
-    listProducts(locale, currency).then(setProducts).catch(() => {})
+    // The best sellers only: the whole catalogue lives on the shop page, not here.
+    listProducts(locale, currency, { sort: 'popularity', limit: 12 }).then(setProducts).catch(() => {})
   }, [locale, currency])
 
   const benefits = ['wholesale.benefit1', 'wholesale.benefit2', 'wholesale.benefit3', 'wholesale.benefit4']
@@ -91,6 +92,7 @@ export default function Wholesale() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
+          <p className="mt-4"><Link to="/shop" className="text-brand underline">{t('wholesale.seeFullCatalogue')}</Link></p>
         </div>
       )}
 

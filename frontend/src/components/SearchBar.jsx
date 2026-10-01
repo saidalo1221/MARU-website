@@ -1,33 +1,39 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLocale } from '../context/LocaleContext'
-import { listCategories, listProducts } from '../api/products'
-import { matchCategories, rankProducts } from '../lib/search'
-
-const MAX_PRODUCTS = 5
-const MAX_CATEGORIES = 3
-
-function flattenCategories(nodes) {
-  return nodes.flatMap((c) => [c, ...flattenCategories(c.children || [])])
-}
+import { suggestProducts } from '../api/products'
 
 // Search with autocomplete (PRD ТЗ№2 §18): product and category suggestions,
 // SKU codes and sizes, typo tolerance. Fully keyboard operable (combobox pattern).
 export default function SearchBar({ className = '' }) {
   const { locale, t } = useLocale()
   const [value, setValue] = useState('')
-  const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
+  const [suggestions, setSuggestions] = useState({ products: [], categories: [] })
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
   const navigate = useNavigate()
   const containerRef = useRef(null)
   const listId = useId()
 
+  // The server does the matching (name, SKU, category, size, typos), so the browser never holds the catalogue.
+  // Debounced, and answers that arrive after the visitor typed more are dropped.
   useEffect(() => {
-    listProducts(locale).then(setProducts).catch(() => {})
-    listCategories(locale).then((tree) => setCategories(flattenCategories(tree))).catch(() => {})
-  }, [locale])
+    const query = value.trim()
+    if (!query) {
+      setSuggestions({ products: [], categories: [] })
+      return undefined
+    }
+    let current = true
+    const id = setTimeout(() => {
+      suggestProducts(query, locale)
+        .then((r) => current && setSuggestions(r))
+        .catch(() => current && setSuggestions({ products: [], categories: [] }))
+    }, 250)
+    return () => {
+      current = false
+      clearTimeout(id)
+    }
+  }, [value, locale])
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -41,12 +47,12 @@ export default function SearchBar({ className = '' }) {
     const query = value.trim()
     if (!query) return []
     const items = [
-      ...rankProducts(products, query).slice(0, MAX_PRODUCTS).map((p) => ({ type: 'product', key: `p${p.id}`, label: p.name, hint: `${p.volume_ml} ml`, to: `/products/${p.slug}` })),
-      ...matchCategories(categories, query).slice(0, MAX_CATEGORIES).map((c) => ({ type: 'category', key: `c${c.id}`, label: c.name, hint: t('search.category'), to: `/shop?category=${c.id}` })),
+      ...suggestions.products.map((p) => ({ type: 'product', key: `p${p.id}`, label: p.name, hint: `${p.volume_ml} ml`, to: `/products/${p.slug}` })),
+      ...suggestions.categories.map((c) => ({ type: 'category', key: `c${c.id}`, label: c.name, hint: t('search.category'), to: `/shop?category=${c.id}` })),
     ]
     items.push({ type: 'all', key: 'all', label: t('search.seeAll', { query }), to: `/search?q=${encodeURIComponent(query)}` })
     return items
-  }, [products, categories, value, t])
+  }, [suggestions, value, t])
 
   const go = (to) => {
     setOpen(false)

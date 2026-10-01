@@ -1,26 +1,24 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { listCategories, listProducts } from '../api/products'
+import { listCategories, listProducts, queryProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
+import Pagination from '../components/ui/Pagination'
 import SearchBar from '../components/SearchBar'
 import Seo from '../components/Seo'
 import { trackEvent } from '../lib/analytics'
-import { rankProducts } from '../lib/search'
 import { ProductGridSkeleton } from '../components/Skeleton'
 
-function minPrice(product) {
-  const prices = product.variants.flatMap((v) => v.skus.map((s) => Number(s.retail_price)))
-  return prices.length ? Math.min(...prices) : Infinity
-}
+const PAGE_SIZE = 12
 
 function flattenCategories(nodes) {
   return nodes.flatMap((c) => [c, ...flattenCategories(c.children || [])])
 }
 
-// Search results (PRD ТЗ№2 §19): the query, the number of results, sorting and
-// an availability filter, and - when nothing matches - ways forward.
+// Search results (PRD ТЗ№2 §19): the query, the number of results, sorting and an availability filter,
+// and - when nothing matches - ways forward. The server matches, ranks, filters and pages
+// (name, SKU, category, size, typos), so this page never holds the whole catalogue.
 export default function SearchResults() {
   const { locale, t } = useLocale()
   const { cart } = useCart()
@@ -28,43 +26,49 @@ export default function SearchResults() {
   const [params] = useSearchParams()
   const query = params.get('q') || ''
   const [products, setProducts] = useState([])
+  const [total, setTotal] = useState(0)
   const [categories, setCategories] = useState([])
+  const [popular, setPopular] = useState([])
   const [loading, setLoading] = useState(true)
   const [sort, setSort] = useState('relevance')
   const [inStockOnly, setInStockOnly] = useState(false)
+  const [page, setPage] = useState(1)
+
+  useEffect(() => setPage(1), [query, sort, inStockOnly])
 
   useEffect(() => {
+    if (!query.trim()) {
+      setProducts([])
+      setTotal(0)
+      setLoading(false)
+      return undefined
+    }
+    let current = true
     setLoading(true)
-    listProducts(locale, currency)
-      .then(setProducts)
-      .finally(() => setLoading(false))
-  }, [locale, currency])
+    queryProducts({
+      lang: locale, currency, q: query, sort: sort === 'relevance' ? undefined : sort,
+      availability: inStockOnly ? 'in_stock' : undefined, page, limit: PAGE_SIZE,
+    })
+      .then(({ data, total: n }) => {
+        if (!current) return
+        setProducts(data)
+        setTotal(n)
+        if (page === 1 && sort === 'relevance' && !inStockOnly) trackEvent('search', { search_term: query.slice(0, 100), result_count: n })
+      })
+      .catch(() => current && (setProducts([]), setTotal(0)))
+      .finally(() => current && setLoading(false))
+    return () => { current = false }
+  }, [locale, currency, query, sort, inStockOnly, page])
 
+  const noMatches = !loading && total === 0
+  const unfiltered = !inStockOnly
+
+  // "No results" help: categories to browse and a few popular products (only fetched when needed).
   useEffect(() => {
+    if (!noMatches || !unfiltered) return
     listCategories(locale).then((tree) => setCategories(flattenCategories(tree))).catch(() => {})
-  }, [locale])
-
-  const ranked = useMemo(() => rankProducts(products, query), [products, query])
-  const results = useMemo(() => {
-    let list = [...ranked]
-    if (inStockOnly) list = list.filter((p) => p.variants.some((v) => v.skus.some((s) => s.available_quantity > 0)))
-    if (sort === 'price_asc') list.sort((a, b) => minPrice(a) - minPrice(b))
-    if (sort === 'price_desc') list.sort((a, b) => minPrice(b) - minPrice(a))
-    return list
-  }, [ranked, inStockOnly, sort])
-  // Best sellers first, then the rest, without repeating a product.
-  const popular = useMemo(() => {
-    const ordered = [...products.filter((p) => p.badges?.is_bestseller), ...products]
-    return [...new Map(ordered.map((p) => [p.id, p])).values()].slice(0, 4)
-  }, [products])
-
-  useEffect(() => {
-    if (!loading && query) trackEvent('search', { search_term: query.slice(0, 100), result_count: ranked.length })
-    // Only when a search finishes loading for a new term, not on every re-rank.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, query])
-
-  const noMatches = !loading && ranked.length === 0
+    listProducts(locale, currency, { sort: 'popularity', limit: 4 }).then(setPopular).catch(() => {})
+  }, [noMatches, unfiltered, locale, currency])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -73,10 +77,10 @@ export default function SearchResults() {
         <SearchBar />
       </div>
       <h1 className="text-sm font-normal text-gray-500 mb-4" role="status">
-        {loading ? t('search_results.searching') : t('search_results.resultsFor', { count: results.length, query })}
+        {loading ? t('search_results.searching') : t('search_results.resultsFor', { count: total, query })}
       </h1>
 
-      {!loading && ranked.length > 0 && (
+      {(total > 0 || inStockOnly || sort !== 'relevance') && (
         <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
           <label className="flex items-center gap-2">
             {t('catalog.sortBy')}
@@ -93,7 +97,7 @@ export default function SearchResults() {
         </div>
       )}
 
-      {noMatches && (
+      {noMatches && unfiltered && (
         <div className="py-8 max-w-3xl">
           <p className="font-medium mb-1">{t('search_results.noneFound')}</p>
           <p className="text-sm text-gray-500 mb-6">{t('search_results.tryDifferent')}</p>
@@ -122,20 +126,19 @@ export default function SearchResults() {
         </div>
       )}
 
-      {!loading && ranked.length > 0 && results.length === 0 && (
-        <p className="text-gray-500 py-6">{t('catalog.noProducts')}</p>
-      )}
+      {noMatches && !unfiltered && <p className="text-gray-500 py-6">{t('catalog.noProducts')}</p>}
 
       {loading && products.length === 0 && <ProductGridSkeleton />}
 
-      {!noMatches && (
+      {total > 0 && (
         <>
           <h2 className="sr-only">{t('catalog.title')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {results.map((p) => (
+            {products.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
+          <Pagination page={page} pageCount={Math.max(1, Math.ceil(total / PAGE_SIZE))} onChange={setPage} />
         </>
       )}
     </div>
