@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.models.analytics_event import AnalyticsEvent
 from app.models.user import User
-from app.services.integrations import ga4
+from app.services.integrations import ga4, meta
 
 logger = logging.getLogger("maru.analytics")
 
@@ -32,3 +32,4 @@ def record_event(db: Session, event_name: str, user: Optional[User] = None, sess
         logger.exception("Failed to record analytics event %s", event_name)
         return
     ga4.forward(event_name, user.id if user is not None else None, session_id, properties, db=db)
+    meta.forward(event_name, user.id if user is not None else None, session_id, properties, db=db)

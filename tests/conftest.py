@@ -29,6 +29,9 @@ os.environ["TELEGRAM_BOT_TOKEN"] = ""  # tests must never message the real bot
 os.environ["TELEGRAM_ADMIN_CHAT_ID"] = ""
 os.environ["GA4_MEASUREMENT_ID"] = ""  # tests must never send to the real property
 os.environ["GA4_API_SECRET"] = ""
+os.environ["META_PIXEL_ID"] = ""  # tests must never send to the real pixel
+os.environ["META_CAPI_TOKEN"] = ""
+os.environ["META_TEST_EVENT_CODE"] = ""
 
 import pytest
 from fastapi.testclient import TestClient

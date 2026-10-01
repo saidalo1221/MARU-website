@@ -106,6 +106,10 @@ class Settings(BaseSettings):
     GA4_MEASUREMENT_ID: str = ""
     GA4_API_SECRET: str = ""
     GA4_DEBUG: bool = False  # true = send to Google's validator instead of recording
+    # Meta Conversions API (app/services/integrations/meta.py). Keep the token in .env only.
+    META_PIXEL_ID: str = ""
+    META_CAPI_TOKEN: str = ""
+    META_TEST_EVENT_CODE: str = ""  # from Events Manager > Test events; events then show there only
     JOBS_ASYNC: bool = False
     # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
     CACHE_ENABLED: bool = True
