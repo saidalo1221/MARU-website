@@ -115,6 +115,9 @@ class Settings(BaseSettings):
     WHATSAPP_PHONE_NUMBER_ID: str = ""
     # Outbound webhooks (app/services/outbound_webhooks.py): allow http:// and internal addresses (dev only).
     WEBHOOK_ALLOW_PRIVATE_URLS: bool = False
+    # Abandoned-cart e-mail (PRD ТЗ№1 §39): sent to signed-in customers whose cart sat untouched this long.
+    ABANDONED_CART_HOURS: int = 24
+    ABANDONED_CART_MAX_AGE_DAYS: int = 7
     JOBS_ASYNC: bool = False
     # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
     CACHE_ENABLED: bool = True

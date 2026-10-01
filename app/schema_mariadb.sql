@@ -221,6 +221,7 @@ CREATE TABLE carts (
 	currency VARCHAR(3) NOT NULL, 
 	is_active BOOL NOT NULL, 
 	converted_at DATETIME, 
+	abandoned_email_sent_at DATETIME, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 

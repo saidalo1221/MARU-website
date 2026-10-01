@@ -198,3 +198,6 @@ CREATE TABLE webhook_endpoints (
 	updated_at DATETIME NOT NULL DEFAULT now(),
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
+
+-- Abandoned-cart reminder bookkeeping (PRD ТЗ№1 §39).
+ALTER TABLE carts ADD COLUMN abandoned_email_sent_at DATETIME NULL;

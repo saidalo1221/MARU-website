@@ -14,6 +14,8 @@ PY=/srv/maru/venv/bin/python
 */10 * * * *  cd $APP && $PY -m app.tasks.check_alerts          >> /var/log/maru/alerts.log 2>&1
 # "Notify me when back in stock" emails
 */15 * * * *  cd $APP && $PY -m app.tasks.notify_back_in_stock  >> /var/log/maru/stock-alerts.log 2>&1
+# Abandoned-cart reminder e-mails (signed-in customers only)
+5 * * * *     cd $APP && $PY -m app.tasks.abandoned_carts       >> /var/log/maru/abandoned-carts.log 2>&1
 # Exchange rates (free API tier: once a day is plenty)
 10 3 * * *    cd $APP && $PY -m app.tasks.sync_exchange_rates   >> /var/log/maru/fx.log 2>&1
 # Stock drift report (exit status 1 = mismatches found; read it before adding --fix)

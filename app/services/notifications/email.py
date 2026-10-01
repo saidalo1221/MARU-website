@@ -137,6 +137,23 @@ class EmailNotifier(NotificationBase):
             body = f"Good news - {product_name} is available again:\n{link}\n\nMARU"
         self._send(to_email, subject, body)
 
+    def abandoned_cart(self, to_email: str, first_name: Optional[str], items: list, db: Optional[Session] = None) -> None:
+        link = f"{settings.FRONTEND_URL.rstrip('/')}/cart"
+        lines = "\n".join(f"- {name} x {qty}" for name, qty in items)
+        context = {"first_name": first_name or "", "items": lines, "link": link, "to_email": to_email}
+        rendered = render_template(db, "abandoned_cart", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = "You left something in your MARU cart"
+            greeting = f"Hi {first_name}," if first_name else "Hi,"
+            body = (
+                f"{greeting}\n\n"
+                f"You still have items waiting in your cart:\n{lines}\n\n"
+                f"Finish your order here: {link}\n\nMARU"
+            )
+        self._send(to_email, subject, body)
+
     def order_created(self, order: Order, db: Optional[Session] = None) -> None:
         context = {
             "order_number": order.order_number,
