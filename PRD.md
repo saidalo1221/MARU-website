@@ -42,7 +42,7 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ4 §29-33 Shipping
 - [!] TZ4 §34-39 Marketplace/Uzum — BLOCKED: no Uzum/marketplace seller API access or docs; MarketplaceAdapter interface is ready
 - [!] TZ4 §40-44 SMS, email, templates, WhatsApp, Telegram — PARTLY BLOCKED: email + templates done; SMS/WhatsApp/Telegram need provider accounts and credentials (MessagingAdapter ready)
-- [!] TZ4 §45-49 Analytics: GA4, GTM, Meta, server-side — PARTLY BLOCKED: GTM/GA4 events stored server-side; forwarding to GA4/Meta needs measurement ids, API secrets and a pixel
+- [!] TZ4 §45-49 Analytics: GA4, GTM, Meta, server-side — PARTLY BLOCKED: GTM/GA4 events stored server-side; forwarding to GA4/Meta needs measurement ids, API secrets and a pixel — BLOCKED: PARTLY BLOCKED: GA4 server-side forwarding is built and validated against Google; Meta Conversions API needs a pixel id and access token
 - [x] TZ4 §50-69 Webhooks, retry, DLQ, logging, health, reconciliation
 - [x] TZ4 §70-93 Contracts, data mapping, documents, B2B, testing
 <!-- BUILD STATUS END -->
