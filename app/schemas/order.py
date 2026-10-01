@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_vali
 from app.models.enums import OrderStatus
 from app.models.order import OrderType
 from app.schemas.shipment import ShipmentOut
+from app.schemas.user import normalize_required_phone
 
 EmailStr = Annotated[
     str,
@@ -30,6 +31,7 @@ class CheckoutRequest(BaseModel):
     first_name: str
     last_name: str
     phone: str
+    _phone = field_validator("phone")(normalize_required_phone)
     email: EmailStr
     country: str
     region: Optional[str] = Field(default=None, max_length=100)

@@ -58,7 +58,7 @@ export default function BlogHome() {
         {posts.map((p) => (
           <Link key={p.id} to={`/blog/${p.slug}`} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
             {p.cover_image_url && (
-              <img src={p.cover_image_url} alt={p.title} className="w-full h-40 object-cover" />
+              <img src={p.cover_image_url} alt={p.title} loading="lazy" decoding="async" className="w-full h-40 object-cover" />
             )}
             <div className="p-4">
               <p className="text-xs text-gray-500 mb-1">{p.category.name}</p>

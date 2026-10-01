@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.models.enums import RefundStatus
 from app.models.quote_request import QuoteStatus
 from app.models.review import ReviewStatus
-from app.schemas.user import EmailStr
+from app.schemas.user import EmailStr, normalize_phone, normalize_required_phone
 from app.services.i18n import ALLOWED_LOCALES
 
 
@@ -19,6 +19,7 @@ class QuoteCreate(BaseModel):
     city: Optional[str] = Field(default=None, max_length=100)
     email: EmailStr
     phone: Optional[str] = Field(default=None, max_length=30)
+    _phone = field_validator("phone")(normalize_phone)
     products: Optional[str] = None
     quantity: Optional[str] = Field(default=None, max_length=100)
     comment: Optional[str] = None
@@ -89,6 +90,7 @@ class AddressIn(BaseModel):
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     phone: str = Field(min_length=1, max_length=30)
+    _phone = field_validator("phone")(normalize_required_phone)
     country: str = Field(min_length=1, max_length=100)
     region: Optional[str] = Field(default=None, max_length=100)
     city: str = Field(min_length=1, max_length=100)

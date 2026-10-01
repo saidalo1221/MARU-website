@@ -60,7 +60,7 @@ export default function BlogArticle() {
             {related.map((r) => (
               <Link key={r.id} to={`/blog/${r.slug}`} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
                 {r.cover_image_url && (
-                  <img src={r.cover_image_url} alt={r.title} className="w-full h-28 object-cover" />
+                  <img src={r.cover_image_url} alt={r.title} loading="lazy" decoding="async" className="w-full h-28 object-cover" />
                 )}
                 <div className="p-3">
                   <h3 className="text-sm font-semibold">{r.title}</h3>

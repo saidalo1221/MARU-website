@@ -77,7 +77,7 @@ export default function ProductCard({ product }) {
       <Link to={`/products/${product.slug}`} className="block">
         <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
           {coverImage ? (
-            <img src={coverImage} alt={product.name} className="w-full h-full object-cover" />
+            <img src={coverImage} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           ) : (
             <span className="text-gray-500 text-sm">{t('product.noImage')}</span>
           )}

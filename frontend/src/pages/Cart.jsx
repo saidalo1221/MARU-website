@@ -153,7 +153,7 @@ export default function Cart() {
             <div key={item.id} className="py-4 flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link to={item.product_slug ? `/products/${item.product_slug}` : '/shop'} className="shrink-0" tabIndex={-1} aria-hidden="true">
                 {item.image_url ? (
-                  <img src={item.image_url} alt="" className="h-16 w-16 rounded object-cover bg-gray-100" />
+                  <img src={item.image_url} alt="" loading="lazy" decoding="async" className="h-16 w-16 rounded object-cover bg-gray-100" />
                 ) : (
                   <span className="block h-16 w-16 rounded bg-gray-100" />
                 )}

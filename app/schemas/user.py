@@ -24,6 +24,13 @@ def normalize_phone(value: Optional[str]) -> Optional[str]:
     return cleaned
 
 
+def normalize_required_phone(value: str) -> str:
+    phone = normalize_phone(value)
+    if phone is None:
+        raise ValueError("phone is required")
+    return phone
+
+
 # Customers may sign in with their email or their phone number (PRD ТЗ№2 §26).
 LoginIdentifier = Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True, min_length=3, max_length=255)]
 
