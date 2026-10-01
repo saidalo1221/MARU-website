@@ -4,6 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.config import settings
+from app.core import cache
 from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models import Category
@@ -14,10 +16,17 @@ router = APIRouter(prefix="/categories", tags=["categories"], dependencies=[Depe
 
 
 @router.get("/", response_model=list[CategoryOut])
-def list_categories(lang: Optional[str] = None, db: Session = Depends(get_db)) -> list[CategoryOut]:
+def list_categories(lang: Optional[str] = None, db: Session = Depends(get_db)) -> list[dict]:
     """Return the full category tree (PRD section 5: Category -> Series -> ...).
     Pass ?lang=ru|uz|en to get translated names (PRD section 15), falling back
     to the base name where no translation has been entered."""
+    return cache.get_or_set(
+        "categories", f"tree:{lang or ''}", settings.CACHE_TTL_SECONDS,
+        lambda: [n.model_dump(mode="json") for n in _category_tree(lang, db)],
+    )
+
+
+def _category_tree(lang: Optional[str], db: Session) -> list[CategoryOut]:
     try:
         categories = db.execute(select(Category)).scalars().all()
     except SQLAlchemyError as exc:

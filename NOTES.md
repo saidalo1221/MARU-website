@@ -84,3 +84,4 @@ Newest entries last. Blocked items are marked `[!]` in the BUILD STATUS block at
 38. **Inbound webhooks**: `POST /api/v1/integrations/{provider}/webhook`, HMAC-SHA256 over `"<timestamp>.<body>"`, 5 min tolerance,
     secrets in `WEBHOOK_SECRETS` JSON. The signing scheme is my choice (no provider spec was given); events are stored and queued
     but no connector consumes them until a vendor (1C, Uzum, ...) is chosen.
+39. **Cache**: public categories / site settings / exchange rates are cached 5 min (`CACHE_TTL_SECONDS`, `CACHE_ENABLED`); Redis if `REDIS_URL` is set, else process memory. Any committed ORM change to the underlying tables clears the cache automatically (SQLAlchemy session events), so no admin route has to remember to. Raw SQL writes do not clear it (TTL covers them). Several workers without Redis can show stale data for up to the TTL.

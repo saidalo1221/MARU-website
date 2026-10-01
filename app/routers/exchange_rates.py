@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core import cache
 from app.core.rate_limit import rate_limit
+from app.config import settings
 from app.database import get_db
 from app.models.exchange_rate import ExchangeRate
 from app.schemas.exchange_rate import ExchangeRateOut
@@ -18,5 +20,9 @@ router = APIRouter(prefix="/exchange-rates", tags=["exchange-rates"], dependenci
 
 
 @router.get("/", response_model=list[ExchangeRateOut])
-def list_exchange_rates_public(db: Session = Depends(get_db)) -> list[ExchangeRate]:
-    return list(db.execute(select(ExchangeRate).order_by(ExchangeRate.currency)).scalars().all())
+def list_exchange_rates_public(db: Session = Depends(get_db)) -> list[dict]:
+    def load() -> list[dict]:
+        rows = db.execute(select(ExchangeRate).order_by(ExchangeRate.currency)).scalars().all()
+        return [ExchangeRateOut.model_validate(r).model_dump(mode="json") for r in rows]
+
+    return cache.get_or_set("fx", "list", settings.CACHE_TTL_SECONDS, load)

@@ -96,6 +96,9 @@ class Settings(BaseSettings):
     # request (simple, fine for development); set it to true in production and run
     # `python -m app.tasks.worker` so checkout never waits for SMTP.
     JOBS_ASYNC: bool = False
+    # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
+    CACHE_ENABLED: bool = True
+    CACHE_TTL_SECONDS: int = 300
     JOB_MAX_ATTEMPTS: int = 5
     JOB_RETRY_BACKOFF_MINUTES: str = "1,5,15,30,60"  # delay before attempt 2, 3, 4, ...
     # Inbound webhooks (PRD ТЗ№4 §50-51): JSON object {"provider": "shared secret"}.

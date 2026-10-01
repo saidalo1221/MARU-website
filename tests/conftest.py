@@ -99,10 +99,14 @@ def _reset_module_level_state():
     the in-process rate limiter's hit-counters and cached Redis client."""
     import app.core.rate_limit as rate_limit_module
 
+    from app.core import cache
+
+    cache.clear()
     rate_limit_module._hits.clear()
     rate_limit_module._redis_client = None
     rate_limit_module._redis_warned = False
     yield
+    cache.clear()
     rate_limit_module._hits.clear()
     rate_limit_module._redis_client = None
     rate_limit_module._redis_warned = False
