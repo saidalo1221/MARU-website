@@ -8,10 +8,10 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ1 §7 Kits / packs: a set is its own SKU (price, tiers, stock) with its contents listed (`sku_bundle_items`)
 - [x] TZ1 §8-10 Cart, checkout (person / company), guest order
 - [x] TZ1 §11 Account: profile, addresses, orders, reorder, wishlist, invoices/documents
-- [x] TZ1 §11, §62 Loyalty programme: points earned on paid orders, spent at checkout, restored on cancel / refund, balance and history in the account, admin settings and adjustments (retail customers only)
+- [x] TZ1 §11, §62 Loyalty programme: points earned on paid orders, spent at checkout, restored on cancel / refund, balance and history in the account; the business sets rates, eligible customer types, tiers and expiry in Admin > Loyalty
 - [!] TZ1 §11 Account: saved payment methods — needs a payment provider that stores cards (Stripe / PayPal vault); not built
 - [x] TZ1 §12-13 Order statuses with history; payment gateways as separate modules (see TZ4 §19-28 for the untested-provider caveat)
-- [x] TZ1 §14-16 Currencies, languages, country detection and market-specific tax, shipping and payment methods (products can be limited to, or hidden from, chosen countries)
+- [x] TZ1 §14-16 Currencies, languages, country detection and market-specific tax, shipping and payment methods (Admin > Markets: limit products to, or hide them from, chosen countries)
 - [x] TZ1 §17-20 Shipping, packaging calculation (boxes / weight / volume), warehouses, stock transfers and movement log
 - [x] TZ1 §21-23 Price types, quantity tiers, promo codes (products, categories, countries, customers, per-customer limit, validity, usage cap)
 - [x] TZ1 §24-26 B2B form, request a quote, CRM push (Bitrix24)
