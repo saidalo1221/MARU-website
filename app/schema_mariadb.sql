@@ -798,3 +798,16 @@ CREATE TABLE webhook_events (
 	PRIMARY KEY (id),
 	CONSTRAINT uq_webhook_events_provider_event UNIQUE (provider, event_id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
+
+-- Outside-system id mapping (PRD ТЗ№4 §3-5).
+CREATE TABLE external_ids (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	`system` VARCHAR(40) NOT NULL,
+	entity VARCHAR(40) NOT NULL,
+	internal_id BIGINT NOT NULL,
+	external_id VARCHAR(120) NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_external_ids_internal UNIQUE (`system`, entity, internal_id),
+	CONSTRAINT uq_external_ids_external UNIQUE (`system`, entity, external_id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;

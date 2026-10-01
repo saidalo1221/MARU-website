@@ -34,6 +34,7 @@ from app.models.email_verification_token import EmailVerificationToken
 from app.models.notification_template import NotificationTemplate
 from app.models.tax_rule import TaxRule
 from app.models.integration_log import IntegrationLog, IntegrationLogStatus
+from app.models.external_id import ExternalId
 from app.models.job import Job
 from app.models.webhook_event import WebhookEvent
 from app.models.analytics_event import AnalyticsEvent
@@ -98,6 +99,7 @@ __all__ = [
     "NotificationTemplate",
     "TaxRule",
     "IntegrationLog",
+    "ExternalId",
     "Job",
     "WebhookEvent",
     "IntegrationLogStatus",

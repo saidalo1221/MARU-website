@@ -19,6 +19,7 @@ from app.models.promo_code import PromoCode
 from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.order import CheckoutRequest
+from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
 from app.services.audit import log_audit
 from app.services.currency import CurrencyError
@@ -369,6 +370,9 @@ def set_order_status(
             db, "purchase", user=order.user, session_id=order.guest_order_token,
             order_id=order.id, value=str(order.total_amount), currency=order.currency,
         )
+        integration_events.emit(db, integration_events.ORDER_PAID, order, commit=True)
+    elif new_status == OrderStatus.CANCELLED:
+        integration_events.emit(db, integration_events.ORDER_CANCELLED, order, commit=True)
     return order
 
 

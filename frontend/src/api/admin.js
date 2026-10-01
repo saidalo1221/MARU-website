@@ -258,6 +258,15 @@ export function adminUpdateNotificationTemplate(templateId, payload) {
 export function adminListIntegrationLogs(statusFilter, integration, page = 1) {
   return apiRequest(`/admin/integration-logs/${pagedQuery(statusFilter, page, { integration })}`, { meta: true })
 }
+export function adminJobStats() {
+  return apiRequest('/admin/jobs/stats')
+}
+export function adminListDeadJobs() {
+  return apiRequest('/admin/jobs/?status_filter=dead')
+}
+export function adminRetryJob(id) {
+  return apiRequest(`/admin/jobs/${id}/retry`, { method: 'POST' })
+}
 export function adminIntegrationHealth() {
   return apiRequest('/admin/integration-logs/health')
 }

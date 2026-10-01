@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { adminIntegrationHealth, adminListIntegrationLogs, adminRetryIntegrationLog } from '../../api/admin'
+import { adminIntegrationHealth, adminJobStats, adminListDeadJobs, adminListIntegrationLogs, adminRetryIntegrationLog, adminRetryJob } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import Pagination from '../../components/ui/Pagination'
@@ -22,12 +22,16 @@ export default function AdminIntegrationLogs() {
   const [retryingId, setRetryingId] = useState(null)
   const [health, setHealth] = useState([])
   const [page, setPage] = useState(1)
+  const [jobStats, setJobStats] = useState(null)
+  const [deadJobs, setDeadJobs] = useState([])
   const [total, setTotal] = useState(0)
 
   const load = () => {
     setLoading(true)
     setError(null)
     adminIntegrationHealth().then(setHealth).catch(() => setHealth([]))
+    adminJobStats().then(setJobStats).catch(() => setJobStats(null))
+    adminListDeadJobs().then(setDeadJobs).catch(() => setDeadJobs([]))
     return adminListIntegrationLogs(statusFilter || undefined, undefined, page)
       .then(({ data, total: n }) => {
         setLogs(data)
@@ -49,6 +53,15 @@ export default function AdminIntegrationLogs() {
       setError(errorMessage(err, t('admin.integrationLogs.retryFailed')))
     } finally {
       setRetryingId(null)
+    }
+  }
+
+  const retryJob = async (id) => {
+    try {
+      await adminRetryJob(id)
+      await load()
+    } catch (err) {
+      setError(errorMessage(err, t('admin.integrationLogs.jobsRetryFailed')))
     }
   }
 
@@ -83,6 +96,25 @@ export default function AdminIntegrationLogs() {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {jobStats && (
+        <section aria-label={t('admin.integrationLogs.jobsTitle')} className="mb-4">
+          <h2 className="text-sm font-semibold mb-1">{t('admin.integrationLogs.jobsTitle')}</h2>
+          <p className="text-sm text-gray-600">{t('admin.integrationLogs.jobsSummary', jobStats)}</p>
+          {deadJobs.length === 0 ? (
+            <p className="text-xs text-gray-500 mt-1">{t('admin.integrationLogs.jobsNoneDead')}</p>
+          ) : (
+            <ul className="mt-2 space-y-1 text-sm">
+              {deadJobs.map((j) => (
+                <li key={j.id} className="flex items-center justify-between gap-3 border border-red-200 bg-red-50 rounded px-3 py-1.5">
+                  <span className="min-w-0 truncate"><span className="font-medium">{j.job_type}</span> #{j.id} · <span className="text-red-700" title={j.last_error || ''}>{j.last_error || '—'}</span></span>
+                  <button onClick={() => retryJob(j.id)} className="text-brand shrink-0">{t('admin.integrationLogs.retry')}</button>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       )}
 
