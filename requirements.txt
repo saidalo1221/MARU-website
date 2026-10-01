@@ -10,4 +10,5 @@ python-multipart
 requests
 redis
 pillow>=11.3  # 11.3 added AVIF writing
+pywebpush  # web push notifications (VAPID)
 pyotp

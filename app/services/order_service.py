@@ -19,6 +19,7 @@ from app.models.promo_code import PromoCode
 from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.order import CheckoutRequest
+from app.core.request_id import analytics_consent_var
 from app.services import document_generator, loyalty, market, outbound_webhooks, payment_ledger
 from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
@@ -283,6 +284,7 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
         subtotal_amount=subtotal,
         discount_amount=discount,
         loyalty_points_used=loyalty_points,
+        analytics_consent=analytics_consent_var.get(),
         loyalty_discount_amount=loyalty_discount,
         tax_amount=tax,
         delivery_amount=delivery,
@@ -423,7 +425,12 @@ def set_order_status(
         # webhooks, admin override) — see app/services/analytics.py.
         record_event(
             db, "purchase", user=order.user, session_id=order.guest_order_token,
+            forward_ads=bool(order.analytics_consent),
             order_id=order.id, value=str(order.total_amount), currency=order.currency,
+            items=[
+                {"item_id": i.sku_code_snapshot, "item_name": i.product_name_snapshot, "price": str(i.unit_price), "quantity": i.quantity}
+                for i in order.items
+            ],
         )
         integration_events.emit(db, integration_events.ORDER_PAID, order, commit=True)
     elif new_status == OrderStatus.CANCELLED:

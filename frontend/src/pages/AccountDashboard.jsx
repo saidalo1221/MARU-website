@@ -5,6 +5,7 @@ import { listMyOrders } from '../api/orders'
 import { getWishlist } from '../api/wishlist'
 import AccountNav from '../components/account/AccountNav'
 import LoyaltyCard from '../components/account/LoyaltyCard'
+import PushCard from '../components/account/PushCard'
 import Seo from '../components/Seo'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
@@ -40,6 +41,7 @@ export default function AccountDashboard() {
       <p className="text-gray-500 mb-6">{t('dashboard.welcome', { name })}</p>
 
       <LoyaltyCard />
+      <PushCard />
 
       <section className="border border-gray-200 rounded-lg p-4 mb-6" aria-labelledby="recent-orders">
         <div className="flex items-center justify-between mb-3">

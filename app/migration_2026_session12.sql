@@ -292,3 +292,21 @@ CREATE INDEX ix_loyalty_transactions_user_id ON loyalty_transactions (user_id);
 ALTER TABLE products
     ADD COLUMN sold_in_countries TEXT NULL,
     ADD COLUMN hidden_in_countries TEXT NULL;
+
+-- Web push subscriptions (PRD ТЗ№1 §38-39).
+CREATE TABLE push_subscriptions (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	endpoint VARCHAR(500) NOT NULL,
+	p256dh VARCHAR(255) NOT NULL,
+	auth VARCHAR(100) NOT NULL,
+	user_agent VARCHAR(200),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	UNIQUE (endpoint),
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_push_subscriptions_user_id ON push_subscriptions (user_id);
+
+-- Whether the visitor allowed analytics / ad measurement when ordering (purchase events to GA4 / Meta).
+ALTER TABLE orders ADD COLUMN analytics_consent TINYINT(1) NOT NULL DEFAULT 0;

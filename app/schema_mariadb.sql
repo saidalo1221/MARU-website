@@ -336,6 +336,7 @@ CREATE TABLE orders (
 	postal_code VARCHAR(20) NOT NULL, 
 	delivery_method VARCHAR(50) NOT NULL, 
 	payment_method VARCHAR(50) NOT NULL, 
+	analytics_consent TINYINT(1) NOT NULL DEFAULT 0, 
 	loyalty_points_used INTEGER NOT NULL DEFAULT 0, 
 	loyalty_discount_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
 	payment_status VARCHAR(24) NOT NULL DEFAULT 'CREATED', 
@@ -979,3 +980,18 @@ CREATE TABLE loyalty_transactions (
 	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_loyalty_transactions_user_id ON loyalty_transactions (user_id);
+
+-- Web push subscriptions (PRD ТЗ№1 §38-39).
+CREATE TABLE push_subscriptions (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	endpoint VARCHAR(500) NOT NULL,
+	p256dh VARCHAR(255) NOT NULL,
+	auth VARCHAR(100) NOT NULL,
+	user_agent VARCHAR(200),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	UNIQUE (endpoint),
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_push_subscriptions_user_id ON push_subscriptions (user_id);

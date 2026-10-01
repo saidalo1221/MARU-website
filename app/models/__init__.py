@@ -42,6 +42,7 @@ from app.models.loyalty import LoyaltySettings, LoyaltyTransaction
 from app.models.marketing_spend import MarketingSpend
 from app.models.order_document import OrderDocument
 from app.models.payment import Payment
+from app.models.push_subscription import PushSubscription
 from app.models.promo_code import PromoRedemption
 from app.models.webhook_endpoint import WebhookEndpoint
 from app.models.webhook_event import WebhookEvent
@@ -116,6 +117,7 @@ __all__ = [
     "MarketingSpend",
     "OrderDocument",
     "Payment",
+    "PushSubscription",
     "PromoRedemption",
     "WebhookEndpoint",
     "WebhookEvent",

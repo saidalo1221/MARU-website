@@ -1,3 +1,4 @@
+import { hasConsent } from '../lib/consent'
 // Backend routes are now mounted under /api/v1 (PRD ТЗ№3 §43); kept here in
 // the base URL rather than in every api/*.js call site's path string.
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1'
@@ -85,6 +86,8 @@ export async function apiRequest(
   if (cartToken) headers['X-Cart-Token'] = cartToken
 
   if (orderToken) headers['X-Order-Token'] = orderToken
+  // Ad platforms (GA4 / Meta) only hear about visitors who accepted analytics in the cookie banner.
+  if (hasConsent('analytics')) headers['X-Analytics-Consent'] = '1'
   if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey
 
   const res = await fetch(`${API_BASE_URL}${path}`, {

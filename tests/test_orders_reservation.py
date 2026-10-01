@@ -2,6 +2,7 @@
 transitions that release/re-reserve it (PRD ТЗ№3 §19/§60/§63/§68)."""
 
 from datetime import datetime, timedelta, timezone
+from uuid import uuid4
 
 from app.models.enums import OrderStatus
 from app.models.inventory import Inventory
@@ -19,7 +20,7 @@ from app.models.cart_item import CartItem
 
 
 def _cart_with(db_session, sku, quantity):
-    cart = Cart(token=f"tok-{sku.id}-{quantity}-{id(object())}")
+    cart = Cart(token=f"tok-{sku.id}-{quantity}-{uuid4().hex}")
     db_session.add(cart)
     db_session.flush()
     db_session.add(CartItem(cart_id=cart.id, sku_id=sku.id, quantity=quantity))

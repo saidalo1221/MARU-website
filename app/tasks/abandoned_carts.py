@@ -19,6 +19,7 @@ from app.models.cart import Cart
 from app.models.cart_item import CartItem
 from app.models.order import Order
 from app.models.user import User
+from app.services import push
 from app.services.notifications.email import EmailNotifier
 
 
@@ -65,6 +66,7 @@ def send_abandoned_cart_emails(db: Session, notifier=None, now: Optional[datetim
             continue
         try:
             notifier.abandoned_cart(user.email, user.first_name, items, db=db)
+            push.notify_user(db, user.id, "MARU", "You left something in your cart.", "/cart")
             cart.abandoned_email_sent_at = now
             db.commit()
             sent += 1

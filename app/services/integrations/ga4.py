@@ -26,6 +26,7 @@ _NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,39}$")
 # Our property names -> the names GA4's recommended events expect.
 _RENAME = {"order_id": "transaction_id"}
 _MAX_PARAMS = 25
+_ITEM_KEYS = ("item_id", "item_name", "price", "quantity")
 
 
 def enabled() -> bool:
@@ -44,6 +45,12 @@ def build_payload(event_name: str, user_id: Optional[int], session_id: Optional[
         return None
     params: dict = {}
     for key, value in (properties or {}).items():
+        if key == "items" and isinstance(value, list):  # ecommerce items (also what remarketing audiences are built from)
+            params["items"] = [
+                {k: (float(v) if k == "price" else v) for k, v in item.items() if k in _ITEM_KEYS and v is not None}
+                for item in value[:20] if isinstance(item, dict)
+            ]
+            continue
         key = _RENAME.get(key, key)
         if not _NAME.match(key) or isinstance(value, (dict, list, bool)) or value is None:
             continue

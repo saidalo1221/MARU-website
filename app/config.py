@@ -118,6 +118,10 @@ class Settings(BaseSettings):
     # Abandoned-cart e-mail (PRD ТЗ№1 §39): sent to signed-in customers whose cart sat untouched this long.
     ABANDONED_CART_HOURS: int = 24
     ABANDONED_CART_MAX_AGE_DAYS: int = 7
+    # Web push (app/services/push.py). Create the pair with `python scripts/generate_vapid.py`; keep the private key secret.
+    VAPID_PUBLIC_KEY: str = ""
+    VAPID_PRIVATE_KEY: str = ""
+    VAPID_SUBJECT: str = ""  # mailto:you@your-domain.com
     JOBS_ASYNC: bool = False
     # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
     CACHE_ENABLED: bool = True

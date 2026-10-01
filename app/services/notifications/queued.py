@@ -11,6 +11,7 @@ from app.config import settings
 from app.models.order import Order
 from app.models.shipment import Shipment
 from app.services.jobs import PermanentJobError, enqueue, job_handler
+from app.services import push
 from app.services.integrations import whatsapp
 from app.services.notifications.email import EmailNotifier
 
@@ -22,7 +23,14 @@ class QueuedNotifier:
     def _queue(self, db: Optional[Session]) -> bool:
         return bool(settings.JOBS_ASYNC and db is not None)
 
+    @staticmethod
+    def _push(db, order, title, body) -> None:
+        if push.enabled() and getattr(order, "user_id", None) is not None:
+            push.notify_user(db, order.user_id, title, body, f"/orders/{order.id}")
+
     def order_created(self, order: Order, db: Optional[Session] = None) -> None:
+        if push.enabled():
+            self._push(db, order, f"{order.order_number}", "We received your order.")
         if self._queue(db):
             enqueue(db, "notify.order_created", {"order_id": order.id}, dedupe_key=f"order_created:{order.id}")
         else:
@@ -35,6 +43,9 @@ class QueuedNotifier:
             )
 
     def order_status_changed(self, order: Order, old_status: str, new_status: str, db: Optional[Session] = None) -> None:
+        if push.enabled():
+            lang = getattr(order, "language", None) or "ru"
+            self._push(db, order, f"{order.order_number}", whatsapp.status_text(new_status, lang))
         if self._queue(db):
             enqueue(
                 db, "notify.order_status_changed",
@@ -52,6 +63,9 @@ class QueuedNotifier:
             )
 
     def shipment_updated(self, order: Order, shipment: Shipment, db: Optional[Session] = None) -> None:
+        if push.enabled():
+            lang = getattr(order, "language", None) or "ru"
+            self._push(db, order, f"{order.order_number}", whatsapp.status_text(shipment.status.value, lang))
         if self._queue(db):
             enqueue(
                 db, "notify.shipment_updated", {"order_id": order.id, "shipment_id": shipment.id},

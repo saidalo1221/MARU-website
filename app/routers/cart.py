@@ -352,7 +352,11 @@ def add_item(
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to add item to cart") from exc
 
-    record_event(db, "add_to_cart", user=user, session_id=cart.token, sku_id=sku.id, quantity=payload.quantity)
+    record_event(
+        db, "add_to_cart", user=user, session_id=cart.token, sku_id=sku.id, quantity=payload.quantity,
+        value=str(sku.retail_price * payload.quantity), currency=sku.currency,
+        items=[{"item_id": sku.sku_code, "item_name": sku.variant.product.name, "price": str(sku.retail_price), "quantity": payload.quantity}],
+    )
     return _build_cart_out(db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), None)
 
 

@@ -60,6 +60,12 @@ def build_payload(event_name: str, user_id: Optional[int], session_id: Optional[
         elif isinstance(value, str):
             value = value[:100]
         custom[key] = value
+    items = [i for i in (props.get("items") or []) if isinstance(i, dict) and i.get("item_id")][:20]
+    if items:  # what dynamic product ads / remarketing audiences use
+        custom["content_type"] = "product"
+        custom["content_ids"] = [str(i["item_id"]) for i in items]
+        custom["contents"] = [{"id": str(i["item_id"]), "quantity": int(i.get("quantity") or 1), "item_price": float(i.get("price") or 0)} for i in items]
+        custom["num_items"] = sum(int(i.get("quantity") or 1) for i in items)
     if meta_name == "Purchase" and ("value" not in custom or "currency" not in custom):
         return None  # Meta rejects a Purchase without both
     who = f"user:{user_id}" if user_id is not None else f"session:{session_id or 'anonymous'}"
