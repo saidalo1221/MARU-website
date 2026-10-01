@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.services import outbound_webhooks
 from app.services.audit import audit_create, audit_update, log_audit
 from app.dependencies import require_role
 from app.models.enums import UserRole
@@ -37,6 +38,14 @@ def list_inventory_for_sku(
     return list(rows)
 
 
+def _inventory_data(inventory: Inventory) -> dict:
+    return {
+        "sku_id": inventory.sku_id, "sku_code": inventory.sku.sku_code if inventory.sku is not None else None,
+        "warehouse_id": inventory.warehouse_id, "stock": inventory.stock, "reserved": inventory.reserved,
+        "available": max(0, inventory.stock - inventory.reserved), "incoming": inventory.incoming,
+    }
+
+
 @router.post("/{sku_id}", response_model=InventoryOut, status_code=status.HTTP_201_CREATED)
 def add_inventory_for_warehouse(
     sku_id: int,
@@ -54,6 +63,7 @@ def add_inventory_for_warehouse(
     try:
         audit_create(db, user, "inventory_create", "inventory", inventory, payload.model_dump())
         db.commit()
+        outbound_webhooks.emit(db, "inventory.updated", _inventory_data(inventory))
     except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
@@ -112,6 +122,7 @@ def update_inventory(
             inventory.min_stock = payload.min_stock
 
         db.commit()
+        outbound_webhooks.emit(db, "inventory.updated", _inventory_data(inventory))
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update inventory") from exc

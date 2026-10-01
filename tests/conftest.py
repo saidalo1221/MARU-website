@@ -34,6 +34,7 @@ os.environ["META_CAPI_TOKEN"] = ""
 os.environ["META_TEST_EVENT_CODE"] = ""
 os.environ["WHATSAPP_TOKEN"] = ""  # tests must never message real customers
 os.environ["WHATSAPP_PHONE_NUMBER_ID"] = ""
+os.environ["WEBHOOK_ALLOW_PRIVATE_URLS"] = "true"  # tests post to fake local receivers
 
 import pytest
 from fastapi.testclient import TestClient

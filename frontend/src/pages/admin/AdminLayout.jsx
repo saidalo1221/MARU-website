@@ -55,6 +55,7 @@ export default function AdminLayout() {
       title: t('admin.sectionSystem'),
       links: [
         ['/admin/integration-logs', t('admin.nav.integrationLogs')],
+        ['/admin/webhooks', t('admin.nav.webhooks')],
         ['/admin/audit-log', t('admin.nav.auditLog')],
         ['/admin/admins', t('admin.nav.admins')],
       ],

@@ -46,6 +46,7 @@ from app.routers import (
     admin_tax_rules,
     admin_uploads,
     admin_users,
+    admin_webhooks,
     admin_variants,
     admin_warehouses,
     addresses,
@@ -169,6 +170,7 @@ api_v1.include_router(admin_skus.router)
 api_v1.include_router(admin_tax_rules.router)
 api_v1.include_router(admin_uploads.router)
 api_v1.include_router(admin_users.router)
+api_v1.include_router(admin_webhooks.router)
 api_v1.include_router(admin_variants.router)
 api_v1.include_router(admin_warehouses.router)
 api_v1.include_router(addresses.router)

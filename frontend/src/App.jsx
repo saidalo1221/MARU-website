@@ -40,6 +40,7 @@ import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminCustomers from './pages/admin/AdminCustomers'
+import AdminWebhooks from './pages/admin/AdminWebhooks'
 import AdminOrderDetail from './pages/admin/AdminOrderDetail'
 import AdminQuotes from './pages/admin/AdminQuotes'
 import AdminQuoteDetail from './pages/admin/AdminQuoteDetail'
@@ -127,6 +128,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="customers" element={<AdminCustomers />} />
+            <Route path="webhooks" element={<AdminWebhooks />} />
             <Route path="orders/:orderId" element={<AdminOrderDetail />} />
             <Route path="quotes" element={<AdminQuotes />} />
             <Route path="quotes/:quoteId" element={<AdminQuoteDetail />} />

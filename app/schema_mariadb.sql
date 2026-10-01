@@ -885,3 +885,19 @@ CREATE TABLE marketing_spend (
 	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_marketing_spend_month ON marketing_spend (month);
+
+-- Outbound webhooks (PRD ТЗ№1 §37).
+CREATE TABLE webhook_endpoints (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	url VARCHAR(500) NOT NULL,
+	description VARCHAR(200),
+	secret VARCHAR(64) NOT NULL,
+	events TEXT NOT NULL,
+	is_active TINYINT(1) NOT NULL,
+	last_delivery_at DATETIME,
+	last_status_code INTEGER,
+	last_error VARCHAR(300),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;

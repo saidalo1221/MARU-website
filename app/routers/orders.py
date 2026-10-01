@@ -21,6 +21,7 @@ from app.schemas.order import CheckoutOut, CheckoutRequest, OrderOut, PaymentIni
 from app.schemas.shipment import TrackOrderOut, TrackOrderRequest
 from app.services.crm.bitrix24 import Bitrix24Connector
 from app.services.integrations.log import run_with_log
+from app.services import outbound_webhooks
 from app.services.notifications.queued import QueuedNotifier
 from app.services.order_service import InsufficientStockError, OrderError, create_order, set_order_status
 from app.services.payment.errors import PaymentConfigError
@@ -176,6 +177,7 @@ def checkout(
     notifier.order_created(order, db=db)
     run_with_log(db, "crm_bitrix24", "push_order", "order", order.id, lambda: crm.push_order(order))
     db.commit()
+    outbound_webhooks.emit_for_order(db, "order.created", order)
     return _checkout_out(order)
 
 

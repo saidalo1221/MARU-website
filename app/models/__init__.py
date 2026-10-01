@@ -40,6 +40,7 @@ from app.models.marketing_spend import MarketingSpend
 from app.models.order_document import OrderDocument
 from app.models.payment import Payment
 from app.models.promo_code import PromoRedemption
+from app.models.webhook_endpoint import WebhookEndpoint
 from app.models.webhook_event import WebhookEvent
 from app.models.analytics_event import AnalyticsEvent
 from app.models.blog_category import BlogCategory
@@ -109,6 +110,7 @@ __all__ = [
     "OrderDocument",
     "Payment",
     "PromoRedemption",
+    "WebhookEndpoint",
     "WebhookEvent",
     "IntegrationLogStatus",
     "AnalyticsEvent",

@@ -113,6 +113,8 @@ class Settings(BaseSettings):
     # WhatsApp Business Cloud API (app/services/integrations/whatsapp.py). Keep the token in .env only.
     WHATSAPP_TOKEN: str = ""
     WHATSAPP_PHONE_NUMBER_ID: str = ""
+    # Outbound webhooks (app/services/outbound_webhooks.py): allow http:// and internal addresses (dev only).
+    WEBHOOK_ALLOW_PRIVATE_URLS: bool = False
     JOBS_ASYNC: bool = False
     # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
     CACHE_ENABLED: bool = True
