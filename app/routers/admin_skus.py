@@ -1,4 +1,8 @@
+from decimal import Decimal
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -70,3 +74,33 @@ def update_sku(
 
     db.refresh(sku)
     return sku
+
+
+class SKUCost(BaseModel):
+    cost_price: Optional[Decimal] = Field(default=None, ge=0, description="Cost of one unit in the SKU's own currency; null clears it")
+
+
+@router.get("/{sku_id}/cost", response_model=SKUCost)
+def get_sku_cost(
+    sku_id: int, user: User = Depends(require_role(UserRole.PRODUCT_MANAGER, UserRole.ACCOUNTANT)), db: Session = Depends(get_db)
+) -> SKUCost:
+    sku = db.get(SKU, sku_id)
+    if sku is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="SKU not found")
+    return SKUCost(cost_price=sku.cost_price)
+
+
+@router.put("/{sku_id}/cost", response_model=SKUCost)
+def set_sku_cost(
+    sku_id: int,
+    payload: SKUCost,
+    user: User = Depends(require_role(UserRole.PRODUCT_MANAGER, UserRole.ACCOUNTANT)),
+    db: Session = Depends(get_db),
+) -> SKUCost:
+    sku = db.get(SKU, sku_id)
+    if sku is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="SKU not found")
+    log_audit(db, user, "sku_cost_update", "sku", sku.id, {"cost_price": sku.cost_price}, {"cost_price": payload.cost_price})
+    sku.cost_price = payload.cost_price
+    db.commit()
+    return SKUCost(cost_price=sku.cost_price)

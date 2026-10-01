@@ -178,6 +178,26 @@ export function adminUpdateSku(skuId, payload) {
   return apiRequest(`/admin/skus/${skuId}`, { method: 'PATCH', body: payload })
 }
 
+// Dashboard
+export function adminDashboard() {
+  return apiRequest('/admin/dashboard/')
+}
+export function adminListMarketingSpend() {
+  return apiRequest('/admin/dashboard/marketing-spend')
+}
+export function adminAddMarketingSpend(payload) {
+  return apiRequest('/admin/dashboard/marketing-spend', { method: 'POST', body: payload })
+}
+export function adminDeleteMarketingSpend(id) {
+  return apiRequest(`/admin/dashboard/marketing-spend/${id}`, { method: 'DELETE' })
+}
+export function adminGetSkuCost(skuId) {
+  return apiRequest(`/admin/skus/${skuId}/cost`)
+}
+export function adminSetSkuCost(skuId, costPrice) {
+  return apiRequest(`/admin/skus/${skuId}/cost`, { method: 'PUT', body: { cost_price: costPrice } })
+}
+
 // Inventory
 export function adminListInventory(skuId) {
   return apiRequest(`/admin/inventory/${skuId}`)

@@ -23,7 +23,7 @@ from app.services import payment_ledger
 from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
 from app.services.audit import log_audit
-from app.services.currency import CurrencyError
+from app.services.currency import CurrencyError, convert_amount
 from app.services.pricing import (
     PromoCodeError,
     promo_line_discounts,
@@ -175,6 +175,16 @@ def expire_stale_reservations(db: Session) -> int:
     return expired
 
 
+def _unit_cost_usd(db: Session, sku) -> Optional[Decimal]:
+    """The SKU's cost converted to USD, or None when no cost is set or no rate exists."""
+    if sku.cost_price is None:
+        return None
+    try:
+        return convert_amount(db, sku.cost_price, sku.currency, "USD")
+    except CurrencyError:
+        return None
+
+
 def generate_order_number() -> str:
     return f"MARU-{datetime.now(timezone.utc):%Y%m%d}-{uuid4().hex[:6].upper()}"
 
@@ -290,6 +300,7 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
         order.items.append(
             OrderItem(
                 discount_amount=line_discounts[index],
+                unit_cost_usd=_unit_cost_usd(db, item.sku),
                 tax_amount=line_taxes[index],
                 sku_id=item.sku_id,
                 sku_code_snapshot=item.sku.sku_code,

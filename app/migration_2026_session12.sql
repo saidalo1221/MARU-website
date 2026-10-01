@@ -167,3 +167,18 @@ ALTER TABLE order_items
 
 -- Existing orders: the whole order tax/discount was not split per line; leave the lines at 0
 -- (orders.tax_amount / discount_amount stay authoritative for them).
+
+-- Dashboard inputs: SKU cost (gross profit) and manual marketing spend (CAC / ROAS) (PRD ТЗ№1 §59-60).
+ALTER TABLE skus ADD COLUMN cost_price DECIMAL(12, 2) NULL;
+ALTER TABLE order_items ADD COLUMN unit_cost_usd DECIMAL(12, 4) NULL;
+CREATE TABLE marketing_spend (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	month DATE NOT NULL,
+	channel VARCHAR(60) NOT NULL,
+	amount_usd DECIMAL(12, 2) NOT NULL,
+	created_by_user_id BIGINT,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_marketing_spend_month ON marketing_spend (month);

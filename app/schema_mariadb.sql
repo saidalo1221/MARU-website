@@ -550,6 +550,7 @@ CREATE TABLE skus (
 	distributor_price DECIMAL(12, 2), 
 	export_price DECIMAL(12, 2), 
 	special_price DECIMAL(12, 2), 
+	cost_price DECIMAL(12, 2), 
 	currency VARCHAR(3) NOT NULL, 
 	unit_weight_g INTEGER, 
 	box_quantity INTEGER, 
@@ -608,6 +609,7 @@ CREATE TABLE order_items (
 	quantity INTEGER NOT NULL, 
 	line_total DECIMAL(12, 2) NOT NULL, 
 	discount_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
+	unit_cost_usd DECIMAL(12, 4), 
 	tax_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
 	currency VARCHAR(3) NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
@@ -871,3 +873,15 @@ CREATE TABLE promo_redemptions (
 CREATE INDEX ix_promo_redemptions_promo_code_id ON promo_redemptions (promo_code_id);
 CREATE INDEX ix_promo_redemptions_user_id ON promo_redemptions (user_id);
 CREATE INDEX ix_promo_redemptions_email ON promo_redemptions (email);
+
+CREATE TABLE marketing_spend (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	month DATE NOT NULL, 
+	channel VARCHAR(60) NOT NULL, 
+	amount_usd DECIMAL(12, 2) NOT NULL, 
+	created_by_user_id BIGINT, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_marketing_spend_month ON marketing_spend (month);
