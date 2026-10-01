@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { getProduct } from '../api/products'
-import { listShippingCountries } from '../api/shipping'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { getProduct, listProducts } from '../api/products'
+import { listPageSections } from '../api/pageSections'
 import { trackEvent } from '../lib/analytics'
 import { addToWishlist, getWishlist, removeFromWishlist } from '../api/wishlist'
 import { markWishlist } from '../lib/wishlistStore'
@@ -11,12 +11,35 @@ import { useAuth } from '../context/AuthContext'
 import VariantSelector from '../components/product/VariantSelector'
 import QuantitySelector from '../components/product/QuantitySelector'
 import Reviews from '../components/product/Reviews'
+import ProductCard from '../components/product/ProductCard'
 import ProductGallery from '../components/product/ProductGallery'
 import { ProductDetailSkeleton } from '../components/Skeleton'
 import ProductBadges from '../components/product/ProductBadges'
+import Breadcrumbs from '../components/Breadcrumbs'
+import FaqItem from '../components/FaqItem'
 import Seo from '../components/Seo'
 import DeliveryEstimate from '../components/product/DeliveryEstimate'
 import StockAlertForm from '../components/product/StockAlertForm'
+
+// The price of one unit at `quantity`: the highest matching quantity tier, but
+// never above the SKU's own price (same rule as app/services/pricing.py).
+function unitPriceAt(sku, quantity) {
+  const base = Number(sku.retail_price)
+  const tier = [...(sku.quantity_tiers || [])].reverse().find((t) => quantity >= t.min_quantity)
+  return tier ? Math.min(Number(tier.price), base) : base
+}
+
+// "1–9", "10–49", "50+" rows for the quantity price table.
+function tierRows(sku) {
+  const tiers = sku.quantity_tiers || []
+  if (tiers.length === 0) return []
+  const base = Number(sku.retail_price)
+  const starts = [1, ...tiers.map((t) => t.min_quantity)]
+  return starts.map((from, i) => {
+    const to = starts[i + 1] != null ? starts[i + 1] - 1 : null
+    return { from, to, price: i === 0 ? base : Math.min(Number(tiers[i - 1].price), base) }
+  })
+}
 
 export default function ProductDetail() {
   const { slug } = useParams()
@@ -31,9 +54,9 @@ export default function ProductDetail() {
   const [error, setError] = useState(null)
   const [variantId, setVariantId] = useState(null)
   const [quantity, setQuantity] = useState(1)
-  const [countries, setCountries] = useState([])
-  const [country, setCountry] = useState('')
   const [status, setStatus] = useState(null)
+  const [related, setRelated] = useState([])
+  const [faq, setFaq] = useState([])
 
   useEffect(() => {
     setProduct(null)
@@ -48,8 +71,14 @@ export default function ProductDetail() {
   }, [slug, locale, currency])
 
   useEffect(() => {
-    listShippingCountries().then(setCountries).catch(() => {})
-  }, [])
+    listProducts(locale, currency, { sort: 'popularity', limit: 5 })
+      .then((list) => setRelated(list.filter((p) => p.slug !== slug).slice(0, 4)))
+      .catch(() => {})
+  }, [slug, locale, currency])
+
+  useEffect(() => {
+    listPageSections('faq', locale).then((rows) => setFaq(rows.slice(0, 4))).catch(() => {})
+  }, [locale])
 
   const variant = useMemo(
     () => product?.variants.find((v) => v.id === variantId) ?? null,
@@ -97,6 +126,11 @@ export default function ProductDetail() {
 
   const inStock = sku ? sku.available_quantity > 0 : false
   const maxQty = sku ? sku.available_quantity : undefined
+  const onSale = sku && sku.special_price != null && Number(sku.special_price) < Number(sku.retail_price)
+  const discount = onSale ? Math.round((1 - Number(sku.special_price) / Number(sku.retail_price)) * 100) : 0
+  const rows = sku ? tierRows(sku) : []
+  const unitNow = sku ? unitPriceAt(sku, quantity) : null
+  const tierActive = (row) => quantity >= row.from && (row.to == null || quantity <= row.to)
 
   const handleAddToCart = async () => {
     if (!sku) return
@@ -125,10 +159,13 @@ export default function ProductDetail() {
     name: product.name,
     description: product.description || undefined,
     image: coverImage || undefined,
+    aggregateRating: product.rating_count > 0
+      ? { '@type': 'AggregateRating', ratingValue: product.rating_average, reviewCount: product.rating_count }
+      : undefined,
     offers: sku
       ? {
           '@type': 'Offer',
-          price: Number(sku.retail_price).toFixed(2),
+          price: Number(onSale ? sku.special_price : sku.retail_price).toFixed(2),
           priceCurrency: sku.currency,
           availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         }
@@ -138,7 +175,10 @@ export default function ProductDetail() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
       <Seo title={product.name} description={product.description} image={coverImage} type="product" jsonLd={jsonLd} />
-      <nav className="text-xs text-gray-500 mb-4">{t('productDetail.breadcrumb', { name: product.name })}</nav>
+      <Breadcrumbs
+        items={[{ to: '/', label: t('header.home') }, { to: '/shop', label: t('header.shop') }]}
+        current={product.name}
+      />
 
       <div className="grid md:grid-cols-2 gap-8">
         <div>
@@ -149,15 +189,49 @@ export default function ProductDetail() {
           <ProductBadges badges={product.badges} className="mb-2" />
           <h1 className="text-2xl font-bold">{product.name}</h1>
           {sku && <p className="text-xs text-gray-500 mt-1">SKU: {sku.sku_code}</p>}
+          {product.rating_count > 0 && (
+            <p className="text-sm mt-1">
+              <a href="#reviews" className="text-yellow-600 underline">
+                ★ {product.rating_average} · {t('productDetail.ratingCount', { n: product.rating_count })}
+              </a>
+            </p>
+          )}
 
           <p className="text-2xl font-semibold mt-3">
-            {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
+            {sku ? `${sku.currency} ${Number(onSale ? sku.special_price : sku.retail_price).toFixed(2)}` : '—'}
+            {onSale && (
+              <>
+                {' '}
+                <s className="text-base font-normal text-gray-500">{Number(sku.retail_price).toFixed(2)}</s>{' '}
+                <span className="text-sm font-medium text-red-600">−{discount}%</span>
+              </>
+            )}
           </p>
           <p className={`text-sm mt-1 ${inStock ? 'text-green-700' : 'text-red-600'}`}>
             {inStock ? t('productDetail.inStockCount', { n: sku.available_quantity }) : t('productDetail.outOfStock')}
           </p>
           {sku && !inStock && <StockAlertForm key={sku.id} skuId={sku.id} />}
-          <DeliveryEstimate />
+
+          {rows.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium mb-1">{t('productDetail.tiersTitle')}</p>
+              <table className="w-full max-w-xs text-sm border border-gray-200 rounded">
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.from} className={tierActive(row) ? 'bg-brand-light font-medium' : ''}>
+                      <th scope="row" className="text-left px-3 py-1 font-normal">
+                        {row.to == null ? t('productDetail.tierFrom', { from: row.from }) : t('productDetail.tierRange', { from: row.from, to: row.to })}
+                      </th>
+                      <td className="px-3 py-1 text-right">{sku.currency} {row.price.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-xs text-gray-500 mt-1">
+                {t('productDetail.yourPrice', { qty: quantity, price: `${sku.currency} ${unitNow.toFixed(2)}` })}
+              </p>
+            </div>
+          )}
 
           {product.variants.length > 1 && (
             <div className="mt-4">
@@ -216,24 +290,18 @@ export default function ProductDetail() {
             </p>
           )}
 
-          <div className="mt-6 border-t border-gray-200 pt-4">
-            <p className="text-sm font-medium mb-2">{t('productDetail.delivery')}</p>
-            <select
-              aria-label={t('productDetail.selectCountry')}
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full max-w-xs"
+          <p className="mt-3 text-sm">
+            <Link
+              to={`/quote?product=${encodeURIComponent(product.name)}&quantity=${quantity}`}
+              className="text-brand underline"
             >
-              <option value="">{t('productDetail.selectCountry')}</option>
-              {countries.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            {country && (
-              <p className="text-xs text-gray-500 mt-2">
-                {t('productDetail.deliveryNote', { country })}
-              </p>
-            )}
+              {t('productDetail.requestQuote')}
+            </Link>
+          </p>
+
+          <div className="mt-6 border-t border-gray-200 pt-4">
+            <p className="text-sm font-medium">{t('productDetail.delivery')}</p>
+            <DeliveryEstimate />
           </div>
 
           {product.description && (
@@ -262,9 +330,32 @@ export default function ProductDetail() {
             )}
           </dl>
 
-          <Reviews slug={slug} />
+          <div id="reviews">
+            <Reviews slug={slug} />
+          </div>
         </div>
       </div>
+
+      {faq.length > 0 && (
+        <section className="mt-12" aria-labelledby="product-faq">
+          <div className="flex items-end justify-between gap-4 mb-3">
+            <h2 id="product-faq" className="text-xl font-bold">{t('home.faqTitle')}</h2>
+            <Link to="/faq" className="text-sm text-brand underline">{t('home.allQuestions')}</Link>
+          </div>
+          <div className="max-w-3xl">
+            {faq.map((s) => <FaqItem key={s.id} question={s.title} answer={s.body} />)}
+          </div>
+        </section>
+      )}
+
+      {related.length > 0 && (
+        <section className="mt-12" aria-labelledby="related-products">
+          <h2 id="related-products" className="text-xl font-bold mb-4">{t('productDetail.recommended')}</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {related.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

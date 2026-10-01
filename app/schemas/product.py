@@ -6,6 +6,32 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.models.product import ALLOWED_VOLUMES_ML
 
 
+class QuantityTierOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    min_quantity: int
+    price: Decimal
+
+
+class QuantityTierIn(BaseModel):
+    min_quantity: int = Field(ge=2, le=1_000_000)
+    price: Decimal = Field(gt=0)
+
+
+class SKUTiersIn(BaseModel):
+    """The complete set of quantity tiers for a SKU (replaces the existing set)."""
+
+    tiers: list[QuantityTierIn] = Field(default_factory=list, max_length=20)
+
+    @field_validator("tiers")
+    @classmethod
+    def _distinct_quantities(cls, tiers):
+        quantities = [t.min_quantity for t in tiers]
+        if len(set(quantities)) != len(quantities):
+            raise ValueError("each minimum quantity may appear only once")
+        return tiers
+
+
 class SKUOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -20,6 +46,7 @@ class SKUOut(BaseModel):
     currency: str
     is_active: bool
     available_quantity: int
+    quantity_tiers: list[QuantityTierOut] = []
 
 
 class VariantImageOut(BaseModel):

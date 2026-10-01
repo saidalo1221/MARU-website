@@ -23,12 +23,12 @@ const emptyForm = {
 // Distributor/Contact all submit through it with a different request_type.
 // lockType hides the type selector for pages where it's implied by context
 // (e.g. the Distributor page always submits request_type="distributor").
-export default function InquiryForm({ defaultType = 'quote', lockType = false, ctaKey = 'quoteRequest.submit' }) {
+export default function InquiryForm({ defaultType = 'quote', lockType = false, ctaKey = 'quoteRequest.submit', initialProduct = null, initialQuantity = null }) {
   const { locale, t } = useLocale()
-  const [form, setForm] = useState({ ...emptyForm, request_type: defaultType })
+  const [form, setForm] = useState({ ...emptyForm, request_type: defaultType, quantity: initialQuantity || '' })
   const [countries, setCountries] = useState([])
   const [products, setProducts] = useState([])
-  const [selectedProducts, setSelectedProducts] = useState([])
+  const [selectedProducts, setSelectedProducts] = useState(initialProduct ? [initialProduct] : [])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listBlogCategories, listBlogPosts } from '../api/blog'
 import { useLocale } from '../context/LocaleContext'
+import Breadcrumbs from '../components/Breadcrumbs'
 import Seo from '../components/Seo'
 
 export default function BlogHome() {
@@ -28,7 +29,7 @@ export default function BlogHome() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <Seo title={t('blog.title')} />
-      <nav className="text-xs text-gray-500 mb-2">{t('blog.breadcrumb')}</nav>
+      <Breadcrumbs items={[{ to: '/', label: t('header.home') }]} current={t('footer.blog')} className="mb-2" />
       <h1 className="text-2xl font-bold mb-4">{t('blog.title')}</h1>
 
       <div className="flex flex-wrap gap-2 mb-6">

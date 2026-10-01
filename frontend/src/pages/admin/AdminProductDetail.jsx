@@ -8,6 +8,7 @@ import {
 } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import SkuTiers from '../../components/admin/SkuTiers'
 import Money from '../../components/admin/Money'
 import { classifyMedia, youtubeThumb } from '../../lib/media'
 
@@ -185,6 +186,7 @@ function SkuBlock({ sku, warehouses, onChanged }) {
             <button type="submit" disabled={saving} className="bg-brand text-white rounded px-3 py-1.5 text-sm disabled:opacity-40">{saving ? t('admin.common.saving') : t('admin.productDetail.saveSku')}</button>
           </form>
           {error && <p role="alert" className="text-red-600 text-xs mt-1">{error}</p>}
+          <SkuTiers key={JSON.stringify(sku.quantity_tiers)} sku={sku} onChanged={onChanged} />
           <InventoryRow sku={sku} warehouses={warehouses} onProductChanged={onChanged} />
         </>
       )}

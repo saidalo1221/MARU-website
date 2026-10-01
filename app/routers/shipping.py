@@ -51,9 +51,11 @@ def shipping_estimate(country: Optional[str] = None, db: Session = Depends(get_d
     if not pool:
         return ShippingEstimateOut()
 
-    # The cheapest base fee, compared within the first rate's currency.
-    fee_currency = pool[0].currency
-    from_fee = min(r.base_fee for r in pool if r.currency == fee_currency)
+    # The cheapest base fee of a real delivery method (a "pickup" method does not
+    # count as delivery), compared within one currency.
+    delivery_pool = [r for r in pool if "pick" not in r.delivery_method.lower()] or pool
+    fee_currency = delivery_pool[0].currency
+    from_fee = min(r.base_fee for r in delivery_pool if r.currency == fee_currency)
     availability = {"available": True, "from_fee": from_fee, "fee_currency": fee_currency}
 
     rates = [r for r in pool if r.max_delivery_days is not None]

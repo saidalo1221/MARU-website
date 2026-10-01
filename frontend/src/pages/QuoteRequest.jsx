@@ -14,7 +14,7 @@ export default function QuoteRequest() {
     <div className="max-w-lg mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-2">{t('quoteRequest.title')}</h1>
       <p className="text-sm text-gray-500 mb-6">{t('quoteRequest.subtitle')}</p>
-      <InquiryForm defaultType={defaultType} />
+      <InquiryForm defaultType={defaultType} initialProduct={params.get('product')} initialQuantity={params.get('quantity')} />
     </div>
   )
 }

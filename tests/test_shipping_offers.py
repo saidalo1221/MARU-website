@@ -123,7 +123,8 @@ def test_estimate_reports_availability_and_cheapest_fee(client, db_session):
     db_session.commit()
 
     uz = client.get("/api/v1/shipping/estimate", params={"country": "Uzbekistan"}).json()
-    assert uz["available"] is True and Decimal(uz["from_fee"]) == 0 and uz["max_days"] == 3 and uz["fee_currency"] == "USD"
+    # The free "pickup" method does not make delivery look free: the fee is the courier's.
+    assert uz["available"] is True and Decimal(uz["from_fee"]) == 5 and uz["max_days"] == 3 and uz["fee_currency"] == "USD"
     de = client.get("/api/v1/shipping/estimate", params={"country": "Germany"}).json()
     assert Decimal(de["from_fee"]) == 20 and (de["min_days"], de["max_days"]) == (5, 9)
     nowhere = client.get("/api/v1/shipping/estimate", params={"country": "Atlantis"}).json()

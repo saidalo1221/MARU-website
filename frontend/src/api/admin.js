@@ -144,6 +144,10 @@ export function adminCreateSku(variantId, payload) {
   return apiRequest(`/admin/variants/${variantId}/skus`, { method: 'POST', body: payload })
 }
 
+export function adminReplaceSkuTiers(skuId, tiers) {
+  return apiRequest(`/admin/skus/${skuId}/tiers`, { method: 'PUT', body: { tiers } })
+}
+
 // Variant image gallery
 export function adminAddVariantImage(variantId, imageUrl) {
   return apiRequest(`/admin/variants/${variantId}/images`, { method: 'POST', body: { image_url: imageUrl } })

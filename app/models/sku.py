@@ -50,6 +50,13 @@ class SKU(Base):
 
     variant = relationship("ProductVariant", back_populates="skus")
     inventories = relationship("Inventory", back_populates="sku", cascade="all, delete-orphan")
+    # Quantity-break prices (PRD ТЗ№2 §15); app/services/pricing.py applies them.
+    quantity_tiers = relationship(
+        "QuantityPriceTier",
+        order_by="QuantityPriceTier.min_quantity",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     @property
     def available_quantity(self) -> int:

@@ -61,6 +61,8 @@ def _convert_product_prices(db: Session, product: ProductOut, currency: str) -> 
                 value: Optional[Decimal] = getattr(sku, field)
                 if value is not None:
                     setattr(sku, field, convert_amount(db, value, sku.currency, currency))
+            for tier in sku.quantity_tiers:
+                tier.price = convert_amount(db, tier.price, sku.currency, currency)
             sku.currency = currency
 
 

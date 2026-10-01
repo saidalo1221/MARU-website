@@ -34,3 +34,11 @@ Newest entries last. Blocked items are marked `[!]` in the BUILD STATUS block at
 15. **Retrying a payment** is only offered for redirect-style gateways (Payme, Click), whose webhooks already handle a
     re-reserve after failure; card gateways need a new checkout.
 16. **Migrations** for this run accumulate in `app/migration_2026_session12.sql` (never run on MariaDB).
+17. **Quantity tiers** had no admin or public surface although pricing used them. Added: `PUT /admin/skus/{id}/tiers`
+    (replaces the set; minimum quantity 2+, audited), tiers in the public SKU output (converted with the display currency),
+    an admin editor, and a tier table on the product page. A tier never raises the price above the SKU's own price.
+18. **"Delivery from X"** ignores pickup-style methods (any method whose name contains "pick"), so a free pickup does not
+    make delivery look free.
+19. **Search stays client-side** (catalog is small): typo tolerance is edit distance 1 for words of 4-6 letters and 2 for
+    7+, none for 1-3 letters. `frontend/tests/search.test.mjs` checks the logic (`node tests/search.test.mjs`, no new dependency).
+20. **Product-page "benefits"** are the product description and specification table; no separate benefits field was added.

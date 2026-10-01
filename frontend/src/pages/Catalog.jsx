@@ -5,6 +5,7 @@ import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
 import { trackEvent } from '../lib/analytics'
+import Breadcrumbs from '../components/Breadcrumbs'
 import Seo from '../components/Seo'
 import { ProductGridSkeleton } from '../components/Skeleton'
 import useDialogFocus from '../lib/useDialogFocus'
@@ -32,9 +33,10 @@ export default function Catalog() {
   const [searchParams] = useSearchParams()
   const urlCapacity = searchParams.get('capacity') || ''
   const urlSort = searchParams.get('sort') || ''
+  const urlCategory = searchParams.get('category') || ''
   const [volumeFilter, setVolumeFilter] = useState(urlCapacity)
   const [availabilityFilter, setAvailabilityFilter] = useState(false)
-  const [categoryFilter, setCategoryFilter] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState(urlCategory)
   const [colorFilter, setColorFilter] = useState('')
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
@@ -55,8 +57,9 @@ export default function Catalog() {
 
   useEffect(() => {
     setVolumeFilter(urlCapacity)
+    setCategoryFilter(urlCategory)
     setSort(SORT_VALUES.includes(urlSort) ? urlSort : 'default')
-  }, [urlCapacity, urlSort])
+  }, [urlCapacity, urlSort, urlCategory])
 
   const SORT_OPTIONS = [
     { value: 'default', label: t('catalog.sortDefault') },
@@ -209,7 +212,7 @@ export default function Catalog() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <Seo title={t('catalog.title')} />
-      <nav className="text-xs text-gray-500 mb-2">{t('catalog.breadcrumb')}</nav>
+      <Breadcrumbs items={[{ to: '/', label: t('header.home') }]} current={t('header.shop')} className="mb-2" />
       <h1 className="text-2xl font-bold mb-4">{t('catalog.title')}</h1>
 
       <div className="flex items-center justify-between mb-4 md:hidden">
