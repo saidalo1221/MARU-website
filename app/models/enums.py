@@ -52,3 +52,16 @@ class RefundStatus(str, enum.Enum):
     PENDING = "pending"
     COMPLETED = "completed"
     FAILED = "failed"
+
+
+class PaymentStatus(str, enum.Enum):
+    """PRD ТЗ№4 §23. Kept on each payments row and mirrored on orders.payment_status."""
+
+    CREATED = "created"
+    PENDING = "pending"
+    AUTHORIZED = "authorized"  # reserved for card holds; no gateway here authorizes without capturing yet
+    PAID = "paid"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    REFUNDED = "refunded"
+    PARTIALLY_REFUNDED = "partially_refunded"

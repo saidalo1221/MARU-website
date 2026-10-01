@@ -83,3 +83,45 @@ CREATE TABLE order_documents (
 	FOREIGN KEY(order_id) REFERENCES orders (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_order_documents_order_id ON order_documents (order_id);
+
+-- Payments ledger (PRD ТЗ№3 §31, ТЗ№4 §23): one row per payment attempt, orders.payment_status mirrors the latest.
+ALTER TABLE orders ADD COLUMN payment_status VARCHAR(24) NOT NULL DEFAULT 'created';
+
+CREATE TABLE payments (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	order_id BIGINT NOT NULL,
+	provider VARCHAR(50) NOT NULL,
+	provider_transaction_id VARCHAR(255),
+	amount DECIMAL(12, 2) NOT NULL,
+	currency VARCHAR(3) NOT NULL,
+	status VARCHAR(24) NOT NULL,
+	idempotency_key VARCHAR(80) NOT NULL,
+	paid_at DATETIME,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	UNIQUE (idempotency_key),
+	FOREIGN KEY(order_id) REFERENCES orders (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_payments_order_id ON payments (order_id);
+
+-- Backfill for orders that exist before the ledger: one payment each, status derived from the order status.
+-- (Order paid then cancelled/returned keeps 'paid' - refunds below correct it.)
+INSERT INTO payments (order_id, provider, amount, currency, status, idempotency_key, paid_at, created_at, updated_at)
+SELECT o.id, o.payment_method, o.total_amount, o.currency,
+       CASE o.status
+         WHEN 'new' THEN 'created'
+         WHEN 'payment_pending' THEN 'pending'
+         WHEN 'payment_failed' THEN 'failed'
+         WHEN 'cancelled' THEN IF(EXISTS(SELECT 1 FROM order_status_history h WHERE h.order_id = o.id AND h.to_status = 'paid'), 'paid', 'cancelled')
+         WHEN 'refunded' THEN 'refunded'
+         WHEN 'partially_refunded' THEN 'partially_refunded'
+         ELSE 'paid'
+       END,
+       CONCAT('order-', o.id, '-1'),
+       (SELECT MIN(h.created_at) FROM order_status_history h WHERE h.order_id = o.id AND h.to_status = 'paid'),
+       o.created_at, o.created_at
+FROM orders o
+WHERE NOT EXISTS (SELECT 1 FROM payments p WHERE p.order_id = o.id);
+
+UPDATE orders o JOIN payments p ON p.order_id = o.id SET o.payment_status = p.status;

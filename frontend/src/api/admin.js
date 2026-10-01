@@ -37,8 +37,8 @@ function pagedQuery(statusFilter, page, extra = {}) {
   if (page > 1) params.set('page', String(page))
   return params.toString() ? `?${params.toString()}` : ''
 }
-export function adminListOrders(statusFilter, page = 1) {
-  return apiRequest(`/admin/orders/${pagedQuery(statusFilter, page)}`, { meta: true })
+export function adminListOrders(statusFilter, page = 1, paymentStatus) {
+  return apiRequest(`/admin/orders/${pagedQuery(statusFilter, page, { payment_status: paymentStatus })}`, { meta: true })
 }
 export function adminGetOrder(orderId) {
   return apiRequest(`/admin/orders/${orderId}`)

@@ -19,6 +19,7 @@ from app.models.promo_code import PromoCode
 from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.order import CheckoutRequest
+from app.services import payment_ledger
 from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
 from app.services.audit import log_audit
@@ -318,6 +319,7 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     # A configuration or provider failure can therefore roll everything back
     # without consuming the customer's cart, promo usage, or reservation.
     db.flush()
+    payment_ledger.open_payment(db, order)
     return order
 
 
@@ -347,6 +349,7 @@ def set_order_status(
     )
 
     order.status = new_status
+    payment_ledger.apply_order_status(db, order, new_status, changed_by)
     log_audit(
         db, changed_by, "order_status_change", "order", order.id, {"status": old_status.value}, {"status": new_status.value}
     )

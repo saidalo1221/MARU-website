@@ -37,6 +37,7 @@ from app.models.integration_log import IntegrationLog, IntegrationLogStatus
 from app.models.external_id import ExternalId
 from app.models.job import Job
 from app.models.order_document import OrderDocument
+from app.models.payment import Payment
 from app.models.webhook_event import WebhookEvent
 from app.models.analytics_event import AnalyticsEvent
 from app.models.blog_category import BlogCategory
@@ -103,6 +104,7 @@ __all__ = [
     "ExternalId",
     "Job",
     "OrderDocument",
+    "Payment",
     "WebhookEvent",
     "IntegrationLogStatus",
     "AnalyticsEvent",

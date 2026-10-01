@@ -5,7 +5,7 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import relationship
 
 from app.database import Base
-from app.models.enums import OrderStatus
+from app.models.enums import OrderStatus, PaymentStatus
 
 
 class OrderType(str, enum.Enum):
@@ -63,6 +63,8 @@ class Order(Base):
     postal_code = Column(String(20), nullable=False)
     delivery_method = Column(String(50), nullable=False)
     payment_method = Column(String(50), nullable=False)
+    # Mirror of the latest row in `payments` (app/services/payment_ledger.py).
+    payment_status = Column(SAEnum(PaymentStatus, native_enum=False, length=24), nullable=False, default=PaymentStatus.CREATED)
 
     # Acquisition channel for CRM push (PRD section 26).
     source = Column(String(20), nullable=False, default="website")

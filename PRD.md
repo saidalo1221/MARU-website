@@ -24,7 +24,7 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [!] TZ2 §59, §65 Figma file, interactive prototype, wireframes and developer handoff — BLOCKED: these are designer deliverables (need a designer and Figma); tokens and the component kit are in DESIGN_SYSTEM.md
 
 ### TZ3 Architecture
-- [!] TZ3 §16-42 Data model (see PRD_AUDIT.md) — BLOCKED (on hold by owner): payments ledger / orders.payment_status not built; the rest of the data model is in place
+- [x] TZ3 §16-42 Data model (see PRD_AUDIT.md) — BLOCKED (on hold by owner): payments ledger / orders.payment_status not built; the rest of the data model is in place
 - [x] TZ3 §43-53 API design (filters, sorting whitelist, pagination limit, error format)
 - [x] TZ3 §54-58 Auth, RBAC, admin MFA
 - [x] TZ3 §59-68 Order engine, state machine, idempotency, inventory
@@ -38,7 +38,7 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ4 §1-5 Integration layer, adapter interfaces, master-data matrix
 - [!] TZ4 §6-13 ERP/1C — BLOCKED: no ERP/1C API spec, endpoint or credentials; adapter interface, id mapping and OrderPaid event are ready for the connector
 - [x] TZ4 §14-18 CRM, RFQ, attribution
-- [!] TZ4 §19-28 Payments — BLOCKED: Payme/Click/Stripe/PayPal are built from public docs but unverified (no sandbox credentials); payment ledger on hold by owner
+- [!] TZ4 §19-28 Payments — BLOCKED: BLOCKED: Payme/Click/Stripe/PayPal are built from public docs but unverified (no sandbox credentials). The payments ledger is built; the PRD webhook path /integrations/payments/{provider}/webhook was not added (Payme/Click keep their /payments/* protocol endpoints)
 - [x] TZ4 §29-33 Shipping
 - [!] TZ4 §34-39 Marketplace/Uzum — BLOCKED: no Uzum/marketplace seller API access or docs; MarketplaceAdapter interface is ready
 - [!] TZ4 §40-44 SMS, email, templates, WhatsApp, Telegram — PARTLY BLOCKED: email + templates done; SMS/WhatsApp/Telegram need provider accounts and credentials (MessagingAdapter ready)

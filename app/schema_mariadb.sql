@@ -320,6 +320,7 @@ CREATE TABLE orders (
 	postal_code VARCHAR(20) NOT NULL, 
 	delivery_method VARCHAR(50) NOT NULL, 
 	payment_method VARCHAR(50) NOT NULL, 
+	payment_status VARCHAR(24) NOT NULL DEFAULT 'created', 
 	source VARCHAR(20) NOT NULL, 
 	company_name VARCHAR(255), 
 	company_reg_number VARCHAR(100), 
@@ -828,3 +829,21 @@ CREATE TABLE order_documents (
 	FOREIGN KEY(order_id) REFERENCES orders (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_order_documents_order_id ON order_documents (order_id);
+
+CREATE TABLE payments (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	order_id BIGINT NOT NULL,
+	provider VARCHAR(50) NOT NULL,
+	provider_transaction_id VARCHAR(255),
+	amount DECIMAL(12, 2) NOT NULL,
+	currency VARCHAR(3) NOT NULL,
+	status VARCHAR(24) NOT NULL,
+	idempotency_key VARCHAR(80) NOT NULL,
+	paid_at DATETIME,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	UNIQUE (idempotency_key),
+	FOREIGN KEY(order_id) REFERENCES orders (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_payments_order_id ON payments (order_id);

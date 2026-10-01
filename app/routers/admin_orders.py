@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import require_role
-from app.models.enums import OrderStatus, UserRole
+from app.models.enums import OrderStatus, PaymentStatus, UserRole
+from app.models.payment import Payment
+from app.schemas.payment import PaymentOut
 from app.models.order import Order
 from app.models.shipment import Shipment
 from app.models.user import User
@@ -43,6 +45,7 @@ def _load_order(db: Session, order_id: int) -> Optional[Order]:
 def list_orders(
     response: Response,
     status_filter: Optional[OrderStatus] = None,
+    payment_status: Optional[PaymentStatus] = None,
     params: PageParams = Depends(page_params),
     user: User = Depends(require_role(UserRole.SALES_MANAGER)),
     db: Session = Depends(get_db),
@@ -60,6 +63,9 @@ def list_orders(
     if status_filter is not None:
         stmt = stmt.where(Order.status == status_filter)
         count_stmt = count_stmt.where(Order.status == status_filter)
+    if payment_status is not None:
+        stmt = stmt.where(Order.payment_status == payment_status)
+        count_stmt = count_stmt.where(Order.payment_status == payment_status)
 
     try:
         orders = paged(db, response, stmt, count_stmt, params, unique=True)
@@ -68,6 +74,16 @@ def list_orders(
         raise HTTPException(status_code=500, detail="Failed to fetch orders") from exc
 
     return list(orders)
+
+
+@router.get("/{order_id}/payments", response_model=list[PaymentOut])
+def list_order_payments(
+    order_id: int,
+    user: User = Depends(require_role(UserRole.SALES_MANAGER)),
+    db: Session = Depends(get_db),
+) -> list[Payment]:
+    """Every payment attempt of the order, oldest first (PRD ТЗ№03 §31)."""
+    return list(db.execute(select(Payment).where(Payment.order_id == order_id).order_by(Payment.id)).scalars())
 
 
 @router.get("/{order_id}", response_model=OrderOut)

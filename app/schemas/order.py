@@ -5,7 +5,7 @@ from typing import Annotated, Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
-from app.models.enums import OrderStatus
+from app.models.enums import OrderStatus, PaymentStatus
 from app.models.order import OrderType
 from app.schemas.shipment import ShipmentOut
 from app.schemas.user import normalize_required_phone
@@ -105,6 +105,7 @@ class OrderOut(BaseModel):
     delivery_method: Optional[str] = None
     source: str
     payment_method: str
+    payment_status: PaymentStatus
     created_at: datetime
     items: list[OrderItemOut]
     status_history: list[OrderStatusHistoryOut]

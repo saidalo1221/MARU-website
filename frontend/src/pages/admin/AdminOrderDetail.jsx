@@ -5,6 +5,7 @@ import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import Money from '../../components/admin/Money'
 import ShipmentsPanel from '../../components/admin/ShipmentsPanel'
+import PaymentsPanel from '../../components/admin/PaymentsPanel'
 import OrderDocumentsPanel from '../../components/admin/OrderDocumentsPanel'
 import { formatDateTime } from '../../lib/format'
 
@@ -122,6 +123,7 @@ export default function AdminOrderDetail() {
             </button>
           </form>
 
+          <PaymentsPanel orderId={order.id} refreshKey={order.payment_status} />
           <ShipmentsPanel order={order} onChanged={load} />
           <OrderDocumentsPanel orderId={order.id} />
 
