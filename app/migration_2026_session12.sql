@@ -220,3 +220,22 @@ ALTER TABLE product_translations
 
 -- Photos attached to reviews (PRD ТЗ№1 §32): JSON list of image URLs.
 ALTER TABLE reviews ADD COLUMN image_urls TEXT NULL;
+
+-- Stock transfers between warehouses and manual corrections (PRD ТЗ№1 §33).
+CREATE TABLE stock_movements (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	movement_type VARCHAR(20) NOT NULL,
+	sku_id BIGINT NOT NULL,
+	from_warehouse_id BIGINT,
+	to_warehouse_id BIGINT,
+	quantity INTEGER NOT NULL,
+	note VARCHAR(300),
+	created_by_user_id BIGINT,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(sku_id) REFERENCES skus (id),
+	FOREIGN KEY(from_warehouse_id) REFERENCES warehouses (id),
+	FOREIGN KEY(to_warehouse_id) REFERENCES warehouses (id),
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_stock_movements_sku_id ON stock_movements (sku_id);

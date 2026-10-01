@@ -11,6 +11,7 @@ from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.inventory import Inventory
 from app.models.sku import SKU
+from app.models.stock_movement import StockMovement
 from app.models.user import User
 from app.schemas.inventory import InventoryCreate, InventoryOut, InventoryUpdate
 
@@ -115,6 +116,11 @@ def update_inventory(
             payload.model_dump(exclude_unset=True),
         )
         if payload.stock is not None:
+            if payload.stock != inventory.stock:
+                db.add(StockMovement(
+                    movement_type="adjustment", sku_id=sku_id, to_warehouse_id=warehouse_id,
+                    quantity=payload.stock - inventory.stock, note="Manual stock correction", created_by_user_id=user.id,
+                ))
             inventory.stock = payload.stock
         if payload.incoming is not None:
             inventory.incoming = payload.incoming

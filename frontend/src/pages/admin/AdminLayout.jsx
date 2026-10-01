@@ -34,6 +34,7 @@ export default function AdminLayout() {
         ['/admin/products', t('admin.nav.products')],
         ['/admin/categories', t('admin.nav.categories')],
         ['/admin/warehouses', t('admin.nav.warehouses')],
+        ['/admin/stock', t('admin.nav.stock')],
         ['/admin/exchange-rates', t('admin.nav.exchangeRates')],
       ],
     },

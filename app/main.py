@@ -43,6 +43,7 @@ from app.routers import (
     admin_shipping_rates,
     admin_site_settings,
     admin_skus,
+    admin_stock_movements,
     admin_tax_rules,
     admin_uploads,
     admin_users,
@@ -167,6 +168,7 @@ api_v1.include_router(admin_reviews.router)
 api_v1.include_router(admin_shipping_rates.router)
 api_v1.include_router(admin_site_settings.router)
 api_v1.include_router(admin_skus.router)
+api_v1.include_router(admin_stock_movements.router)
 api_v1.include_router(admin_tax_rules.router)
 api_v1.include_router(admin_uploads.router)
 api_v1.include_router(admin_users.router)
