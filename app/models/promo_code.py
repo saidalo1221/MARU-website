@@ -32,7 +32,7 @@ class StrList(TypeDecorator):
     cache_ok = True
 
     def process_bind_param(self, value, dialect):
-        return json.dumps(sorted({str(v).strip() for v in value if str(v).strip()})) if value else None
+        return json.dumps(sorted({str(v).strip() for v in value if str(v).strip()}), ensure_ascii=False) if value else None
 
     def process_result_value(self, value, dialect):
         return json.loads(value) if value else None

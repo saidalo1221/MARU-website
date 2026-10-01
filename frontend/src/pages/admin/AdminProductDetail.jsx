@@ -554,7 +554,7 @@ export default function AdminProductDetail() {
     setProduct(p)
     setForm({
       name: p.name, slug: p.slug, volume_ml: p.volume_ml, shape: p.shape || '', purpose: p.purpose || '',
-      description: p.description || '', country_of_origin: p.country_of_origin || '', min_order_quantity: p.min_order_quantity, tax_class: p.tax_class || 'standard', seo_title: p.seo_title || '', meta_description: p.meta_description || '', advantages: p.advantages || '', usage_scenarios: p.usage_scenarios || '', instructions: p.instructions || '', material_info: p.material_info || '',
+      description: p.description || '', country_of_origin: p.country_of_origin || '', min_order_quantity: p.min_order_quantity, tax_class: p.tax_class || 'standard', sold_in_countries: (p.sold_in_countries || []).join(', '), hidden_in_countries: (p.hidden_in_countries || []).join(', '), seo_title: p.seo_title || '', meta_description: p.meta_description || '', advantages: p.advantages || '', usage_scenarios: p.usage_scenarios || '', instructions: p.instructions || '', material_info: p.material_info || '',
       badge_mode: p.badge_mode, badge_new: !!p.badge_new, badge_sale: !!p.badge_sale, badge_bestseller: !!p.badge_bestseller,
     })
   }).catch((err) => setError(errorMessage(err, t('admin.productDetail.loadFailed'))))
@@ -575,7 +575,8 @@ export default function AdminProductDetail() {
     setSaveError(null)
     setSaving(true)
     try {
-      const payload = { ...form, volume_ml: Number(form.volume_ml), min_order_quantity: Number(form.min_order_quantity) }
+      const list = (v) => (String(v || '').trim() ? String(v).split(',').map((x) => x.trim()).filter(Boolean) : null)
+      const payload = { ...form, volume_ml: Number(form.volume_ml), min_order_quantity: Number(form.min_order_quantity), sold_in_countries: list(form.sold_in_countries), hidden_in_countries: list(form.hidden_in_countries) }
       await adminUpdateProduct(product.id, payload)
       await load()
     } catch (err) {
@@ -608,6 +609,8 @@ export default function AdminProductDetail() {
         <input required placeholder={t('admin.common.slug')} aria-label={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className={inputCls} />
         <input required type="number" min="1" placeholder={t('admin.products.volumeMl')} aria-label={t('admin.products.volumeMl')} value={form.volume_ml} onChange={update('volume_ml')} className={inputCls} />
         <input type="number" min="1" placeholder={t('admin.products.minOrderQty')} aria-label={t('admin.products.minOrderQty')} value={form.min_order_quantity} onChange={update('min_order_quantity')} className={inputCls} />
+        <input placeholder={t('admin.products.soldIn')} aria-label={t('admin.products.soldIn')} value={form.sold_in_countries} onChange={update('sold_in_countries')} className={`${inputCls} col-span-2`} />
+        <input placeholder={t('admin.products.hiddenIn')} aria-label={t('admin.products.hiddenIn')} value={form.hidden_in_countries} onChange={update('hidden_in_countries')} className={`${inputCls} col-span-2`} />
         <select value={form.tax_class} onChange={update('tax_class')} aria-label={t('admin.products.taxClass')} className={inputCls}>
           {['standard', 'reduced', 'zero', 'exempt'].map((c) => <option key={c} value={c}>{t('admin.products.taxClass')}: {t(`admin.products.taxClass_${c}`)}</option>)}
         </select>

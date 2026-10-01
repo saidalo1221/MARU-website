@@ -15,6 +15,7 @@ from app.services.badges import compute_badges, compute_badges_batch
 from app.services.catalog import MAX_PAGE_SIZE, SORT_OPTIONS, rating_stats
 from app.services.product_query import find_product_ids
 from app.services.product_search import search_ids
+from app.services import market
 from app.core import cache
 from app.config import settings
 from app.models import Category
@@ -128,6 +129,7 @@ def list_active_products(
     currency: Optional[str] = None,
     q: Optional[str] = Query(default=None, max_length=80, description="Search words: name, SKU code, category, shape/purpose or volume; typo tolerant"),
     category_id: Optional[int] = None,
+    country: Optional[str] = Query(default=None, max_length=100, description="Hide products that are not sold in this country"),
     category_ids: Optional[str] = Query(default=None, description="Comma-separated category ids (a category and its children)", max_length=200),
     capacity: Optional[int] = None,
     color: Optional[str] = None,
@@ -158,6 +160,8 @@ def list_active_products(
     conditions = [ProductVariant.is_active.is_(True), SKU.is_active.is_(True)]
     if category_id is not None:
         conditions.append(Product.category_id == category_id)
+    if market.condition(country) is not None:
+        conditions.append(market.condition(country))
     if category_ids:
         try:
             conditions.append(Product.category_id.in_([int(x) for x in category_ids.split(",") if x.strip()]))
@@ -194,11 +198,14 @@ def _sellable_conditions() -> list:
 def suggest(
     q: str = Query(min_length=1, max_length=80),
     lang: Optional[str] = None,
+    country: Optional[str] = Query(default=None, max_length=100),
     limit: int = Query(default=6, ge=1, le=12),
     db: Session = Depends(get_db),
 ) -> SuggestOut:
     """Autocomplete: the best few products and matching categories for what has been typed so far."""
     conditions = _sellable_conditions()
+    if market.condition(country) is not None:
+        conditions.append(market.condition(country))
     try:
         ids, _total = search_ids(db, q, lang, conditions, 1, limit)
         rows = db.execute(select(Product).where(Product.id.in_(ids))).scalars().all() if ids else []
@@ -224,7 +231,11 @@ def suggest(
 
 
 @router.get("/facets", response_model=FacetsOut, dependencies=[Depends(rate_limit("products_facets", 120, 60))])
-def facets(category_ids: Optional[str] = Query(default=None, max_length=200), db: Session = Depends(get_db)) -> dict:
+def facets(
+    category_ids: Optional[str] = Query(default=None, max_length=200),
+    country: Optional[str] = Query(default=None, max_length=100),
+    db: Session = Depends(get_db),
+) -> dict:
     """The filter choices that exist in the catalogue (volumes, colours, materials, categories), cached."""
     ids = None
     if category_ids:
@@ -237,6 +248,8 @@ def facets(category_ids: Optional[str] = Query(default=None, max_length=200), db
         conditions = _sellable_conditions()
         if ids:
             conditions.append(Product.category_id.in_(ids))
+        if market.condition(country) is not None:
+            conditions.append(market.condition(country))
         base = select(Product.volume_ml, Product.material, Product.category_id, ProductVariant.color).join(
             ProductVariant, ProductVariant.product_id == Product.id
         ).join(SKU, SKU.variant_id == ProductVariant.id).where(*conditions).distinct()
@@ -248,11 +261,11 @@ def facets(category_ids: Optional[str] = Query(default=None, max_length=200), db
             "category_ids": sorted({r.category_id for r in rows}),
         }
 
-    return cache.get_or_set("catalog", f"facets:{ids or ''}", settings.CACHE_TTL_SECONDS, load)
+    return cache.get_or_set("catalog", f"facets:{ids or ''}:{(country or '').strip().lower()}", settings.CACHE_TTL_SECONDS, load)
 
 
 @router.get("/{slug}/related", response_model=RelatedOut, dependencies=[Depends(rate_limit("products_related", 120, 60))])
-def related_products(slug: str, lang: Optional[str] = None, currency: Optional[str] = None, db: Session = Depends(get_db)) -> dict:
+def related_products(slug: str, lang: Optional[str] = None, currency: Optional[str] = None, country: Optional[str] = Query(default=None, max_length=100), db: Session = Depends(get_db)) -> dict:
     """"Other sizes", "Frequently bought together" and "Sets" for the product page (PRD ТЗ№1 §41).
     Other sizes: same category and shape, different volume. Bought together: sellable products that real past
     orders contain alongside this one (no filler). Sets: set SKUs whose contents include this product."""
@@ -260,6 +273,8 @@ def related_products(slug: str, lang: Optional[str] = None, currency: Optional[s
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     conditions = _sellable_conditions()
+    if market.condition(country) is not None:
+        conditions.append(market.condition(country))
     sellable = select(Product.id).join(ProductVariant, ProductVariant.product_id == Product.id).join(SKU, SKU.variant_id == ProductVariant.id).where(*conditions)
 
     size_filters = [Product.category_id == product.category_id, Product.id != product.id, Product.volume_ml != product.volume_ml, Product.id.in_(sellable)]
@@ -287,7 +302,11 @@ def related_products(slug: str, lang: Optional[str] = None, currency: Optional[s
 
 @router.get("/{slug}", response_model=ProductOut, dependencies=[Depends(rate_limit("products_detail", 120, 60))])
 def get_active_product(
-    slug: str, lang: Optional[str] = None, currency: Optional[str] = None, db: Session = Depends(get_db)
+    slug: str,
+    lang: Optional[str] = None,
+    currency: Optional[str] = None,
+    country: Optional[str] = Query(default=None, max_length=100),
+    db: Session = Depends(get_db),
 ) -> ProductOut:
     """Fetch a single active product by slug for the product card view (PRD section 30).
     Pass ?currency=UZS|EUR|KZT|AED to display prices converted from the SKU's
@@ -315,6 +334,7 @@ def get_active_product(
 
     translation = get_product_translation(db, product.id, lang) if lang else None
     out = _apply_translation(product, translation)
+    out.available_in_country = market.is_available(product, country)  # the page still opens; buying is disabled
     out.badges = compute_badges(db, product)
     stats = rating_stats(db, [product.id]).get(product.id)
     if stats is not None:

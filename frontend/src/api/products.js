@@ -1,9 +1,12 @@
 import { apiRequest } from './client'
+import { getShipCountry } from '../lib/shipCountry'
 
 function buildQuery({ lang, currency } = {}) {
   const params = new URLSearchParams()
   if (lang) params.set('lang', lang)
   if (currency) params.set('currency', currency)
+  const country = getShipCountry()
+  if (country) params.set('country', country)
   const qs = params.toString()
   return qs ? `?${qs}` : ''
 }
@@ -14,6 +17,7 @@ export function listProducts(lang, currency, { sort, limit } = {}) {
   if (currency) params.set('currency', currency)
   if (sort) params.set('sort', sort)
   if (limit) params.set('limit', String(limit))
+  if (getShipCountry()) params.set('country', getShipCountry())
   const qs = params.toString()
   return apiRequest(`/products/${qs ? `?${qs}` : ''}`)
 }
@@ -33,18 +37,23 @@ export function queryProducts({ lang, currency, q, categoryIds, capacity, color,
   if (sort && sort !== 'default') params.set('sort', sort)
   params.set('page', String(page))
   params.set('limit', String(limit))
+  if (getShipCountry()) params.set('country', getShipCountry())
   return apiRequest(`/products/?${params.toString()}`, { meta: true })
 }
 
 // The filter choices that exist (capacities, colours, categories); optionally within some categories.
 export function getFacets(categoryIds) {
-  return apiRequest(`/products/facets${categoryIds ? `?category_ids=${encodeURIComponent(categoryIds)}` : ''}`)
+  const params = new URLSearchParams()
+  if (categoryIds) params.set('category_ids', categoryIds)
+  if (getShipCountry()) params.set('country', getShipCountry())
+  return apiRequest(`/products/facets${params.toString() ? `?${params}` : ''}`)
 }
 
 // Autocomplete: { products: [...], categories: [...] }.
 export function suggestProducts(q, lang) {
   const params = new URLSearchParams({ q })
   if (lang) params.set('lang', lang)
+  if (getShipCountry()) params.set('country', getShipCountry())
   return apiRequest(`/products/suggest?${params.toString()}`)
 }
 

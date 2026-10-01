@@ -287,3 +287,8 @@ CREATE TABLE loyalty_transactions (
 	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_loyalty_transactions_user_id ON loyalty_transactions (user_id);
+
+-- Per-market product assortment (PRD ТЗ№1 §16): JSON lists of country names, NULL = no restriction.
+ALTER TABLE products
+    ADD COLUMN sold_in_countries TEXT NULL,
+    ADD COLUMN hidden_in_countries TEXT NULL;

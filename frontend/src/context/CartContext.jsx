@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import * as cartApi from '../api/cart'
+import { useShipCountry } from '../lib/shipCountry'
 
 const CartContext = createContext(null)
 
@@ -7,6 +8,7 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const shipCountry = useShipCountry()
 
   // A promo code applied on the Cart page must survive later refresh() calls
   // (e.g. Checkout re-pricing when the buyer picks a country/delivery
@@ -30,9 +32,10 @@ export function CartProvider({ children }) {
     }
   }, [])
 
+  // Picking another delivery country can change which lines can be bought, so the cart is re-read.
   useEffect(() => {
     refresh()
-  }, [refresh])
+  }, [refresh, shipCountry])
 
   const addItem = useCallback(async (skuId, quantity) => {
     const data = await cartApi.addCartItem(skuId, quantity)

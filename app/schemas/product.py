@@ -143,6 +143,10 @@ class ProductOut(BaseModel):
     country_of_origin: Optional[str]
     min_order_quantity: int
     tax_class: str = "standard"
+    sold_in_countries: Optional[list[str]] = None
+    hidden_in_countries: Optional[list[str]] = None
+    # Only filled when the request names a country (?country=): can this visitor buy it there?
+    available_in_country: bool = True
     seo_title: Optional[str] = None
     meta_description: Optional[str] = None
     advantages: Optional[str] = None
@@ -241,6 +245,8 @@ class ProductCreate(BaseModel):
     country_of_origin: Optional[str] = Field(default=None, max_length=100)
     min_order_quantity: int = Field(default=1, ge=1)
     tax_class: Literal["standard", "reduced", "zero", "exempt"] = "standard"
+    sold_in_countries: Optional[list[str]] = None
+    hidden_in_countries: Optional[list[str]] = None
     seo_title: Optional[str] = Field(default=None, max_length=255)
     meta_description: Optional[str] = Field(default=None, max_length=320)
     advantages: Optional[str] = None
@@ -275,6 +281,8 @@ class ProductUpdate(BaseModel):
     country_of_origin: Optional[str] = Field(default=None, max_length=100)
     min_order_quantity: Optional[int] = Field(default=None, ge=1)
     tax_class: Optional[Literal["standard", "reduced", "zero", "exempt"]] = None
+    sold_in_countries: Optional[list[str]] = None
+    hidden_in_countries: Optional[list[str]] = None
     seo_title: Optional[str] = Field(default=None, max_length=255)
     meta_description: Optional[str] = Field(default=None, max_length=320)
     advantages: Optional[str] = None

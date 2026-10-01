@@ -19,7 +19,7 @@ from app.models.promo_code import PromoCode
 from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.order import CheckoutRequest
-from app.services import document_generator, loyalty, outbound_webhooks, payment_ledger
+from app.services import document_generator, loyalty, market, outbound_webhooks, payment_ledger
 from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
 from app.services.audit import log_audit
@@ -206,6 +206,9 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     subtotal = Decimal("0")
     line_data = []
     for item in cart.items:
+        product = item.sku.variant.product
+        if not market.is_available(product, checkout.country):
+            raise OrderError(f"MARKET: {product.name} is not sold in {checkout.country}")
         if available_stock(db, item.sku_id) < item.quantity:
             raise OrderError(f"INSUFFICIENT_STOCK: not enough stock for SKU {item.sku.sku_code}")
         minimum = item.sku.variant.product.min_order_quantity or 1

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getProduct, getRelated, listProducts } from '../api/products'
+import { useShipCountry } from '../lib/shipCountry'
 import { listPageSections } from '../api/pageSections'
 import { trackEvent } from '../lib/analytics'
 import { addToWishlist, getWishlist, removeFromWishlist } from '../api/wishlist'
@@ -56,6 +57,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1)
   const [status, setStatus] = useState(null)
   const [related, setRelated] = useState([])
+  const shipCountry = useShipCountry()
   const [groups, setGroups] = useState({ other_sizes: [], bought_together: [], sets: [] })
   const [faq, setFaq] = useState([])
 
@@ -69,7 +71,7 @@ export default function ProductDetail() {
         setQuantity(p.min_order_quantity || 1)
       })
       .catch(setError)
-  }, [slug, locale, currency])
+  }, [slug, locale, currency, shipCountry])
 
   useEffect(() => {
     listProducts(locale, currency, { sort: 'popularity', limit: 5 })
@@ -79,7 +81,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     getRelated(slug, locale, currency).then(setGroups).catch(() => setGroups({ other_sizes: [], bought_together: [], sets: [] }))
-  }, [slug, locale, currency])
+  }, [slug, locale, currency, shipCountry])
 
   useEffect(() => {
     listPageSections('faq', locale).then((rows) => setFaq(rows.slice(0, 4))).catch(() => {})
@@ -263,17 +265,23 @@ export default function ProductDetail() {
             )}
           </div>
 
+          {product.available_in_country === false && (
+            <p role="alert" className="mt-6 border border-yellow-300 bg-yellow-50 text-yellow-900 rounded px-3 py-2 text-sm">
+              {t('market.notSold', { country: shipCountry })}
+            </p>
+          )}
+
           <div className="flex gap-3 mt-6 sticky bottom-0 bg-white py-2 md:static">
             <button
               onClick={handleAddToCart}
-              disabled={!inStock}
+              disabled={!inStock || product.available_in_country === false}
               className="flex-1 border border-brand text-brand rounded py-3 font-medium disabled:opacity-40"
             >
               {t('productDetail.addToCart')}
             </button>
             <button
               onClick={handleBuyNow}
-              disabled={!inStock}
+              disabled={!inStock || product.available_in_country === false}
               className="flex-1 bg-brand text-white rounded py-3 font-medium disabled:opacity-40"
             >
               {t('productDetail.buyNow')}

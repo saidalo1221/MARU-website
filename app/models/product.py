@@ -13,6 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.models.promo_code import StrList
 
 # PRD section 4: first-stage assortment is limited to these container sizes (ml).
 ALLOWED_VOLUMES_ML = (350, 470, 800, 1000, 1900)
@@ -58,6 +59,9 @@ class Product(Base):
     # app/services/tax.py: zero and exempt are never taxed; reduced looks for a 'reduced' tax rule
     # and falls back to the general one; standard uses the general rule.
     tax_class = Column(String(20), nullable=False, default="standard", server_default="standard")
+    # Market assortment (app/services/market.py): sold only in these countries / hidden in these countries.
+    sold_in_countries = Column(StrList, nullable=True)
+    hidden_in_countries = Column(StrList, nullable=True)
     # Page content (PRD ТЗ№1 §29-30). advantages / usage_scenarios: one item per line.
     seo_title = Column(String(255), nullable=True)
     meta_description = Column(String(320), nullable=True)

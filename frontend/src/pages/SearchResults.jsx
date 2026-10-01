@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { listCategories, listProducts, queryProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
+import { useShipCountry } from '../lib/shipCountry'
 import ProductCard from '../components/product/ProductCard'
 import Pagination from '../components/ui/Pagination'
 import SearchBar from '../components/SearchBar'
@@ -22,6 +23,7 @@ function flattenCategories(nodes) {
 export default function SearchResults() {
   const { locale, t } = useLocale()
   const { cart } = useCart()
+  const shipCountry = useShipCountry()
   const currency = cart?.currency
   const [params] = useSearchParams()
   const query = params.get('q') || ''
@@ -58,7 +60,7 @@ export default function SearchResults() {
       .catch(() => current && (setProducts([]), setTotal(0)))
       .finally(() => current && setLoading(false))
     return () => { current = false }
-  }, [locale, currency, query, sort, inStockOnly, page])
+  }, [locale, currency, shipCountry, query, sort, inStockOnly, page])
 
   const noMatches = !loading && total === 0
   const unfiltered = !inStockOnly

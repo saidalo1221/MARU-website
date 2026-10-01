@@ -1,4 +1,5 @@
 import { apiRequest } from './client'
+import { getShipCountry } from '../lib/shipCountry'
 
 export function getCart({ promoCode, country, deliveryMethod, region, loyaltyPoints } = {}) {
   const params = new URLSearchParams()
@@ -7,6 +8,8 @@ export function getCart({ promoCode, country, deliveryMethod, region, loyaltyPoi
   if (deliveryMethod) params.set('delivery_method', deliveryMethod)
   if (region) params.set('region', region)
   if (loyaltyPoints) params.set('loyalty_points', String(loyaltyPoints))
+  // Only for "is this product sold in my country" flags; it does not turn on tax or delivery estimates.
+  if (getShipCountry()) params.set('market_country', getShipCountry())
   // Product names in the cart follow the language the visitor picked.
   try {
     const lang = localStorage.getItem('maru_locale')

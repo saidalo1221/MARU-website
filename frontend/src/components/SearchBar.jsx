@@ -1,12 +1,14 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLocale } from '../context/LocaleContext'
+import { useShipCountry } from '../lib/shipCountry'
 import { suggestProducts } from '../api/products'
 
 // Search with autocomplete (PRD ТЗ№2 §18): product and category suggestions,
 // SKU codes and sizes, typo tolerance. Fully keyboard operable (combobox pattern).
 export default function SearchBar({ className = '' }) {
   const { locale, t } = useLocale()
+  const shipCountry = useShipCountry()
   const [value, setValue] = useState('')
   const [suggestions, setSuggestions] = useState({ products: [], categories: [] })
   const [open, setOpen] = useState(false)
@@ -33,7 +35,7 @@ export default function SearchBar({ className = '' }) {
       current = false
       clearTimeout(id)
     }
-  }, [value, locale])
+  }, [value, locale, shipCountry])
 
   useEffect(() => {
     const onClickOutside = (e) => {

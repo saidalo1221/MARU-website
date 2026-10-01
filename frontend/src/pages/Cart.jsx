@@ -141,6 +141,7 @@ export default function Cart() {
   }
 
   const belowMinimum = cart.items.some((i) => i.quantity < i.min_order_quantity)
+  const unavailable = cart.unavailable_items > 0
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -165,6 +166,7 @@ export default function Cart() {
                 <p className="text-xs text-gray-500">
                   {[item.variant_name, item.sku_code].filter(Boolean).join(' · ')}
                 </p>
+                {item.available_in_market === false && <p className="text-xs text-red-600">{t('market.lineNotSold')}</p>}
                 <p className="text-xs text-gray-500">
                   {t('cart.each', { currency: cart.currency, price: Number(item.unit_price).toFixed(2) })}
                   {item.list_price != null && (
@@ -263,9 +265,10 @@ export default function Cart() {
             </div>
           </dl>
 
+          {unavailable && <p role="alert" className="text-sm text-red-600 mt-3">{t('market.cartBlocked', { country: country })}</p>}
           <button
             onClick={() => navigate('/checkout')}
-            disabled={belowMinimum}
+            disabled={belowMinimum || unavailable}
             className="w-full bg-brand text-white rounded py-3 font-medium mt-4 disabled:opacity-40"
           >
             {t('cart.checkoutButton')}

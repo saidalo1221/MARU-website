@@ -284,6 +284,8 @@ CREATE TABLE products (
 	country_of_origin VARCHAR(100),
 	min_order_quantity INTEGER NOT NULL,
 	tax_class VARCHAR(20) NOT NULL DEFAULT 'standard', 
+	sold_in_countries TEXT, 
+	hidden_in_countries TEXT, 
 	seo_title VARCHAR(255), 
 	meta_description VARCHAR(320), 
 	advantages TEXT, 

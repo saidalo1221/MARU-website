@@ -5,6 +5,7 @@ import { getFacets, listCategories, queryProducts } from '../api/products'
 import { listPageSections } from '../api/pageSections'
 import FaqItem from '../components/FaqItem'
 import { useLocale } from '../context/LocaleContext'
+import { useShipCountry } from '../lib/shipCountry'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
 import { trackEvent } from '../lib/analytics'
@@ -26,6 +27,7 @@ function flattenCategories(nodes) {
 export default function Catalog({ category = null }) {
   const { locale, t } = useLocale()
   const { cart } = useCart()
+  const shipCountry = useShipCountry()
   const currency = cart?.currency
   const [products, setProducts] = useState([])
   const [total, setTotal] = useState(0)
@@ -93,7 +95,7 @@ export default function Catalog({ category = null }) {
   // Filter choices come from the server (it knows the whole catalogue; we only ever hold one page).
   useEffect(() => {
     getFacets(pinnedList).then(setFacets).catch(() => {})
-  }, [pinnedList])
+  }, [pinnedList, shipCountry])
 
   // The server filters, sorts and pages; stale answers (the visitor kept clicking) are ignored.
   useEffect(() => {
@@ -126,7 +128,7 @@ export default function Catalog({ category = null }) {
       .catch((err) => current && setError(err))
       .finally(() => current && setLoading(false))
     return () => { current = false }
-  }, [locale, currency, pinnedList, categoryFilter, volumeFilter, colorFilter, availabilityFilter, debouncedPrice, sort, page])
+  }, [locale, currency, shipCountry, pinnedList, categoryFilter, volumeFilter, colorFilter, availabilityFilter, debouncedPrice, sort, page])
 
   const volumes = facets.capacities
   const colors = facets.colors

@@ -34,6 +34,8 @@ class CartItemOut(BaseModel):
     variant_name: Optional[str] = None
     image_url: Optional[str] = None
     list_price: Optional[Decimal] = None
+    # False when the product is not sold in the visitor's market (?market_country=).
+    available_in_market: bool = True
 
 
 class CartOut(BaseModel):
@@ -56,6 +58,7 @@ class CartOut(BaseModel):
     packaging: Optional[dict] = None
     # Loyalty points: what the signed-in retail customer can spend, what is applied now (already inside `discount`).
     loyalty: Optional[dict] = None
+    unavailable_items: int = 0
     loyalty_points_applied: int = 0
     loyalty_discount: Decimal = Decimal("0")
 

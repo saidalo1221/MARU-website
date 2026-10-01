@@ -756,6 +756,8 @@ export const translations = {
         loadFailed: 'Failed to load reviews',
       },
       products: {
+        soldIn: 'Sold only in these countries, comma-separated (empty = everywhere)',
+        hiddenIn: 'Not sold in these countries, comma-separated',
         seoTitle: 'SEO title (browser tab / search result)',
         metaDescription: 'Meta description (up to 320 characters)',
         advantages: 'Advantages (one per line)',
@@ -1455,6 +1457,11 @@ export const translations = {
       kind_redeem: 'Spent',
       kind_redeem_restore: 'Returned',
       kind_adjust: 'Adjustment',
+    },
+    market: {
+      notSold: 'This product is not sold in {country}. Choose another delivery country to order it.',
+      cartBlocked: 'Some items in your cart are not sold in {country}. Remove them or choose another delivery country.',
+      lineNotSold: 'Not sold in your country',
     },
   },
   ru: {
@@ -2209,6 +2216,8 @@ export const translations = {
         loadFailed: 'Не удалось загрузить отзывы',
       },
       products: {
+        soldIn: 'Продаётся только в этих странах через запятую (пусто = везде)',
+        hiddenIn: 'Не продаётся в этих странах через запятую',
         seoTitle: 'SEO-заголовок (вкладка / поисковая выдача)',
         metaDescription: 'Meta description (до 320 символов)',
         advantages: 'Преимущества (по одному в строке)',
@@ -2908,6 +2917,11 @@ export const translations = {
       kind_redeem: 'Списано',
       kind_redeem_restore: 'Возвращено',
       kind_adjust: 'Корректировка',
+    },
+    market: {
+      notSold: 'Этот товар не продаётся в стране «{country}». Выберите другую страну доставки, чтобы заказать его.',
+      cartBlocked: 'Некоторые товары в корзине не продаются в стране «{country}». Удалите их или выберите другую страну доставки.',
+      lineNotSold: 'Не продаётся в вашей стране',
     },
   },
   uz: {
@@ -3662,6 +3676,8 @@ export const translations = {
         loadFailed: "Sharhlarni yuklab bo'lmadi",
       },
       products: {
+        soldIn: 'Faqat shu mamlakatlarda sotiladi, vergul bilan (bo\'sh = hamma joyda)',
+        hiddenIn: 'Shu mamlakatlarda sotilmaydi, vergul bilan',
         seoTitle: 'SEO sarlavha (brauzer / qidiruv natijasi)',
         metaDescription: 'Meta tavsif (320 belgigacha)',
         advantages: 'Afzalliklar (har qatorda bittadan)',
@@ -4361,6 +4377,11 @@ export const translations = {
       kind_redeem: 'Sarflandi',
       kind_redeem_restore: 'Qaytarildi',
       kind_adjust: 'Tuzatish',
+    },
+    market: {
+      notSold: 'Bu mahsulot «{country}» da sotilmaydi. Buyurtma berish uchun boshqa yetkazib berish mamlakatini tanlang.',
+      cartBlocked: 'Savatdagi ba\'zi mahsulotlar «{country}» da sotilmaydi. Ularni olib tashlang yoki boshqa mamlakatni tanlang.',
+      lineNotSold: 'Sizning mamlakatingizda sotilmaydi',
     },
   },
 }
