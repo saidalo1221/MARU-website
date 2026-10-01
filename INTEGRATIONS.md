@@ -73,3 +73,22 @@ forwarding. Each has its interface and Null adapter; see `PRD.md` build status f
 
 Tests run on SQLite with fake data and no network (`tests/conftest.py` blanks SMTP). Keep sandbox credentials in a
 separate `.env` from production credentials; never copy a production `.env` to a development machine.
+
+## Web push (PRD TZ1 §38-39)
+
+Needs `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` in `.env` (`python scripts/generate_vapid.py` makes them; never change them
+after launch). Customers opt in on their account page; `/sw.js` is the service worker (serve it with `Cache-Control: no-cache`, see
+`deploy/nginx.conf.example`). Pushed: order created / status changed / shipment updated, and abandoned carts. A subscription the push service
+reports gone (404/410) is deleted. iPhones only get web push after the site is added to the home screen. Not tested against real browsers.
+
+## Remarketing data and consent
+
+Server events carry product ids (`items`) so GA4 / Meta audiences can be built. They are forwarded to GA4 / Meta only when the visitor accepted
+analytics in the cookie banner: the storefront sends `X-Analytics-Consent: 1`, orders remember it (`orders.analytics_consent`) so a payment
+callback later still honours it. The first-party `analytics_events` table is written regardless.
+
+## Markets and loyalty
+
+`products.sold_in_countries` / `hidden_in_countries` (country names, any case) limit where a product is shown and ordered; the storefront
+passes the delivery country the visitor picked (`?country=`, cart `market_country`), checkout refuses a product not sold in the delivery
+country. Loyalty: see `app/services/loyalty.py` (rules in its docstring); settings are edited in Admin > Loyalty.

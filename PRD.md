@@ -8,9 +8,10 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ1 §7 Kits / packs: a set is its own SKU (price, tiers, stock) with its contents listed (`sku_bundle_items`)
 - [x] TZ1 §8-10 Cart, checkout (person / company), guest order
 - [x] TZ1 §11 Account: profile, addresses, orders, reorder, wishlist, invoices/documents
-- [!] TZ1 §11 Account: saved payment methods (needs a tokenising payment provider) and bonuses/loyalty (PRD §62 second stage) — not built
+- [x] TZ1 §11, §62 Loyalty programme: points earned on paid orders, spent at checkout, restored on cancel / refund, balance and history in the account, admin settings and adjustments (retail customers only)
+- [!] TZ1 §11 Account: saved payment methods — needs a payment provider that stores cards (Stripe / PayPal vault); not built
 - [x] TZ1 §12-13 Order statuses with history; payment gateways as separate modules (see TZ4 §19-28 for the untested-provider caveat)
-- [x] TZ1 §14-16 Currencies, languages, country detection and market-specific tax, shipping and payment methods (a per-market product assortment is not built)
+- [x] TZ1 §14-16 Currencies, languages, country detection and market-specific tax, shipping and payment methods (products can be limited to, or hidden from, chosen countries)
 - [x] TZ1 §17-20 Shipping, packaging calculation (boxes / weight / volume), warehouses, stock transfers and movement log
 - [x] TZ1 §21-23 Price types, quantity tiers, promo codes (products, categories, countries, customers, per-customer limit, validity, usage cap)
 - [x] TZ1 §24-26 B2B form, request a quote, CRM push (Bitrix24)
@@ -22,7 +23,7 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ1 §36-37 REST API with auth, rate limits, logging, versioning; signed outbound webhooks (order, payment, inventory events)
 - [x] TZ1 §38 E-mail notifications; Telegram staff alerts
 - [!] TZ1 §38 SMS and customer WhatsApp/Telegram — see TZ4 §40-44
-- [x] TZ1 §39 Abandoned cart e-mail for signed-in customers (push and ad remarketing are not built)
+- [x] TZ1 §39 Abandoned cart e-mail and web push for signed-in customers; product ids on GA4 / Meta events for remarketing audiences, sent only with the visitor's analytics consent (building the audiences and ads happens in your ad accounts; a Google Ads conversion tag needs your conversion id and label)
 - [x] TZ1 §40-41 Wishlist; recommendations (similar, other sizes, bought together, sets)
 - [x] TZ1 §42-45 Mobile-first site, security, daily backup script
 - [x] TZ1 §46-48 Performance at catalogue scale (SQL filtering / sorting / paging / search / suggestions; tested to 20 000 products), search with typo tolerance, filters (CDN needs infrastructure)

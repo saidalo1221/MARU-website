@@ -127,11 +127,11 @@ export default function Checkout() {
   // computed amount instead of staying on the country-less "TBD" preview
   // from the initial page load.
   useEffect(() => {
-    if (!form.country) return
+    if (!form.country && !points) return
     // Debounced while a region is being typed: a request per keystroke can
     // come back out of order and leave the totals on a stale region's tax.
     const timer = setTimeout(
-      () => refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined, region: form.region.trim() || undefined, loyaltyPoints: Number(points) || undefined }).catch(() => {}),
+      () => refresh({ country: form.country || undefined, deliveryMethod: form.delivery_method || undefined, region: form.region.trim() || undefined, loyaltyPoints: Number(points) || undefined }).catch(() => {}),
       form.region || points ? 400 : 0,
     )
     return () => clearTimeout(timer)
