@@ -200,7 +200,13 @@ def test_track_order_wrong_email_or_number_is_indistinguishable_404(client, db_s
     wrong_email = client.post("/api/v1/orders/track", json={"order_number": order.order_number, "email": "x@example.com"})
     wrong_number = client.post("/api/v1/orders/track", json={"order_number": "MARU-NOPE", "email": "alice@example.com"})
     assert wrong_email.status_code == wrong_number.status_code == 404
-    assert wrong_email.json() == wrong_number.json()
+    # Everything except the per-request id must be identical, so the answer never reveals which field was wrong.
+    def without_request_id(response):
+        body = response.json()
+        body["error"] = {k: v for k, v in body["error"].items() if k != "request_id"}
+        return body
+
+    assert without_request_id(wrong_email) == without_request_id(wrong_number)
 
 
 def test_track_order_is_rate_limited(client, db_session, sku):
