@@ -1,4 +1,4 @@
-# MARU — start here (updated 2026-09-30, after the shipments pass)
+# MARU — start here (updated 2026-10-01, after the privacy/ops pass)
 
 Read this file, then `CLAUDE.md` (house rules). Open `HANDOFF.md` only for
 detail on a specific area — it is long. `PRD.md` is the spec. Ignore
@@ -29,7 +29,8 @@ cd frontend && npm run dev -- --host 127.0.0.1      # http://127.0.0.1:5173
   `taskkill //F //T //PID <pid>`.
 - The frontend calls the backend directly at :8000. Requesting `/api/...` on
   :5173 returns HTML with a 200 — that proves nothing.
-- Dev servers may already be running. Check ports 8000/5173 first.
+- Dev servers are NOT running as of 2026-10-01 (ports 8000/5173 were empty
+  at last check). Check the ports first; start them with the commands above.
 - Accounts: `testuser1@example.com` / `TestPass123!` (super_admin). Admin login
   needs an emailed 2FA code (SMTP is configured). Do not run `dev_seed.py`
   against the existing `dev.db`.
@@ -119,7 +120,7 @@ Needs a decision/access from the user (do not guess):
    during cart/checkout (`add_to_cart`, `purchase`, ...), which use the cart
    token; and OpenStreetMap tiles in the address map picker (loaded only when
    that widget is used). Have a lawyer confirm whether those need consent,
-   and there is still no written privacy-policy page to link from the banner.
+   (`/privacy` and `/terms` now exist, but the text is a draft — see State).
 
 Deployment blockers:
 11. Production server has only Python 3.9. `X | None` annotations were
