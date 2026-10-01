@@ -81,14 +81,14 @@ The Dockerfile has **not** been built (no Docker on the dev machine).
 version) and builds the frontend on every push and pull request. The first run
 on GitHub is also the first real Python 3.9 test run - check it.
 
-## Disaster recovery targets (PRD ТЗ№3 §83) - PROPOSAL, needs owner approval before launch
+## Disaster recovery targets (PRD ТЗ№3 §83) - APPROVED by the owner
 
 | Target | Proposed | How it is met today |
 |---|---|---|
 | RPO (data we can afford to lose) | 24 h now; 1 h once binary logging is enabled | nightly `scripts/backup_db.sh`; for 1 h enable MariaDB binlog and ship it hourly |
 | RTO (time to be back) | 4 h | restore procedure above, rehearsed quarterly on staging |
 
-These numbers are the builder's suggestion, not an agreed business decision.
+Approved by the owner on 2026-10-01: RPO 24 h at launch (1 h once binary logging is enabled and shipped hourly), RTO 4 h. Turning on the binary log is a deployment task; the code needs no change.
 
 ## Environments and release flow (PRD ТЗ№3 §94-100)
 
