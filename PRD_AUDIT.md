@@ -156,3 +156,15 @@ a real phone, Safari/Firefox.
 4. ~~Dockerfile + CI + backup runbook~~ written, unverified.
 5. ERP/1C and marketplace only after the vendor/API decisions.
 6. Payments ledger (on hold), product-level tax, then a real queue/worker.
+
+## Update after the autonomous build pass (supersedes the "Missing" items above where they conflict)
+
+- **Done**: real job queue + worker (`jobs` table, retries/backoff, dead letters, admin panel, alerts) and signed inbound
+  webhooks with idempotency; TTL cache with automatic invalidation; adapter interfaces + external id mapping + integration
+  events (ERP/marketplace/shipping/messaging, all Null adapters until a vendor exists); order documents with private storage and
+  signed links; WebP image variants + srcset + lazy loading; phone normalisation; CI lint + dependency scan; load-test script;
+  oversell acceptance test; DR/environment proposals in `OPS_RUNBOOK.md`; `INTEGRATIONS.md`.
+- **Still blocked** (reasons in `PRD.md` build status): payments ledger (on hold by owner), ERP/1C, Uzum/marketplace,
+  SMS/WhatsApp/Telegram providers, GA4/Meta forwarding, Figma deliverables, a staging server, running anything on real MariaDB,
+  real payment sandboxes, product-level tax and per-product promo targeting (not specified enough to build).
+- New SQL is in `app/migration_2026_session12.sql` (tables `jobs`, `webhook_events`, `external_ids`, `order_documents`).

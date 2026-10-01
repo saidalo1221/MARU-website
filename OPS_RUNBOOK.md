@@ -80,3 +80,21 @@ The Dockerfile has **not** been built (no Docker on the dev machine).
 `.github/workflows/ci.yml` runs the backend tests on Python 3.9 (production's
 version) and builds the frontend on every push and pull request. The first run
 on GitHub is also the first real Python 3.9 test run - check it.
+
+## Disaster recovery targets (PRD ТЗ№3 §83) - PROPOSAL, needs owner approval before launch
+
+| Target | Proposed | How it is met today |
+|---|---|---|
+| RPO (data we can afford to lose) | 24 h now; 1 h once binary logging is enabled | nightly `scripts/backup_db.sh`; for 1 h enable MariaDB binlog and ship it hourly |
+| RTO (time to be back) | 4 h | restore procedure above, rehearsed quarterly on staging |
+
+These numbers are the builder's suggestion, not an agreed business decision.
+
+## Environments and release flow (PRD ТЗ№3 §94-100)
+
+Development (a laptop, SQLite) -> CI (GitHub Actions: lint, tests, build, dependency scan) -> Staging (a second
+UzCloud instance with its own database and sandbox keys; **not provisioned yet**) -> Production. Merge to `main` only
+after the CI run is green. Release = tag + `git pull` on the server + run any new `app/migration_*.sql` by hand
+(schema changes only ever come from those versioned files) + restart `maru-backend` (and `maru-worker`). Rollback = check
+out the previous tag and restart; migrations are additive, so they need no undoing. Deploy to staging and click through
+checkout before every production release.

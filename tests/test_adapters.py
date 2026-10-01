@@ -52,3 +52,24 @@ def test_event_reaches_configured_erp_and_saves_its_id(db_session, sku):
     events.emit(db_session, events.ORDER_PAID, order, commit=True)
     assert jobs.run_pending(db_session, "w") == 1
     assert adapters.get_external_id(db_session, "erp", "order", order.id) == f"1C-{order.id}"
+
+
+def test_erp_failure_is_isolated_from_the_order_and_retried(db_session, sku):
+    """PRD ТЗ№4 §78/§98: a broken ERP must not touch the order; its job is retried later."""
+    order = create_order(db_session, _cart_with(db_session, sku, 1), CheckoutRequest(**CHECKOUT_PAYLOAD), None)
+    db_session.commit()
+
+    class BrokenERP(adapters.ERPAdapter):
+        def push_order(self, o): raise ConnectionError("1C is down")
+        def push_stock_levels(self, rows): pass
+
+    adapters.register_adapter("erp", BrokenERP())
+    from app.models.enums import OrderStatus
+    from app.services.order_service import set_order_status
+
+    set_order_status(db_session, order, OrderStatus.PAYMENT_PENDING, None)
+    set_order_status(db_session, order, OrderStatus.PAID, None)  # must not raise
+    assert order.status == OrderStatus.PAID
+    jobs.run_pending(db_session, "w")
+    job = db_session.query(Job).one()
+    assert job.status == "pending" and job.attempts == 1 and "1C is down" in job.last_error
