@@ -36,3 +36,10 @@ def paged(db: Session, response: Response, stmt, count_stmt, params: PageParams,
     response.headers["X-Total-Count"] = str(total)
     result = db.execute(stmt.offset(params.offset).limit(params.limit))
     return list(result.unique().scalars().all() if unique else result.scalars().all())
+
+
+def paged_rows(db: Session, response: Response, stmt, count_stmt, params: PageParams) -> list:
+    """Like paged(), for a statement that selects several columns / entities: returns the rows themselves."""
+    total = db.execute(select(func.count()).select_from(count_stmt.order_by(None).subquery())).scalar_one()
+    response.headers["X-Total-Count"] = str(total)
+    return list(db.execute(stmt.offset(params.offset).limit(params.limit)).all())

@@ -142,6 +142,10 @@ export default function AdminDashboard() {
             </div>
           </Section>
 
+          {(d.month.cost_coverage == null || d.month.cost_coverage < 1) && (
+            <p className="text-xs mb-6"><Link to="/admin/costs" className="text-brand underline">{t('admin.dashboard.costsLink')}</Link></p>
+          )}
+
           <Section title={t('admin.dashboard.markets')}>
             <div className="grid sm:grid-cols-3 gap-3">
               {d.markets.map((m) => (

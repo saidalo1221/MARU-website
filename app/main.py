@@ -28,7 +28,9 @@ from app.routers import (
     admin_integration_logs,
     admin_customers,
     admin_dashboard,
+    admin_costs,
     admin_jobs,
+    admin_markets,
     order_documents,
     loyalty,
     prerender,
@@ -157,7 +159,9 @@ api_v1.include_router(admin_exchange_rates.router)
 api_v1.include_router(admin_integration_logs.router)
 api_v1.include_router(admin_customers.router)
 api_v1.include_router(admin_dashboard.router)
+api_v1.include_router(admin_costs.router)
 api_v1.include_router(admin_jobs.router)
+api_v1.include_router(admin_markets.router)
 api_v1.include_router(order_documents.router)
 api_v1.include_router(loyalty.router)
 api_v1.include_router(push.router)
