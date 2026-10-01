@@ -56,6 +56,10 @@ export function listCategories(lang) {
   return apiRequest(`/categories/${buildQuery({ lang })}`)
 }
 
+export function getRelated(slug, lang, currency) {
+  return apiRequest(`/products/${encodeURIComponent(slug)}/related${buildQuery({ lang, currency })}`)
+}
+
 export function getProduct(slug, lang, currency) {
   return apiRequest(`/products/${encodeURIComponent(slug)}${buildQuery({ lang, currency })}`)
 }

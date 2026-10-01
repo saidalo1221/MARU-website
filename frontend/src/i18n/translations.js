@@ -128,6 +128,9 @@ export const translations = {
     },
     product: { inStock: 'In stock', outOfStock: 'Out of stock', color: 'Color', decreaseQty: 'Decrease quantity', increaseQty: 'Increase quantity', noImage: 'No image', badgeNew: 'New', badgeSale: 'Sale', badgeBestseller: 'Best Seller', badgeOutOfStock: 'Out of Stock', quickView: 'Quick View', quickViewClose: 'Close quick view', viewFullDetails: 'View full details', added: 'Added', ratingLabel: 'Rated {avg} out of 5 from {n} reviews' },
     productDetail: {
+      otherSizes: 'Other sizes',
+      boughtTogether: 'Frequently bought together',
+      inSets: 'Also in sets',
       setContents: 'What is in this set',
       contentAdvantages: 'Advantages',
       contentUsage: 'Where to use it',
@@ -1538,6 +1541,9 @@ export const translations = {
     },
     product: { inStock: 'В наличии', outOfStock: 'Нет в наличии', color: 'Цвет', decreaseQty: 'Уменьшить количество', increaseQty: 'Увеличить количество', noImage: 'Нет изображения', badgeNew: 'Новинка', badgeSale: 'Скидка', badgeBestseller: 'Хит продаж', badgeOutOfStock: 'Нет в наличии', quickView: 'Быстрый просмотр', quickViewClose: 'Закрыть быстрый просмотр', viewFullDetails: 'Подробнее о товаре', added: 'Добавлено', ratingLabel: 'Оценка {avg} из 5, отзывов: {n}' },
     productDetail: {
+      otherSizes: 'Другие размеры',
+      boughtTogether: 'Часто покупают вместе',
+      inSets: 'Также в комплектах',
       setContents: 'Что входит в комплект',
       contentAdvantages: 'Преимущества',
       contentUsage: 'Где использовать',
@@ -2948,6 +2954,9 @@ export const translations = {
     },
     product: { inStock: 'Mavjud', outOfStock: "Mavjud emas", color: 'Rang', decreaseQty: 'Miqdorni kamaytirish', increaseQty: 'Miqdorni oshirish', noImage: "Rasm yo'q", badgeNew: 'Yangi', badgeSale: 'Chegirma', badgeBestseller: 'Ko\'p sotilgan', badgeOutOfStock: 'Mavjud emas', quickView: "Tezkor ko'rish", quickViewClose: "Tezkor ko'rishni yopish", viewFullDetails: "To'liq ma'lumot", added: "Qo'shildi", ratingLabel: "Baho {avg} / 5, sharhlar: {n}" },
     productDetail: {
+      otherSizes: 'Boshqa o\'lchamlar',
+      boughtTogether: 'Ko\'pincha birga sotib olinadi',
+      inSets: 'To\'plamlarda ham bor',
       setContents: 'To\'plamda nimalar bor',
       contentAdvantages: 'Afzalliklar',
       contentUsage: 'Qayerda ishlatish mumkin',

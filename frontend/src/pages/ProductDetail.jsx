@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getProduct, listProducts } from '../api/products'
+import { getProduct, getRelated, listProducts } from '../api/products'
 import { listPageSections } from '../api/pageSections'
 import { trackEvent } from '../lib/analytics'
 import { addToWishlist, getWishlist, removeFromWishlist } from '../api/wishlist'
@@ -56,6 +56,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1)
   const [status, setStatus] = useState(null)
   const [related, setRelated] = useState([])
+  const [groups, setGroups] = useState({ other_sizes: [], bought_together: [], sets: [] })
   const [faq, setFaq] = useState([])
 
   useEffect(() => {
@@ -74,6 +75,10 @@ export default function ProductDetail() {
     listProducts(locale, currency, { sort: 'popularity', limit: 5 })
       .then((list) => setRelated(list.filter((p) => p.slug !== slug).slice(0, 4)))
       .catch(() => {})
+  }, [slug, locale, currency])
+
+  useEffect(() => {
+    getRelated(slug, locale, currency).then(setGroups).catch(() => setGroups({ other_sizes: [], bought_together: [], sets: [] }))
   }, [slug, locale, currency])
 
   useEffect(() => {
@@ -372,6 +377,17 @@ export default function ProductDetail() {
             {faq.map((s) => <FaqItem key={s.id} question={s.title} answer={s.body} />)}
           </div>
         </section>
+      )}
+
+      {[['otherSizes', groups.other_sizes], ['boughtTogether', groups.bought_together], ['inSets', groups.sets]].map(([key, list]) =>
+        list.length > 0 ? (
+          <section key={key} className="mt-12" aria-labelledby={`rel-${key}`}>
+            <h2 id={`rel-${key}`} className="text-xl font-bold mb-4">{t(`productDetail.${key}`)}</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {list.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          </section>
+        ) : null
       )}
 
       {related.length > 0 && (

@@ -18,7 +18,9 @@ from app.services.product_search import search_ids
 from app.core import cache
 from app.config import settings
 from app.models import Category
-from app.schemas.product import CategorySuggestionOut, FacetsOut, ProductSuggestionOut, SuggestOut
+from app.schemas.product import CategorySuggestionOut, FacetsOut, ProductSuggestionOut, RelatedOut, SuggestOut
+from app.models.sku_bundle_item import SkuBundleItem
+from app.services.recommendations import recommended_product_ids
 from app.services.product_search import tokens
 from app.services.currency import CurrencyError, convert_amount
 from app.services.i18n import get_product_translation, get_product_translations
@@ -247,6 +249,40 @@ def facets(category_ids: Optional[str] = Query(default=None, max_length=200), db
         }
 
     return cache.get_or_set("catalog", f"facets:{ids or ''}", settings.CACHE_TTL_SECONDS, load)
+
+
+@router.get("/{slug}/related", response_model=RelatedOut, dependencies=[Depends(rate_limit("products_related", 120, 60))])
+def related_products(slug: str, lang: Optional[str] = None, currency: Optional[str] = None, db: Session = Depends(get_db)) -> dict:
+    """"Other sizes", "Frequently bought together" and "Sets" for the product page (PRD ТЗ№1 §41).
+    Other sizes: same category and shape, different volume. Bought together: sellable products that real past
+    orders contain alongside this one (no filler). Sets: set SKUs whose contents include this product."""
+    product = db.execute(select(Product).where(Product.slug == slug)).scalar_one_or_none()
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    conditions = _sellable_conditions()
+    sellable = select(Product.id).join(ProductVariant, ProductVariant.product_id == Product.id).join(SKU, SKU.variant_id == ProductVariant.id).where(*conditions)
+
+    size_filters = [Product.category_id == product.category_id, Product.id != product.id, Product.volume_ml != product.volume_ml, Product.id.in_(sellable)]
+    if product.shape:
+        size_filters.append(Product.shape == product.shape)
+    size_ids = list(db.execute(select(Product.id).where(*size_filters).order_by(Product.volume_ml, Product.id).limit(5)).scalars())
+
+    ranked, co_count = recommended_product_ids(db, {product.id}, 4)
+    together_ids = ranked[:co_count]
+
+    own_sku_ids = select(SKU.id).join(ProductVariant, ProductVariant.id == SKU.variant_id).where(ProductVariant.product_id == product.id)
+    set_ids = list(db.execute(
+        select(Product.id).join(ProductVariant, ProductVariant.product_id == Product.id).join(SKU, SKU.variant_id == ProductVariant.id)
+        .join(SkuBundleItem, SkuBundleItem.bundle_sku_id == SKU.id)
+        .where(SkuBundleItem.component_sku_id.in_(own_sku_ids), Product.id != product.id, Product.id.in_(sellable))
+        .group_by(Product.id).order_by(Product.id).limit(4)
+    ).scalars())
+
+    return {
+        "other_sizes": _present(db, size_ids, conditions, lang, currency),
+        "bought_together": _present(db, together_ids, conditions, lang, currency),
+        "sets": _present(db, set_ids, conditions, lang, currency),
+    }
 
 
 @router.get("/{slug}", response_model=ProductOut, dependencies=[Depends(rate_limit("products_detail", 120, 60))])

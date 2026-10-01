@@ -159,6 +159,14 @@ class ProductOut(BaseModel):
     rating_count: int = 0
 
 
+class RelatedOut(BaseModel):
+    """Product page suggestions (PRD ТЗ№1 §41), each list may be empty."""
+
+    other_sizes: list[ProductOut] = []
+    bought_together: list[ProductOut] = []
+    sets: list[ProductOut] = []
+
+
 class SKUCreate(BaseModel):
     sku_code: str = Field(min_length=1, max_length=100)
     barcode: Optional[str] = Field(default=None, max_length=50)
