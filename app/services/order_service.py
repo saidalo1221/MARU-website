@@ -19,7 +19,7 @@ from app.models.promo_code import PromoCode
 from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.order import CheckoutRequest
-from app.services import outbound_webhooks, payment_ledger
+from app.services import document_generator, outbound_webhooks, payment_ledger
 from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
 from app.services.audit import log_audit
@@ -409,6 +409,7 @@ def set_order_status(
         integration_events.emit(db, integration_events.ORDER_CANCELLED, order, commit=True)
     for event in outbound_webhooks.STATUS_EVENTS.get(new_status.name, ()):
         outbound_webhooks.emit_for_order(db, event, order)
+    document_generator.generate_for_status(db, order, new_status)
     return order
 
 

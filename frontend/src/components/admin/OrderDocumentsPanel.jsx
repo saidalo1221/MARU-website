@@ -3,7 +3,8 @@ import { apiRequest, errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import { formatDate } from '../../lib/format'
 
-const TYPES = ['invoice', 'fiscal_receipt', 'shipping_document', 'return_document', 'other']
+const TYPES = ['invoice', 'proforma_invoice', 'order_confirmation', 'packing_list', 'fiscal_receipt', 'shipping_document', 'return_document', 'other']
+const GENERATED = ['order_confirmation', 'proforma_invoice', 'invoice', 'packing_list']
 
 export default function OrderDocumentsPanel({ orderId }) {
   const { t } = useLocale()
@@ -39,6 +40,16 @@ export default function OrderDocumentsPanel({ orderId }) {
     }
   }
 
+  const generate = async (docType) => {
+    setError(null)
+    try {
+      await apiRequest(`/admin/orders/${orderId}/documents/generate`, { method: 'POST', body: { doc_type: docType } })
+      await load()
+    } catch (err) {
+      setError(errorMessage(err, t('admin.orderDetail.documentGenerateFailed')))
+    }
+  }
+
   const voidDoc = async (id) => {
     await apiRequest(`/admin/orders/${orderId}/documents/${id}/void`, { method: 'POST' })
     await load()
@@ -62,6 +73,13 @@ export default function OrderDocumentsPanel({ orderId }) {
           ))}
         </ul>
       )}
+      <div className="mb-4">
+        <p className="text-xs text-gray-500 mb-1">{t('admin.orderDetail.documentGenerate')}</p>
+        <div className="flex flex-wrap gap-2">
+          {GENERATED.map((g) => <button key={g} type="button" onClick={() => generate(g)} className="border border-gray-300 rounded px-2 py-1 text-xs">{t(`orderStatus.docType_${g}`)}</button>)}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">{t('admin.orderDetail.documentGenerateHint')}</p>
+      </div>
       <form onSubmit={upload} className="space-y-2">
         <select value={docType} onChange={(e) => setDocType(e.target.value)} aria-label={t('admin.orderDetail.documentType')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
           {TYPES.map((x) => <option key={x} value={x}>{t(`orderStatus.docType_${x}`)}</option>)}

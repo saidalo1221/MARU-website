@@ -2,6 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -11,11 +12,11 @@ from app.database import get_db
 from app.dependencies import get_current_user_optional, require_role
 from app.models.enums import UserRole
 from app.models.order import Order
-from app.models.order_document import DOCUMENT_TYPES, OrderDocument
+from app.models.order_document import DOCUMENT_TYPES, GENERATED_TYPES, OrderDocument
 from app.models.user import User
 from app.routers.orders import _require_order_access
 from app.schemas.document import DocumentLinkOut, OrderDocumentOut
-from app.services import documents
+from app.services import document_generator, documents
 from app.services.audit import log_audit
 
 # Customer side: list a document's metadata and get a short-lived signed link. The file itself is
@@ -71,10 +72,13 @@ def download_document(token: str, db: Session = Depends(get_db)) -> FileResponse
     path = documents.path_of(doc.storage_name)
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Document not found")
-    return FileResponse(
-        path, media_type=doc.content_type, filename=doc.filename,
-        headers={"Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow"},
-    )
+    headers = {"Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow"}
+    if doc.content_type == "text/html":
+        # Our own generated page: show it in the browser (to print / save as PDF), but sandboxed - no scripts,
+        # no forms, nothing it contains can act on the site.
+        headers["Content-Security-Policy"] = "sandbox; default-src 'none'; style-src 'unsafe-inline'"
+        return FileResponse(path, media_type="text/html", filename=doc.filename, content_disposition_type="inline", headers=headers)
+    return FileResponse(path, media_type=doc.content_type, filename=doc.filename, headers=headers)
 
 
 admin_router = APIRouter(prefix="/admin/orders", tags=["admin-order-documents"])
@@ -116,6 +120,30 @@ async def admin_add_document(
     db.add(doc)
     db.flush()
     log_audit(db, user, "order_document_add", "order", order_id, new={"document_id": doc.id, "doc_type": doc_type})
+    db.commit()
+    db.refresh(doc)
+    return doc
+
+
+class GenerateIn(BaseModel):
+    doc_type: str
+
+
+@admin_router.post("/{order_id}/documents/generate", response_model=OrderDocumentOut, status_code=status.HTTP_201_CREATED)
+def admin_generate_document(
+    order_id: int,
+    payload: GenerateIn,
+    user: User = Depends(require_role(UserRole.SALES_MANAGER, UserRole.ACCOUNTANT)),
+    db: Session = Depends(get_db),
+) -> OrderDocument:
+    """Builds (or rebuilds) an order confirmation, invoice, proforma invoice or packing list from the order."""
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if payload.doc_type not in GENERATED_TYPES:
+        raise HTTPException(status_code=400, detail=f"doc_type must be one of {', '.join(GENERATED_TYPES)}")
+    doc = document_generator.generate(db, order, payload.doc_type, actor=user, replace=True)
+    log_audit(db, user, "order_document_generate", "order", order_id, new={"document_id": doc.id, "doc_type": payload.doc_type})
     db.commit()
     db.refresh(doc)
     return doc

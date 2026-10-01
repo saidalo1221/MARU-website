@@ -314,6 +314,9 @@ export const translations = {
       invalidLink: 'This link is invalid or has expired.',
     },
     orderStatus: {
+      docType_proforma_invoice: 'Proforma invoice',
+      docType_order_confirmation: 'Order confirmation',
+      docType_packing_list: 'Packing list',
       payStatus_created: 'Created',
       payStatus_pending: 'Pending',
       payStatus_authorized: 'Authorized',
@@ -626,6 +629,9 @@ export const translations = {
         loadFailed: 'Failed to load orders',
       },
       orderDetail: {
+        documentGenerate: 'Generate a document from this order',
+        documentGenerateFailed: 'Could not generate the document.',
+        documentGenerateHint: 'Created automatically: confirmation when placed, proforma for company orders, invoice when paid, packing list when packed.',
         payments: 'Payments',
         paymentsNone: 'No payment attempts.',
         paymentAttempt: 'Attempt {n}',
@@ -1671,6 +1677,9 @@ export const translations = {
       invalidLink: 'Ссылка недействительна или устарела.',
     },
     orderStatus: {
+      docType_proforma_invoice: 'Проформа-счёт',
+      docType_order_confirmation: 'Подтверждение заказа',
+      docType_packing_list: 'Упаковочный лист',
       payStatus_created: 'Создан',
       payStatus_pending: 'Ожидает оплаты',
       payStatus_authorized: 'Авторизован',
@@ -1983,6 +1992,9 @@ export const translations = {
         loadFailed: 'Не удалось загрузить заказы',
       },
       orderDetail: {
+        documentGenerate: 'Сформировать документ по заказу',
+        documentGenerateFailed: 'Не удалось сформировать документ.',
+        documentGenerateHint: 'Создаются автоматически: подтверждение при оформлении, проформа для заказов юрлиц, счёт при оплате, упаковочный лист при упаковке.',
         payments: 'Платежи',
         paymentsNone: 'Попыток оплаты нет.',
         paymentAttempt: 'Попытка {n}',
@@ -3028,6 +3040,9 @@ export const translations = {
       invalidLink: 'Havola yaroqsiz yoki muddati tugagan.',
     },
     orderStatus: {
+      docType_proforma_invoice: 'Proforma-hisob',
+      docType_order_confirmation: 'Buyurtma tasdig\'i',
+      docType_packing_list: 'Qadoqlash varaqasi',
       payStatus_created: 'Yaratildi',
       payStatus_pending: 'To\'lov kutilmoqda',
       payStatus_authorized: 'Avtorizatsiya qilingan',
@@ -3340,6 +3355,9 @@ export const translations = {
         loadFailed: "Buyurtmalarni yuklab bo'lmadi",
       },
       orderDetail: {
+        documentGenerate: 'Buyurtma bo\'yicha hujjat yaratish',
+        documentGenerateFailed: 'Hujjatni yaratib bo\'lmadi.',
+        documentGenerateHint: 'Avtomatik yaratiladi: buyurtma berilganda tasdiq, yuridik shaxslar uchun proforma, to\'langanda hisob-faktura, qadoqlanganda qadoqlash varaqasi.',
         payments: 'To\'lovlar',
         paymentsNone: 'To\'lov urinishlari yo\'q.',
         paymentAttempt: '{n}-urinish',

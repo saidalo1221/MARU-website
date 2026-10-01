@@ -123,6 +123,14 @@ def _reset_module_level_state():
 
 
 @pytest.fixture(autouse=True)
+def _private_documents_dir(tmp_path, monkeypatch):
+    """Generated order documents must not pile up in the real private folder during tests."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "DOCUMENTS_DIR", str(tmp_path / "docs"))
+
+
+@pytest.fixture(autouse=True)
 def _no_real_email(monkeypatch):
     """The developer's .env may hold real SMTP credentials; without this every
     registration in a test would try to send actual mail."""

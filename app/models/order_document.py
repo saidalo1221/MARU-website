@@ -2,7 +2,11 @@ from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String
 
 from app.database import Base
 
-DOCUMENT_TYPES = ("invoice", "fiscal_receipt", "shipping_document", "return_document", "other")
+DOCUMENT_TYPES = (
+    "invoice", "proforma_invoice", "order_confirmation", "packing_list",
+    "fiscal_receipt", "shipping_document", "return_document", "other",
+)
+GENERATED_TYPES = ("invoice", "proforma_invoice", "order_confirmation", "packing_list")
 
 
 class OrderDocument(Base):
