@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, String, func
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -16,6 +16,10 @@ class Category(Base):
 
     name = Column(String(255), nullable=False)
     slug = Column(String(255), nullable=False, unique=True)
+    # Category page content (PRD ТЗ№2 §10); per-locale overrides live in CategoryTranslation.
+    description = Column(Text, nullable=True)
+    seo_content = Column(Text, nullable=True)
+    image_url = Column(String(500), nullable=True)
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

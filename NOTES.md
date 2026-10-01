@@ -57,3 +57,6 @@ Newest entries last. Blocked items are marked `[!]` in the BUILD STATUS block at
 26. **Country choice can switch the currency** (e.g. Germany -> EUR) but only to a currency the store has a rate for;
     the visitor can change it back with the currency selector.
 27. **Wholesale page tables** list the real minimum order quantity, price and quantity tiers per product; nothing is invented.
+28. **Category pages** live at `/shop/:slug` and reuse the catalog (pinned to the category and its subcategories). Content
+    (description, SEO text, image URL, per-language overrides) is edited under Admin > Categories. The category FAQ block
+    shows the first general FAQ questions (the FAQ topics are not tied to product categories). The sitemap lists category pages.

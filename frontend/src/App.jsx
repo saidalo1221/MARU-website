@@ -63,6 +63,7 @@ import AdminIntegrationLogs from './pages/admin/AdminIntegrationLogs'
 import AdminAuditLog from './pages/admin/AdminAuditLog'
 import AdminAnalyticsEvents from './pages/admin/AdminAnalyticsEvents'
 import AccountDashboard from './pages/AccountDashboard'
+import CategoryPage from './pages/CategoryPage'
 import AccountProfile from './pages/AccountProfile'
 import ContentPage from './pages/ContentPage'
 import NotFound from './pages/NotFound'
@@ -100,6 +101,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/shop/:slug" element={<CategoryPage />} />
           <Route path="/account" element={<AccountDashboard />} />
           <Route path="/account/profile" element={<AccountProfile />} />
           <Route path="/account/orders" element={<OrdersHistory />} />

@@ -18,6 +18,10 @@ export function listProducts(lang, currency, { sort, limit } = {}) {
   return apiRequest(`/products/${qs ? `?${qs}` : ''}`)
 }
 
+export function getCategory(slug, lang) {
+  return apiRequest(`/categories/${encodeURIComponent(slug)}${buildQuery({ lang })}`)
+}
+
 export function listCategories(lang) {
   return apiRequest(`/categories/${buildQuery({ lang })}`)
 }

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { adminCreateCategory, adminDeleteCategory, adminListCategories, adminUpdateCategory } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import CategoryTranslations from '../../components/admin/CategoryTranslations'
 
-const emptyForm = { name: '', slug: '', parent_id: '' }
+const emptyForm = { name: '', slug: '', parent_id: '', description: '', seo_content: '', image_url: '' }
 
 function flatten(nodes, depth = 0) {
   return nodes.flatMap((n) => [{ ...n, depth }, ...flatten(n.children || [], depth + 1)])
@@ -28,14 +29,17 @@ export default function AdminCategories() {
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
   const openNew = () => { setEditingId(null); setForm(emptyForm); setFormError(null); setFormOpen(true) }
-  const openEdit = (c) => { setEditingId(c.id); setForm({ name: c.name, slug: c.slug, parent_id: c.parent_id ?? '' }); setFormError(null); setFormOpen(true) }
+  const openEdit = (c) => { setEditingId(c.id); setForm({ name: c.name, slug: c.slug, parent_id: c.parent_id ?? '', description: c.description || '', seo_content: c.seo_content || '', image_url: c.image_url || '' }); setFormError(null); setFormOpen(true) }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormError(null)
     setSubmitting(true)
     try {
-      const payload = { name: form.name, slug: form.slug, parent_id: form.parent_id === '' ? null : Number(form.parent_id) }
+      const payload = {
+        name: form.name, slug: form.slug, parent_id: form.parent_id === '' ? null : Number(form.parent_id),
+        description: form.description || null, seo_content: form.seo_content || null, image_url: form.image_url || null,
+      }
       if (editingId) await adminUpdateCategory(editingId, payload)
       else await adminCreateCategory(payload)
       setFormOpen(false)
@@ -76,7 +80,11 @@ export default function AdminCategories() {
               <option key={c.id} value={c.id}>{'  '.repeat(c.depth)}{c.name}</option>
             ))}
           </select>
+          <textarea placeholder={t('admin.categories.description')} aria-label={t('admin.categories.description')} value={form.description} onChange={update('description')} rows={3} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <textarea placeholder={t('admin.categories.seoContent')} aria-label={t('admin.categories.seoContent')} value={form.seo_content} onChange={update('seo_content')} rows={4} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="url" placeholder={t('admin.categories.imageUrl')} aria-label={t('admin.categories.imageUrl')} value={form.image_url} onChange={update('image_url')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
           {formError && <p role="alert" className="text-sm text-red-600">{formError}</p>}
+          {editingId && <CategoryTranslations categoryId={editingId} />}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.common.saving') : t('admin.common.save')}

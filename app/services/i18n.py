@@ -14,6 +14,12 @@ from app.models.page_section_translation import PageSectionTranslation
 ALLOWED_LOCALES = ("ru", "uz", "en")
 
 
+def get_category_translation_row(db: Session, category_id: int, locale: str) -> Optional[CategoryTranslation]:
+    return db.execute(
+        select(CategoryTranslation).where(CategoryTranslation.category_id == category_id, CategoryTranslation.locale == locale)
+    ).scalar_one_or_none()
+
+
 def get_category_translations(db: Session, category_ids: list[int], locale: str) -> dict[int, str]:
     if not category_ids:
         return {}

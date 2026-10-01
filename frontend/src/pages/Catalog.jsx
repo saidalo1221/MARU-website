@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { listCategories, listProducts } from '../api/products'
+import { listPageSections } from '../api/pageSections'
+import FaqItem from '../components/FaqItem'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
@@ -22,7 +25,9 @@ function flattenCategories(nodes) {
   return nodes.flatMap((c) => [c, ...flattenCategories(c.children || [])])
 }
 
-export default function Catalog() {
+// `category` (from the category page, PRD ТЗ№2 §10) pins the list to that category and its
+// subcategories and adds the category's own heading, description, image and SEO text.
+export default function Catalog({ category = null }) {
   const { locale, t } = useLocale()
   const { cart } = useCart()
   const currency = cart?.currency
@@ -41,6 +46,7 @@ export default function Catalog() {
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
   const [categories, setCategories] = useState([])
+  const [faq, setFaq] = useState([])
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState(SORT_VALUES.includes(urlSort) ? urlSort : 'default')
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -97,6 +103,15 @@ export default function Catalog() {
     () => [...new Set(products.flatMap((p) => p.variants.map((v) => v.color)))].sort(),
     [products]
   )
+  // Product category ids the pinned category page covers (itself and its children).
+  const pinnedIds = useMemo(
+    () => (category ? new Set([String(category.id), ...(category.children || []).map((c) => String(c.id))]) : null),
+    [category]
+  )
+  useEffect(() => {
+    if (category) listPageSections('faq', locale).then((rows) => setFaq(rows.slice(0, 4))).catch(() => {})
+  }, [category, locale])
+
   const categoryOptions = useMemo(() => {
     const used = new Set(products.map((p) => p.category_id))
     return categories.filter((c) => used.has(c.id))
@@ -105,7 +120,8 @@ export default function Catalog() {
   const filtered = useMemo(() => {
     let list = [...products]
     if (volumeFilter) list = list.filter((p) => String(p.volume_ml) === volumeFilter)
-    if (categoryFilter) list = list.filter((p) => String(p.category_id) === categoryFilter)
+    if (pinnedIds) list = list.filter((p) => pinnedIds.has(String(p.category_id)))
+    else if (categoryFilter) list = list.filter((p) => String(p.category_id) === categoryFilter)
     if (colorFilter) list = list.filter((p) => p.variants.some((v) => v.color === colorFilter))
     if (priceMin !== '') list = list.filter((p) => minPrice(p) >= Number(priceMin))
     if (priceMax !== '') list = list.filter((p) => minPrice(p) <= Number(priceMax))
@@ -152,7 +168,7 @@ export default function Catalog() {
           ))}
         </select>
       </div>
-      {categoryOptions.length > 1 && (
+      {!category && categoryOptions.length > 1 && (
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="filter-category">{t('catalog.category')}</label>
           <select
@@ -211,9 +227,32 @@ export default function Catalog() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <Seo title={t('catalog.title')} />
-      <Breadcrumbs items={[{ to: '/', label: t('header.home') }]} current={t('header.shop')} className="mb-2" />
-      <h1 className="text-2xl font-bold mb-4">{t('catalog.title')}</h1>
+      <Seo title={category ? category.name : t('catalog.title')} description={category?.description || undefined} image={category?.image_url || undefined} />
+      <Breadcrumbs
+        items={[
+          { to: '/', label: t('header.home') },
+          ...(category ? [{ to: '/shop', label: t('header.shop') }] : []),
+          ...(category?.parent ? [{ to: `/shop/${category.parent.slug}`, label: category.parent.name }] : []),
+        ]}
+        current={category ? category.name : t('header.shop')}
+        className="mb-2"
+      />
+      <h1 className="text-2xl font-bold mb-2">{category ? category.name : t('catalog.title')}</h1>
+      {category && (category.description || category.image_url) && (
+        <div className="flex flex-wrap items-start gap-4 mb-4">
+          {category.image_url && <img src={category.image_url} alt="" className="h-28 w-28 rounded-lg object-cover bg-gray-100" />}
+          {category.description && <p className="flex-1 min-w-[16rem] text-gray-600 whitespace-pre-wrap">{category.description}</p>}
+        </div>
+      )}
+      {category?.children?.length > 0 && (
+        <ul aria-label={t('catalog.subcategories')} className="flex flex-wrap gap-2 mb-4">
+          {category.children.map((c) => (
+            <li key={c.id}>
+              <Link to={`/shop/${c.slug}`} className="inline-block border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50">{c.name}</Link>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="flex items-center justify-between mb-4 md:hidden">
         <button
@@ -311,6 +350,18 @@ export default function Catalog() {
           )}
         </div>
       </div>
+
+      {category?.seo_content && (
+        <section className="mt-10 max-w-3xl text-sm text-gray-600 whitespace-pre-wrap" aria-label={category.name}>
+          {category.seo_content}
+        </section>
+      )}
+      {category && faq.length > 0 && (
+        <section className="mt-10 max-w-3xl" aria-labelledby="category-faq">
+          <h2 id="category-faq" className="text-xl font-bold mb-3">{t('home.faqTitle')}</h2>
+          {faq.map((q) => <FaqItem key={q.id} question={q.title} answer={q.body} />)}
+        </section>
+      )}
     </div>
   )
 }

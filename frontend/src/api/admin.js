@@ -83,6 +83,12 @@ export function adminCreateCategory(payload) {
 export function adminUpdateCategory(categoryId, payload) {
   return apiRequest(`/admin/categories/${categoryId}`, { method: 'PATCH', body: payload })
 }
+export function adminListCategoryTranslations(categoryId) {
+  return apiRequest(`/admin/categories/${categoryId}/translations`)
+}
+export function adminUpsertCategoryTranslation(categoryId, locale, payload) {
+  return apiRequest(`/admin/categories/${categoryId}/translations/${locale}`, { method: 'PUT', body: payload })
+}
 export function adminDeleteCategory(categoryId) {
   return apiRequest(`/admin/categories/${categoryId}`, { method: 'DELETE' })
 }

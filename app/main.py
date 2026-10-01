@@ -11,6 +11,7 @@ from app.core.logging_config import configure_logging, init_error_tracking
 from app.core.request_id import install_log_record_factory, new_request_id, request_id_var
 from app.database import get_db
 from app.models.blog_post import BlogPost
+from app.models.category import Category
 from app.models.product import Product
 from app.models.product_variant import ProductVariant
 from app.models.sku import SKU
@@ -203,8 +204,13 @@ def sitemap(db: Session = Depends(get_db)) -> Response:
             "b2b",
             "wholesale",
             "distributor",
+            "manufacturing",
+            "quality",
         )
     ]
+
+    category_slugs = db.execute(select(Category.slug)).scalars().all()
+    urls += [f"{base}/shop/{slug}" for slug in category_slugs]
 
     product_slugs = db.execute(
         select(Product.slug)

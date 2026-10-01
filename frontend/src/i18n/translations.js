@@ -76,6 +76,7 @@ export const translations = {
       cta: 'Shop Containers',
     },
     catalog: {
+      subcategories: 'Subcategories',
       breadcrumb: 'Home / Shop',
       title: 'All Containers',
       filters: 'Filters',
@@ -720,6 +721,11 @@ export const translations = {
         badgeBestseller: 'Best Seller',
       },
       categories: {
+        description: 'Description (shown under the heading)',
+        seoContent: 'SEO text (shown below the products)',
+        imageUrl: 'Image URL (https://...)',
+        translations: 'Translations',
+        translationsFailed: 'Could not load or save translations',
         title: 'Categories',
         add: 'Add Category',
         noParent: 'No parent (top level)',
@@ -1268,6 +1274,7 @@ export const translations = {
       cta: 'Перейти в магазин',
     },
     catalog: {
+      subcategories: 'Подкатегории',
       breadcrumb: 'Главная / Магазин',
       title: 'Все контейнеры',
       filters: 'Фильтры',
@@ -1912,6 +1919,11 @@ export const translations = {
         badgeBestseller: 'Хит продаж',
       },
       categories: {
+        description: 'Описание (под заголовком)',
+        seoContent: 'SEO-текст (под товарами)',
+        imageUrl: 'Ссылка на изображение (https://...)',
+        translations: 'Переводы',
+        translationsFailed: 'Не удалось загрузить или сохранить переводы',
         title: 'Категории',
         add: 'Добавить категорию',
         noParent: 'Без родителя (верхний уровень)',
@@ -2460,6 +2472,7 @@ export const translations = {
       cta: "Do'konga o'tish",
     },
     catalog: {
+      subcategories: 'Pastki toifalar',
       breadcrumb: "Bosh sahifa / Do'kon",
       title: 'Barcha idishlar',
       filters: 'Filtrlar',
@@ -3104,6 +3117,11 @@ export const translations = {
         badgeBestseller: "Ko'p sotilgan",
       },
       categories: {
+        description: 'Tavsif (sarlavha ostida)',
+        seoContent: 'SEO matn (mahsulotlar ostida)',
+        imageUrl: 'Rasm havolasi (https://...)',
+        translations: 'Tarjimalar',
+        translationsFailed: 'Tarjimalarni yuklab yoki saqlab bo\'lmadi',
         title: 'Kategoriyalar',
         add: "Kategoriya qo'shish",
         noParent: "Ota-kategoriyasiz (yuqori daraja)",

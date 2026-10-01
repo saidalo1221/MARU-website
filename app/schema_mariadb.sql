@@ -15,6 +15,9 @@ CREATE TABLE categories (
 	parent_id BIGINT, 
 	name VARCHAR(255) NOT NULL, 
 	slug VARCHAR(255) NOT NULL, 
+	description TEXT, 
+	seo_content TEXT, 
+	image_url VARCHAR(500), 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -224,6 +227,8 @@ CREATE TABLE category_translations (
 	category_id BIGINT NOT NULL, 
 	locale VARCHAR(10) NOT NULL, 
 	name VARCHAR(255) NOT NULL, 
+	description TEXT, 
+	seo_content TEXT, 
 	PRIMARY KEY (id), 
 	CONSTRAINT uq_category_translations_category_locale UNIQUE (category_id, locale), 
 	FOREIGN KEY(category_id) REFERENCES categories (id) ON DELETE CASCADE

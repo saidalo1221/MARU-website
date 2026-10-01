@@ -105,6 +105,17 @@ def delete_category(
         raise HTTPException(status_code=500, detail="Failed to delete category") from exc
 
 
+@router.get("/{category_id}/translations", response_model=list[CategoryTranslationOut])
+def list_category_translations(
+    category_id: int,
+    user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
+    db: Session = Depends(get_db),
+) -> list[CategoryTranslation]:
+    if db.get(Category, category_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+    return list(db.execute(select(CategoryTranslation).where(CategoryTranslation.category_id == category_id)).scalars().all())
+
+
 @router.put("/{category_id}/translations/{locale}", response_model=CategoryTranslationOut)
 def upsert_category_translation(
     category_id: int,
@@ -124,10 +135,15 @@ def upsert_category_translation(
         ).scalar_one_or_none()
 
         if translation is None:
-            translation = CategoryTranslation(category_id=category_id, locale=locale, name=payload.name)
+            translation = CategoryTranslation(
+                category_id=category_id, locale=locale, name=payload.name,
+                description=payload.description or None, seo_content=payload.seo_content or None,
+            )
             db.add(translation)
         else:
             translation.name = payload.name
+            translation.description = payload.description or None
+            translation.seo_content = payload.seo_content or None
 
         db.commit()
     except SQLAlchemyError as exc:

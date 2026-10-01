@@ -7,7 +7,7 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ2 §5-7 Header (Shop/Business/About/Support/Blog menus, country selector), mobile header, footer columns + bottom row
 - [x] TZ2 §8 Home page (11 blocks)
 - [x] TZ2 §9, §50 Catalog: filters (capacity, color, price, category, availability), sort, pagination, mobile bottom sheet
-- [ ] TZ2 §10 Category page (H1, description, image, SEO content, FAQ)
+- [x] TZ2 §10 Category page (H1, description, image, SEO content, FAQ)
 - [x] TZ2 §11, §48-49 Product card (price, old price, discount, availability, rating, Add to Cart, Quick View, Wishlist), badges
 - [x] TZ2 §12-17 Product page (gallery, variants, quantity tiers, CTAs incl. Request a Quote, delivery block)
 - [x] TZ2 §18-19 Search (autocomplete, suggestions, SKU, typo tolerance, results page)
