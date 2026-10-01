@@ -863,6 +863,8 @@ export const translations = {
         saveFailed: 'Failed to save warehouse',
       },
       promoCodes: {
+        targetCountries: 'Delivery countries, comma-separated (empty = all)',
+        targetCustomers: 'Customer account IDs, comma-separated (empty = everyone)',
         maxUsesPerCustomer: 'Max uses per customer',
         targetTitle: 'Limit to (leave empty = whole cart)',
         targetCategories: 'Categories (sub-categories included)',
@@ -2263,6 +2265,8 @@ export const translations = {
         saveFailed: 'Не удалось сохранить склад',
       },
       promoCodes: {
+        targetCountries: 'Страны доставки через запятую (пусто = все)',
+        targetCustomers: 'ID аккаунтов клиентов через запятую (пусто = все)',
         maxUsesPerCustomer: 'Макс. использований на клиента',
         targetTitle: 'Ограничить (пусто = вся корзина)',
         targetCategories: 'Категории (включая подкатегории)',
@@ -3663,6 +3667,8 @@ export const translations = {
         saveFailed: "Omborni saqlab bo'lmadi",
       },
       promoCodes: {
+        targetCountries: 'Yetkazib berish mamlakatlari, vergul bilan (bo\'sh = barchasi)',
+        targetCustomers: 'Mijoz hisob ID lari, vergul bilan (bo\'sh = hamma)',
         maxUsesPerCustomer: 'Mijoz uchun maks. foydalanish',
         targetTitle: 'Cheklash (bo\'sh = butun savat)',
         targetCategories: 'Kategoriyalar (ichki kategoriyalar bilan)',

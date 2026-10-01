@@ -5,7 +5,7 @@ import { useLocale } from '../../context/LocaleContext'
 import Money from '../../components/admin/Money'
 import { listCategories } from '../../api/products'
 
-const emptyForm = { code: '', discount_type: 'percent', discount_value: '', currency: '', min_order_amount: 0, max_uses: '', max_uses_per_customer: '', category_ids: [], product_ids: '', is_active: true }
+const emptyForm = { code: '', discount_type: 'percent', discount_value: '', currency: '', min_order_amount: 0, max_uses: '', max_uses_per_customer: '', category_ids: [], product_ids: '', countries: '', customer_ids: '', is_active: true }
 
 function flatten(nodes, depth = 0) {
   return nodes.flatMap((n) => [{ id: n.id, name: `${'— '.repeat(depth)}${n.name}` }, ...flatten(n.children || [], depth + 1)])
@@ -35,7 +35,7 @@ export default function AdminPromoCodes() {
   const openNew = () => { setEditingId(null); setForm(emptyForm); setFormError(null); setFormOpen(true) }
   const openEdit = (c) => {
     setEditingId(c.id)
-    setForm({ code: c.code, discount_type: c.discount_type, discount_value: c.discount_value, currency: c.currency || '', min_order_amount: c.min_order_amount, max_uses: c.max_uses ?? '', max_uses_per_customer: c.max_uses_per_customer ?? '', category_ids: c.category_ids || [], product_ids: (c.product_ids || []).join(', '), is_active: c.is_active })
+    setForm({ code: c.code, discount_type: c.discount_type, discount_value: c.discount_value, currency: c.currency || '', min_order_amount: c.min_order_amount, max_uses: c.max_uses ?? '', max_uses_per_customer: c.max_uses_per_customer ?? '', category_ids: c.category_ids || [], product_ids: (c.product_ids || []).join(', '), countries: (c.countries || []).join(', '), customer_ids: (c.customer_ids || []).join(', '), is_active: c.is_active })
     setFormError(null)
     setFormOpen(true)
   }
@@ -53,6 +53,8 @@ export default function AdminPromoCodes() {
         max_uses: form.max_uses === '' ? null : Number(form.max_uses),
         max_uses_per_customer: form.max_uses_per_customer === '' ? null : Number(form.max_uses_per_customer),
         category_ids: form.category_ids.length ? form.category_ids : null,
+        countries: form.countries.trim() ? form.countries.split(',').map((x) => x.trim()).filter(Boolean) : null,
+        customer_ids: form.customer_ids.trim() ? form.customer_ids.split(/[\s,]+/).filter(Boolean).map(Number).filter((n) => Number.isInteger(n) && n > 0) : null,
         product_ids: form.product_ids.trim() ? form.product_ids.split(/[\s,]+/).filter(Boolean).map(Number).filter((n) => Number.isInteger(n) && n > 0) : null,
         is_active: form.is_active,
       }
@@ -104,6 +106,8 @@ export default function AdminPromoCodes() {
             </div>
             <input placeholder={t('admin.promoCodes.targetProducts')} aria-label={t('admin.promoCodes.targetProducts')} value={form.product_ids} onChange={update('product_ids')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
           </fieldset>
+          <input placeholder={t('admin.promoCodes.targetCountries')} aria-label={t('admin.promoCodes.targetCountries')} value={form.countries} onChange={update('countries')} className="col-span-2 border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.promoCodes.targetCustomers')} aria-label={t('admin.promoCodes.targetCustomers')} value={form.customer_ids} onChange={update('customer_ids')} className="col-span-2 border border-gray-300 rounded px-3 py-2 text-sm" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}</label>
           {formError && <p role="alert" className="text-sm text-red-600 col-span-2">{formError}</p>}
           <div className="col-span-2 flex gap-2">

@@ -117,6 +117,7 @@ def validate_promo(
     lines: Optional[list] = None,
     user_id: Optional[int] = None,
     email: Optional[str] = None,
+    country: Optional[str] = None,
 ) -> PromoCode:
     """Read-only validation for cart-preview use. Does not lock the row or
     increment used_count — checkout redeems atomically (redeem_promo). `lines` is a list of
@@ -133,6 +134,10 @@ def validate_promo(
         raise PromoCodeError("Promo code has expired")
     if promo.max_uses is not None and promo.used_count >= promo.max_uses:
         raise PromoCodeError("Promo code usage limit reached")
+    if promo.customer_ids and user_id not in promo.customer_ids:
+        raise PromoCodeError("This promo code is not available for your account")
+    if promo.countries and country and country.strip().lower() not in {c.lower() for c in promo.countries}:
+        raise PromoCodeError("This promo code is not valid for your delivery country")
     if promo.max_uses_per_customer is not None and customer_uses(db, promo.id, user_id, email) >= promo.max_uses_per_customer:
         raise PromoCodeError("You have already used this promo code the maximum number of times")
     counted = subtotal

@@ -227,7 +227,7 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
             promo = validate_promo(
                 db, checkout.promo_code, subtotal, cart.currency,
                 lines=[(item.sku, total) for item, _price, total in line_data],
-                user_id=user.id if user is not None else None, email=checkout.email,
+                user_id=user.id if user is not None else None, email=checkout.email, country=checkout.country,
             )
         except PromoCodeError as exc:
             raise OrderError(str(exc)) from exc

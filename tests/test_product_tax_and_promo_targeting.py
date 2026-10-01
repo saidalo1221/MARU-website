@@ -1,5 +1,6 @@
 """PRD ТЗ№3 §74 (product-level tax) and §23 (promo targeting + per-customer limits)."""
 
+import uuid
 from decimal import Decimal
 
 import pytest
@@ -40,7 +41,7 @@ def _add_product(db_session, warehouse, slug, price, tax_class="standard", categ
 
 
 def _cart(db_session, *skus_qty):
-    cart = Cart(token=f"t-{id(object())}")
+    cart = Cart(token=f"t-{uuid.uuid4().hex}")
     db_session.add(cart)
     db_session.flush()
     for sku, qty in skus_qty:
@@ -206,3 +207,43 @@ def test_cart_preview_shows_targeted_discount_and_per_line_tax(client, db_sessio
     body = r.json()
     assert Decimal(str(body["discount"])) == Decimal("50.00")
     assert Decimal(str(body["tax"])) == Decimal("5.00")  # (100 - 50) * 10%, the exempt line pays nothing
+
+
+# ---------------------------------------------------------------- country and customer lists (PRD ТЗ№1 §23)
+
+def test_country_list_restricts_where_the_code_works(db_session, warehouse, sku):
+    _promo(db_session, countries=["kazakhstan", "Uzbekistan"])
+    order = _order(db_session, _cart(db_session, (sku, 1)), promo_code="SAVE")  # CHECKOUT_PAYLOAD ships to Uzbekistan
+    assert order.discount_amount == Decimal("1.00")
+    with pytest.raises(OrderError, match="delivery country"):
+        create_order(db_session, _cart(db_session, (sku, 1)), CheckoutRequest(**{**CHECKOUT_PAYLOAD, "promo_code": "SAVE", "country": "Germany"}), None)
+    db_session.rollback()
+
+
+def test_customer_list_limits_the_code_to_named_accounts(client, db_session, warehouse, sku):
+    from app.models.user import User
+    from conftest import register
+
+    register(client, "vip@example.com")
+    register(client, "other@example.com")
+    vip = db_session.query(User).filter_by(email="vip@example.com").one()
+    other = db_session.query(User).filter_by(email="other@example.com").one()
+    _promo(db_session, customer_ids=[vip.id])
+
+    assert _order(db_session, _cart(db_session, (sku, 1)), user=vip, promo_code="SAVE").discount_amount == Decimal("1.00")
+    for who in (other, None):  # another account, and a guest
+        with pytest.raises(OrderError, match="not available for your account"):
+            create_order(db_session, _cart(db_session, (sku, 1)), CheckoutRequest(**{**CHECKOUT_PAYLOAD, "promo_code": "SAVE"}), who)
+        db_session.rollback()
+
+
+def test_admin_api_saves_the_lists(client, db_session, sku):
+    from app.models.enums import UserRole
+    from conftest import login, make_admin
+
+    make_admin(db_session, "mk@example.com", UserRole.MARKETING_MANAGER)
+    h = login(client, "mk@example.com")
+    r = client.post("/api/v1/admin/promo-codes/", json={"code": "KZ10", "discount_type": "percent", "discount_value": "10", "countries": ["Kazakhstan"], "customer_ids": [5, 7]}, headers=h)
+    assert r.status_code == 201, r.text
+    assert r.json()["countries"] == ["Kazakhstan"] and r.json()["customer_ids"] == [5, 7]
+    assert client.patch(f"/api/v1/admin/promo-codes/{r.json()['id']}", json={"countries": []}, headers=h).json()["countries"] is None  # empty = no restriction

@@ -81,6 +81,8 @@ CREATE TABLE promo_codes (
 	product_ids TEXT, 
 	category_ids TEXT, 
 	max_uses_per_customer INTEGER, 
+	countries TEXT, 
+	customer_ids TEXT, 
 	valid_from DATETIME, 
 	valid_until DATETIME, 
 	is_active BOOL NOT NULL, 

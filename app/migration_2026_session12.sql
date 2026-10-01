@@ -239,3 +239,8 @@ CREATE TABLE stock_movements (
 	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_stock_movements_sku_id ON stock_movements (sku_id);
+
+-- Promo codes limited to delivery countries / named customers (PRD ТЗ№1 §23).
+ALTER TABLE promo_codes
+    ADD COLUMN countries TEXT NULL,
+    ADD COLUMN customer_ids TEXT NULL;

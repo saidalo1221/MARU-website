@@ -17,6 +17,8 @@ class PromoCodeCreate(BaseModel):
     max_uses_per_customer: Optional[int] = Field(default=None, ge=1)
     product_ids: Optional[list[int]] = None
     category_ids: Optional[list[int]] = None
+    countries: Optional[list[str]] = None
+    customer_ids: Optional[list[int]] = None
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
     is_active: bool = True
@@ -31,6 +33,8 @@ class PromoCodeUpdate(BaseModel):
     max_uses_per_customer: Optional[int] = Field(default=None, ge=1)
     product_ids: Optional[list[int]] = None
     category_ids: Optional[list[int]] = None
+    countries: Optional[list[str]] = None
+    customer_ids: Optional[list[int]] = None
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
     is_active: Optional[bool] = None
@@ -50,6 +54,8 @@ class PromoCodeOut(BaseModel):
     max_uses_per_customer: Optional[int] = None
     product_ids: Optional[list[int]] = None
     category_ids: Optional[list[int]] = None
+    countries: Optional[list[str]] = None
+    customer_ids: Optional[list[int]] = None
     valid_from: Optional[datetime]
     valid_until: Optional[datetime]
     is_active: bool

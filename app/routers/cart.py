@@ -134,7 +134,7 @@ def _build_cart_out(
         try:
             promo = validate_promo(
                 db, promo_code, subtotal, cart.currency,
-                lines=cart_lines, user_id=user_id,
+                lines=cart_lines, user_id=user_id, country=country,
             )
         except PromoCodeError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

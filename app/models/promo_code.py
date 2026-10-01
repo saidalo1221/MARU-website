@@ -25,10 +25,23 @@ class IntList(TypeDecorator):
         return json.loads(value) if value else None
 
 
+class StrList(TypeDecorator):
+    """A list of strings kept as JSON text; None / empty means "no restriction"."""
+
+    impl = Text
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        return json.dumps(sorted({str(v).strip() for v in value if str(v).strip()})) if value else None
+
+    def process_result_value(self, value, dialect):
+        return json.loads(value) if value else None
+
+
 class PromoCode(Base):
     """A code with a min order amount, expiry window and usage cap, optionally limited to certain
-    products / categories (PRD section 23) and to a number of uses per customer. Per-country
-    targeting is not built."""
+    products / categories, to delivery countries, to named customer accounts (PRD section 23) and to a
+    number of uses per customer."""
 
     __tablename__ = "promo_codes"
     __table_args__ = {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4"}
@@ -48,6 +61,9 @@ class PromoCode(Base):
     product_ids = Column(IntList, nullable=True)
     category_ids = Column(IntList, nullable=True)
     max_uses_per_customer = Column(Integer, nullable=True)
+    # Who can use it: only these delivery countries (names, any case) and/or only these customer account ids.
+    countries = Column(StrList, nullable=True)
+    customer_ids = Column(IntList, nullable=True)
 
     valid_from = Column(DateTime, nullable=True)
     valid_until = Column(DateTime, nullable=True)
