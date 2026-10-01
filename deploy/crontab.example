@@ -16,6 +16,8 @@ PY=/srv/maru/venv/bin/python
 */15 * * * *  cd $APP && $PY -m app.tasks.notify_back_in_stock  >> /var/log/maru/stock-alerts.log 2>&1
 # Abandoned-cart reminder e-mails (signed-in customers only)
 5 * * * *     cd $APP && $PY -m app.tasks.abandoned_carts       >> /var/log/maru/abandoned-carts.log 2>&1
+# Loyalty points that expired (only does anything when an expiry period is set in Admin > Loyalty)
+30 3 * * *    cd $APP && $PY -m app.tasks.expire_loyalty_points >> /var/log/maru/loyalty.log 2>&1
 # Exchange rates (free API tier: once a day is plenty)
 10 3 * * *    cd $APP && $PY -m app.tasks.sync_exchange_rates   >> /var/log/maru/fx.log 2>&1
 # Stock drift report (exit status 1 = mismatches found; read it before adding --fix)

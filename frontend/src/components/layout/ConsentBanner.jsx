@@ -5,18 +5,20 @@ import { useLocale } from '../../context/LocaleContext'
 
 // Asks for optional-tracking consent until the visitor chooses, and again
 // whenever the footer's "Cookie settings" link is used. Declining is as easy as
-// accepting, and both checkboxes start unticked.
+// accepting, and all checkboxes start unticked.
 export default function ConsentBanner() {
   const { t } = useLocale()
   const consent = useConsent()
   const [reopened, setReopened] = useState(false)
   const [analytics, setAnalytics] = useState(false)
+  const [ads, setAds] = useState(false)
   const [geo, setGeo] = useState(false)
 
   useEffect(
     () =>
       onOpenConsentSettings(() => {
         setAnalytics(consent?.analytics === true)
+        setAds(consent?.ads === true)
         setGeo(consent?.geo === true)
         setReopened(true)
       }),
@@ -41,10 +43,14 @@ export default function ConsentBanner() {
           {t('consent.text')}{' '}
           <Link to="/privacy" className="underline">{t('consent.policyLink')}</Link>
         </p>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mb-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-6 mb-3">
           <label className="flex items-start gap-2">
             <input type="checkbox" checked={analytics} onChange={(e) => setAnalytics(e.target.checked)} className="mt-1" />
             <span>{t('consent.analytics')}</span>
+          </label>
+          <label className="flex items-start gap-2">
+            <input type="checkbox" checked={ads} onChange={(e) => setAds(e.target.checked)} className="mt-1" />
+            <span>{t('consent.ads')}</span>
           </label>
           <label className="flex items-start gap-2">
             <input type="checkbox" checked={geo} onChange={(e) => setGeo(e.target.checked)} className="mt-1" />
@@ -52,13 +58,13 @@ export default function ConsentBanner() {
           </label>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => choose({ analytics: true, geo: true })} className="bg-brand text-white rounded px-4 py-2 font-medium">
+          <button onClick={() => choose({ analytics: true, ads: true, geo: true })} className="bg-brand text-white rounded px-4 py-2 font-medium">
             {t('consent.acceptAll')}
           </button>
-          <button onClick={() => choose({ analytics: false, geo: false })} className="border border-brand text-brand rounded px-4 py-2 font-medium">
+          <button onClick={() => choose({ analytics: false, ads: false, geo: false })} className="border border-brand text-brand rounded px-4 py-2 font-medium">
             {t('consent.essentialOnly')}
           </button>
-          <button onClick={() => choose({ analytics, geo })} className="border border-gray-300 rounded px-4 py-2">
+          <button onClick={() => choose({ analytics, ads, geo })} className="border border-gray-300 rounded px-4 py-2">
             {t('consent.save')}
           </button>
         </div>

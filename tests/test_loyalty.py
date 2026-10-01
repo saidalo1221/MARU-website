@@ -147,3 +147,86 @@ def test_admin_settings_and_adjustments(client, db_session, sku):
 def test_split_adds_up_exactly():
     parts = loyalty.split(Decimal("0.07"), [Decimal("3.33"), Decimal("3.33"), Decimal("3.34"), Decimal("0")])
     assert sum(parts) == Decimal("0.07") and parts[3] == Decimal("0.00")
+
+
+# ---------------------------------------------------------------- decisions the business makes in the admin panel
+
+def _admin_marketing(client, db_session):
+    make_admin(db_session, "mk@example.com", UserRole.MARKETING_MANAGER)
+    return login(client, "mk@example.com")
+
+
+def _settings_body(**over):
+    return {"enabled": True, "earn_per_usd": "1", "point_value_usd": "0.01", "max_redeem_percent": 50, "expiry_days": 0, "eligible_customer_types": ["retail"], **over}
+
+
+def test_admin_chooses_which_customer_types_take_part(client, db_session, sku):
+    user = _customer(client, db_session)
+    user.customer_type = CustomerType.WHOLESALE
+    db_session.commit()
+    set_order_status(db_session, _order(db_session, sku, user, qty=1), OrderStatus.PAID, None)
+    assert loyalty.balance(db_session, user.id) == 0                       # default: retail only
+
+    ah = _admin_marketing(client, db_session)
+    r = client.put("/api/v1/admin/loyalty/settings", json=_settings_body(eligible_customer_types=["retail", "wholesale"]), headers=ah)
+    assert r.status_code == 200 and set(r.json()["eligible_customer_types"]) == {"retail", "wholesale"}
+    set_order_status(db_session, _order(db_session, sku, user, qty=1), OrderStatus.PAID, None)
+    assert loyalty.balance(db_session, user.id) == 10                      # now wholesale customers earn too
+    assert client.put("/api/v1/admin/loyalty/settings", json=_settings_body(eligible_customer_types=["gold"]), headers=ah).status_code == 422
+
+
+def test_tiers_raise_the_earning_rate_and_are_shown_to_the_customer(client, db_session, sku):
+    user = _customer(client, db_session)
+    ah = _admin_marketing(client, db_session)
+    tiers = [{"name": "Silver", "min_points_earned": 20, "earn_multiplier": "1.5"}, {"name": "Gold", "min_points_earned": 100, "earn_multiplier": "2"}]
+    assert client.put("/api/v1/admin/loyalty/tiers", json={"tiers": tiers}, headers=ah).status_code == 200
+    assert client.put("/api/v1/admin/loyalty/tiers", json={"tiers": tiers + [tiers[0]]}, headers=ah).status_code == 400   # same threshold twice
+
+    set_order_status(db_session, _order(db_session, sku, user, qty=2), OrderStatus.PAID, None)     # 20 points, no tier yet
+    assert loyalty.balance(db_session, user.id) == 20
+    me = client.get("/api/v1/loyalty/me", headers=login(client, "alice@example.com")).json()
+    assert me["tier"]["name"] == "Silver" and me["next_tier"] == {"name": "Gold", "points_needed": 80, "earn_multiplier": 2.0}
+    set_order_status(db_session, _order(db_session, sku, user, qty=2), OrderStatus.PAID, None)     # Silver: 20 x 1.5
+    assert loyalty.balance(db_session, user.id) == 50
+    assert client.put("/api/v1/admin/loyalty/tiers", json={"tiers": []}, headers=ah).json() == []   # tiers off again
+
+
+def test_points_expire_oldest_first_only_when_the_business_sets_a_period(client, db_session, sku):
+    from datetime import timedelta
+
+    user = _customer(client, db_session)
+    now = loyalty.datetime.now(loyalty.timezone.utc).replace(tzinfo=None)
+    old = LoyaltyTransaction(user_id=user.id, kind="earn", points=100, created_at=now - timedelta(days=400))
+    recent = LoyaltyTransaction(user_id=user.id, kind="earn", points=50, created_at=now - timedelta(days=10))
+    db_session.add_all([old, recent])
+    db_session.flush()
+    db_session.add(LoyaltyTransaction(user_id=user.id, kind="redeem", points=-30, created_at=now - timedelta(days=5)))  # spends the OLD batch first
+    db_session.commit()
+    assert loyalty.expire_due(db_session, user.id) == 0                    # expiry off: nothing happens
+    assert loyalty.balance(db_session, user.id) == 120
+
+    ah = _admin_marketing(client, db_session)
+    client.put("/api/v1/admin/loyalty/settings", json=_settings_body(expiry_days=365), headers=ah)
+    assert loyalty.expire_due(db_session, user.id) == 70                   # 100 - 30 spent from the old batch
+    assert loyalty.balance(db_session, user.id) == 50                      # the recent 50 survive
+    assert loyalty.expire_due(db_session, user.id) == 0                    # idempotent
+    me = client.get("/api/v1/loyalty/me", headers=login(client, "alice@example.com")).json()
+    assert me["expiry_days"] == 365 and me["history"][0]["kind"] == "expire"
+
+
+def test_expiry_task_covers_every_customer(client, db_session):
+    from datetime import timedelta
+
+    from app.tasks import expire_loyalty_points
+
+    a = _customer(client, db_session, "a@example.com")
+    b = _customer(client, db_session, "b@example.com")
+    now = loyalty.datetime.now(loyalty.timezone.utc).replace(tzinfo=None)
+    for u, pts in ((a, 10), (b, 20)):
+        db_session.add(LoyaltyTransaction(user_id=u.id, kind="earn", points=pts, created_at=now - timedelta(days=400)))
+    db_session.commit()
+    assert expire_loyalty_points.run(db_session) == 0                      # off by default
+    loyalty.get_settings(db_session).expiry_days = 365
+    db_session.commit()
+    assert expire_loyalty_points.run(db_session) == 30
+    assert loyalty.balance(db_session, a.id) == 0 and loyalty.balance(db_session, b.id) == 0

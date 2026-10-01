@@ -65,7 +65,7 @@ class Order(Base):
     payment_method = Column(String(50), nullable=False)
     # Loyalty points the customer spent on this order and what they were worth (already inside discount_amount).
     # The visitor allowed analytics / ad measurement when ordering: only then is the purchase sent to GA4 / Meta.
-    analytics_consent = Column(Boolean, nullable=False, default=False, server_default="0")
+    ads_consent = Column(Boolean, nullable=False, default=False, server_default="0")
     loyalty_points_used = Column(Integer, nullable=False, default=0, server_default="0")
     loyalty_discount_amount = Column(DECIMAL(12, 2), nullable=False, default=0, server_default="0")
     # Site language at checkout (ru/uz/en) and whether the customer agreed to WhatsApp updates.

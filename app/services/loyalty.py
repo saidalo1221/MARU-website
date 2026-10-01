@@ -1,9 +1,9 @@
 """Loyalty points (PRD ТЗ№1 §11 bonuses, §62 loyalty programme).
 
 Rules (all adjustable in the admin panel except where noted):
-- Only retail customers with an account take part; wholesale / distributor / export / special customers have their
-  own price lists, so points are neither earned nor spent by them.
-- Points are earned when an order is paid: floor(goods paid in USD x earn_per_usd), where "goods paid" is the
+- Only customer types the business ticked in Admin > Loyalty take part (retail by default; wholesale / distributor /
+  export / special customers have their own price lists, so they are left out unless the business decides otherwise).
+- Points are earned when an order is paid: floor(goods paid in USD x earn_per_usd x tier multiplier), where "goods paid" is the
   subtotal minus every discount (promo and points), without delivery or tax.
 - Points can pay for part of an order at checkout: each point is worth `point_value_usd`, and at most
   `max_redeem_percent` of the goods (after promo discounts) can be paid that way. The discount is spread over the
@@ -11,8 +11,11 @@ Rules (all adjustable in the admin panel except where noted):
 - An order that never completes (cancelled or payment failed before being paid) gives the spent points back; a paid
   order that is refunded or cancelled loses the points it earned and gets the spent points back. Each of these happens
   at most once per order.
+- Tiers (optional): the customer's tier is the highest one whose threshold their lifetime earned points reach.
+- Expiry (optional): earned points left unspent after `expiry_days` are removed; the oldest points are spent first.
 """
 
+from datetime import datetime, timedelta, timezone
 from decimal import ROUND_DOWN, Decimal
 from typing import Optional
 
@@ -20,8 +23,8 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models.enums import CustomerType, OrderStatus
-from app.models.loyalty import ADJUST, EARN, EARN_REVERSE, REDEEM, REDEEM_RESTORE, LoyaltySettings, LoyaltyTransaction
+from app.models.enums import OrderStatus
+from app.models.loyalty import ADJUST, EARN, EARN_REVERSE, EXPIRE, REDEEM, REDEEM_RESTORE, LoyaltySettings, LoyaltyTier, LoyaltyTransaction
 from app.models.user import User
 from app.services.currency import CurrencyError, convert_amount
 
@@ -44,8 +47,67 @@ def get_settings(db: Session) -> LoyaltySettings:
     return row
 
 
-def takes_part(user: Optional[User]) -> bool:
-    return user is not None and user.customer_type == CustomerType.RETAIL
+def eligible_types(settings: LoyaltySettings) -> set:
+    return {t.strip() for t in (settings.eligible_customer_types or "").split(",") if t.strip()}
+
+
+def takes_part(user: Optional[User], settings: LoyaltySettings) -> bool:
+    return user is not None and user.customer_type.value in eligible_types(settings)
+
+
+def lifetime_earned(db: Session, user_id: int) -> int:
+    return int(db.execute(
+        select(func.coalesce(func.sum(LoyaltyTransaction.points), 0)).where(LoyaltyTransaction.user_id == user_id, LoyaltyTransaction.kind.in_((EARN, EARN_REVERSE)))
+    ).scalar_one())
+
+
+def tiers(db: Session) -> list:
+    return list(db.execute(select(LoyaltyTier).order_by(LoyaltyTier.min_points_earned)).scalars())
+
+
+def tier_of(db: Session, user_id: int) -> Optional[LoyaltyTier]:
+    earned = lifetime_earned(db, user_id)
+    best = None
+    for tier in tiers(db):
+        if tier.min_points_earned <= earned:
+            best = tier
+    return best
+
+
+def next_tier(db: Session, user_id: int) -> Optional[dict]:
+    earned = lifetime_earned(db, user_id)
+    for tier in tiers(db):
+        if tier.min_points_earned > earned:
+            return {"name": tier.name, "points_needed": tier.min_points_earned - earned, "earn_multiplier": float(tier.earn_multiplier)}
+    return None
+
+
+def expire_due(db: Session, user_id: int, now: Optional[datetime] = None) -> int:
+    """Removes this customer's earned points that stayed unspent past `expiry_days` (oldest are spent first, so only
+    what is genuinely left of an old batch expires). Returns the points expired; writes one `expire` row."""
+    settings = get_settings(db)
+    if not settings.expiry_days or settings.expiry_days <= 0:
+        return 0
+    now = now or datetime.now(timezone.utc).replace(tzinfo=None)
+    cutoff = now - timedelta(days=settings.expiry_days)
+    rows = db.execute(select(LoyaltyTransaction).where(LoyaltyTransaction.user_id == user_id).order_by(LoyaltyTransaction.id)).scalars().all()
+    lots = []  # [remaining points, created_at] of every batch that added points, oldest first
+    for row in rows:
+        if row.points > 0:
+            lots.append([row.points, row.created_at])
+        else:
+            take = -row.points
+            for lot in lots:
+                used = min(lot[0], take)
+                lot[0] -= used
+                take -= used
+                if take <= 0:
+                    break
+    expired = sum(lot[0] for lot in lots if lot[0] > 0 and lot[1] is not None and lot[1] <= cutoff)
+    if expired > 0:
+        db.add(LoyaltyTransaction(user_id=user_id, kind=EXPIRE, points=-expired, note=f"Unspent for more than {settings.expiry_days} days"))
+        db.flush()
+    return expired
 
 
 def balance(db: Session, user_id: int) -> int:
@@ -64,8 +126,9 @@ def point_value(db: Session, currency: str, settings: Optional[LoyaltySettings] 
 def max_points_for(db: Session, user: Optional[User], goods_net: Decimal, currency: str) -> int:
     """The most points this customer may spend on goods worth `goods_net` (after promo discounts)."""
     settings = get_settings(db)
-    if not settings.enabled or not takes_part(user) or goods_net <= 0:
+    if not settings.enabled or not takes_part(user, settings) or goods_net <= 0:
         return 0
+    expire_due(db, user.id)
     value = point_value(db, currency, settings)
     if value <= 0:
         return 0
@@ -77,8 +140,9 @@ def max_points_for(db: Session, user: Optional[User], goods_net: Decimal, curren
 def summary(db: Session, user: Optional[User], goods_net: Decimal, currency: str) -> Optional[dict]:
     """What the cart / checkout shows: None for guests and customers outside the programme."""
     settings = get_settings(db)
-    if not settings.enabled or not takes_part(user):
+    if not settings.enabled or not takes_part(user, settings):
         return None
+    expire_due(db, user.id)
     return {
         "balance": balance(db, user.id),
         "max_points": max_points_for(db, user, goods_net, currency),
@@ -159,8 +223,10 @@ def on_status_change(db: Session, order, old_status: OrderStatus, new_status: Or
     if new_status == OrderStatus.PAID and not was_paid:
         settings = get_settings(db)
         user = db.get(User, order.user_id)
-        if settings.enabled and takes_part(user):
-            earned = int((_goods_paid_usd(db, order) * Decimal(str(settings.earn_per_usd))).to_integral_value(rounding=ROUND_DOWN))
+        if settings.enabled and takes_part(user, settings):
+            tier = tier_of(db, order.user_id)
+            multiplier = Decimal(str(tier.earn_multiplier)) if tier is not None else Decimal("1")
+            earned = int((_goods_paid_usd(db, order) * Decimal(str(settings.earn_per_usd)) * multiplier).to_integral_value(rounding=ROUND_DOWN))
             _add(db, order.user_id, EARN, earned, order.id, f"Order {order.order_number}")
     elif new_status in (OrderStatus.CANCELLED, OrderStatus.PAYMENT_FAILED) and not was_paid:
         _add(db, order.user_id, REDEEM_RESTORE, spent, order.id, f"Order {order.order_number} did not complete")

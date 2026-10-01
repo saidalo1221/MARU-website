@@ -6,7 +6,7 @@ import pytest
 import requests
 
 from app.config import settings
-from app.core.request_id import analytics_consent_var
+from app.core.request_id import ads_consent_var
 from app.models.job import Job
 from app.services import jobs
 from app.services.analytics import record_event
@@ -18,9 +18,9 @@ def configured(monkeypatch):
     monkeypatch.setattr(settings, "GA4_MEASUREMENT_ID", "G-TEST")
     monkeypatch.setattr(settings, "GA4_API_SECRET", "TOPSECRET")
     monkeypatch.setattr(settings, "GA4_DEBUG", False)
-    token = analytics_consent_var.set(True)  # the visitor accepted analytics
+    token = ads_consent_var.set(True)  # the visitor accepted analytics
     yield
-    analytics_consent_var.reset(token)
+    ads_consent_var.reset(token)
 
 
 class _Resp:

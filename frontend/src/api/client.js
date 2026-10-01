@@ -86,8 +86,8 @@ export async function apiRequest(
   if (cartToken) headers['X-Cart-Token'] = cartToken
 
   if (orderToken) headers['X-Order-Token'] = orderToken
-  // Ad platforms (GA4 / Meta) only hear about visitors who accepted analytics in the cookie banner.
-  if (hasConsent('analytics')) headers['X-Analytics-Consent'] = '1'
+  // Ad platforms (GA4 / Meta) only hear about visitors who accepted advertising in the cookie banner.
+  if (hasConsent('ads')) headers['X-Ads-Consent'] = '1'
   if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey
 
   const res = await fetch(`${API_BASE_URL}${path}`, {

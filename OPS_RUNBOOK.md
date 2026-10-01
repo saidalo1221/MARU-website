@@ -11,6 +11,7 @@ machine). Treat every step as "verify on staging first".
 | Sync exchange rates | `python -m app.tasks.sync_exchange_rates` | daily |
 | Back-in-stock emails | `python -m app.tasks.notify_back_in_stock` | every 10-15 min |
 | Abandoned-cart reminders (`ABANDONED_CART_HOURS`, one e-mail per cart, signed-in customers) | `python -m app.tasks.abandoned_carts` | hourly |
+| Expire unspent loyalty points (no-op while Admin > Loyalty has no expiry period) | `python -m app.tasks.expire_loyalty_points` | daily |
 | Alerts (dead-letter / stuck integrations / payment-failure spike; needs `ALERT_EMAIL`, thresholds `ALERT_*`; same alert not repeated within `ALERT_COOLDOWN_MINUTES`) | `python -m app.tasks.check_alerts` | every 10 min |
 | Stock drift report | `python -m app.tasks.reconcile_stock` (add `--fix` only after reading the report; exit 1 = mismatches found; also emails `ALERT_EMAIL` if set) | nightly |
 | Database + uploads backup | `scripts/backup_db.sh` | daily, 02:15 |

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.core.errors import install_error_handlers
 from app.core.logging_config import configure_logging, init_error_tracking
-from app.core.request_id import client_ip_var, install_log_record_factory, new_request_id, request_id_var, analytics_consent_var
+from app.core.request_id import client_ip_var, install_log_record_factory, new_request_id, request_id_var, ads_consent_var
 from app.database import get_db
 from app.models.blog_post import BlogPost
 from app.models.category import Category
@@ -95,13 +95,13 @@ async def request_id_middleware(request, call_next):
     request_id = new_request_id(request.headers.get("X-Request-ID"))
     token = request_id_var.set(request_id)
     ip_token = client_ip_var.set(request.client.host if request.client else None)
-    consent_token = analytics_consent_var.set(request.headers.get("X-Analytics-Consent") == "1")
+    consent_token = ads_consent_var.set(request.headers.get("X-Ads-Consent") == "1")
     try:
         response = await call_next(request)
     finally:
         request_id_var.reset(token)
         client_ip_var.reset(ip_token)
-        analytics_consent_var.reset(consent_token)
+        ads_consent_var.reset(consent_token)
     response.headers["X-Request-ID"] = request_id
     return response
 

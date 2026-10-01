@@ -4,7 +4,7 @@ import pytest
 import requests
 
 from app.config import settings
-from app.core.request_id import analytics_consent_var
+from app.core.request_id import ads_consent_var
 from app.models.enums import OrderStatus
 from app.schemas.order import CheckoutRequest
 from app.services.analytics import record_event
@@ -45,11 +45,11 @@ def platforms(monkeypatch):
 def test_nothing_reaches_ad_platforms_without_consent(db_session, platforms):
     record_event(db_session, "add_to_cart", session_id="s", value="1", currency="USD")          # no consent header
     assert platforms == []
-    token = analytics_consent_var.set(True)
+    token = ads_consent_var.set(True)
     try:
         record_event(db_session, "add_to_cart", session_id="s", value="1", currency="USD")
     finally:
-        analytics_consent_var.reset(token)
+        ads_consent_var.reset(token)
     assert len(platforms) == 2                                                                  # GA4 and Meta
     record_event(db_session, "add_to_cart", session_id="s", value="1", currency="USD", forward_ads=True)   # explicit (callbacks)
     assert len(platforms) == 4
@@ -67,7 +67,7 @@ def test_purchase_is_forwarded_only_when_the_buyer_consented_at_checkout(client,
         first = client.get("/api/v1/cart/")
         token = first.headers["X-Cart-Token"]
         client.post("/api/v1/cart/items", json={"sku_id": sku.id, "quantity": 1}, headers={"X-Cart-Token": token})
-        headers = {"X-Cart-Token": token, **({"X-Analytics-Consent": "1"} if consent else {})}
+        headers = {"X-Cart-Token": token, **({"X-Ads-Consent": "1"} if consent else {})}
         r = client.post("/api/v1/orders/", json={**CHECKOUT_PAYLOAD, "payment_method": "payme"}, headers=headers)
         assert r.status_code == 201, r.text
         return r.json()["id"]
@@ -75,7 +75,7 @@ def test_purchase_is_forwarded_only_when_the_buyer_consented_at_checkout(client,
     from app.models.order import Order
 
     yes, no = place(True), place(False)
-    assert db_session.get(Order, yes).analytics_consent is True and db_session.get(Order, no).analytics_consent is False
+    assert db_session.get(Order, yes).ads_consent is True and db_session.get(Order, no).ads_consent is False
     platforms.clear()
     set_order_status(db_session, db_session.get(Order, no), OrderStatus.PAID, None)      # paid later by a payment callback
     assert platforms == []
@@ -88,7 +88,7 @@ def test_server_purchase_event_includes_the_items(db_session, sku, monkeypatch):
     monkeypatch.setattr(ga4, "forward", lambda name, uid, sid, props, db=None: seen.append((name, props)))
     monkeypatch.setattr(meta, "forward", lambda *a, **k: None)
     order = create_order(db_session, _cart_with(db_session, sku, 2), CheckoutRequest(**CHECKOUT_PAYLOAD), None)
-    order.analytics_consent = True
+    order.ads_consent = True
     db_session.commit()
     set_order_status(db_session, order, OrderStatus.PAID, None)
     name, props = seen[0]

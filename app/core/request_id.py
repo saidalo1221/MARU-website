@@ -14,8 +14,8 @@ request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
 client_ip_var: ContextVar[Optional[str]] = ContextVar("client_ip", default=None)
 
 # Did the visitor agree to analytics / advertising measurement (the cookie banner's "analytics" choice)? The
-# storefront sends `X-Analytics-Consent: 1` only then; ad platforms (GA4, Meta) get events only when it is set.
-analytics_consent_var: ContextVar[bool] = ContextVar("analytics_consent", default=False)
+# storefront sends `X-Ads-Consent: 1` only then; ad platforms (GA4, Meta) get events only when it is set.
+ads_consent_var: ContextVar[bool] = ContextVar("ads_consent", default=False)
 
 # Accept an id from the proxy/client only if it is short and boring; anything
 # else (log-injection attempts, huge values) is replaced with a fresh one.

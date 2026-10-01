@@ -2,8 +2,9 @@ import { useMemo, useSyncExternalStore } from 'react'
 
 // Visitor consent (PRD ТЗ№3 §102). Nothing optional runs until the visitor
 // opts in: "analytics" covers the storefront's behavioural events and the
-// stored campaign/referrer attribution; "geo" covers sending the visitor's IP
-// to a third-party geolocation service for the country/currency suggestion.
+// stored campaign/referrer attribution; "ads" covers telling advertising
+// platforms (Google, Meta) about visits and purchases; "geo" covers sending the
+// visitor's IP to a third-party geolocation service for the country/currency suggestion.
 // Essential features (cart, login, checkout) never depend on this.
 const KEY = 'maru_consent'
 const CHANGED = 'maru:consent'
@@ -24,7 +25,7 @@ function raw() {
 function parse(value) {
   try {
     const v = JSON.parse(value)
-    if (v && typeof v === 'object') return { analytics: v.analytics === true, geo: v.geo === true }
+    if (v && typeof v === 'object') return { analytics: v.analytics === true, ads: v.ads === true, geo: v.geo === true }
   } catch {
     // fall through: treated as "not decided yet"
   }
@@ -39,8 +40,8 @@ export function hasConsent(kind) {
   return getConsent()?.[kind] === true
 }
 
-export function setConsent({ analytics, geo }) {
-  const value = JSON.stringify({ analytics: !!analytics, geo: !!geo, at: Date.now() })
+export function setConsent({ analytics, ads, geo }) {
+  const value = JSON.stringify({ analytics: !!analytics, ads: !!ads, geo: !!geo, at: Date.now() })
   memoryValue = value
   try {
     localStorage.setItem(KEY, value)

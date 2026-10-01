@@ -336,7 +336,7 @@ CREATE TABLE orders (
 	postal_code VARCHAR(20) NOT NULL, 
 	delivery_method VARCHAR(50) NOT NULL, 
 	payment_method VARCHAR(50) NOT NULL, 
-	analytics_consent TINYINT(1) NOT NULL DEFAULT 0, 
+	ads_consent TINYINT(1) NOT NULL DEFAULT 0, 
 	loyalty_points_used INTEGER NOT NULL DEFAULT 0, 
 	loyalty_discount_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
 	payment_status VARCHAR(24) NOT NULL DEFAULT 'CREATED', 
@@ -961,6 +961,8 @@ CREATE TABLE loyalty_settings (
 	earn_per_usd DECIMAL(8, 2) NOT NULL,
 	point_value_usd DECIMAL(8, 4) NOT NULL,
 	max_redeem_percent INTEGER NOT NULL,
+	eligible_customer_types VARCHAR(120) NOT NULL DEFAULT 'retail', 
+	expiry_days INTEGER NOT NULL DEFAULT 0, 
 	updated_at DATETIME NOT NULL DEFAULT now(),
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
@@ -995,3 +997,11 @@ CREATE TABLE push_subscriptions (
 	FOREIGN KEY(user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_push_subscriptions_user_id ON push_subscriptions (user_id);
+
+CREATE TABLE loyalty_tiers (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	name VARCHAR(60) NOT NULL, 
+	min_points_earned INTEGER NOT NULL, 
+	earn_multiplier DECIMAL(4, 2) NOT NULL, 
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;

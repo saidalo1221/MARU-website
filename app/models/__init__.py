@@ -38,7 +38,7 @@ from app.models.tax_rule import TaxRule
 from app.models.integration_log import IntegrationLog, IntegrationLogStatus
 from app.models.external_id import ExternalId
 from app.models.job import Job
-from app.models.loyalty import LoyaltySettings, LoyaltyTransaction
+from app.models.loyalty import LoyaltySettings, LoyaltyTier, LoyaltyTransaction
 from app.models.marketing_spend import MarketingSpend
 from app.models.order_document import OrderDocument
 from app.models.payment import Payment
@@ -113,6 +113,7 @@ __all__ = [
     "ExternalId",
     "Job",
     "LoyaltySettings",
+    "LoyaltyTier",
     "LoyaltyTransaction",
     "MarketingSpend",
     "OrderDocument",

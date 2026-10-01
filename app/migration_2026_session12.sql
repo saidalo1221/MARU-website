@@ -309,4 +309,16 @@ CREATE TABLE push_subscriptions (
 CREATE INDEX ix_push_subscriptions_user_id ON push_subscriptions (user_id);
 
 -- Whether the visitor allowed analytics / ad measurement when ordering (purchase events to GA4 / Meta).
-ALTER TABLE orders ADD COLUMN analytics_consent TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN ads_consent TINYINT(1) NOT NULL DEFAULT 0;
+
+-- Loyalty: which customer types take part, point expiry, and tiers (decided in Admin > Loyalty).
+ALTER TABLE loyalty_settings
+    ADD COLUMN eligible_customer_types VARCHAR(120) NOT NULL DEFAULT 'retail',
+    ADD COLUMN expiry_days INTEGER NOT NULL DEFAULT 0;
+CREATE TABLE loyalty_tiers (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	name VARCHAR(60) NOT NULL,
+	min_points_earned INTEGER NOT NULL,
+	earn_multiplier DECIMAL(4, 2) NOT NULL,
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
