@@ -32,10 +32,13 @@ logger = logging.getLogger("maru.uploads")
 
 
 def _write_variants(contents: bytes, base: str) -> None:
-    """WebP copies at 320/800/1600 px wide (PRD ТЗ№3 §86), saved as `<base>-<width>.webp` next to the
-    original. Never enlarges; a failure only means the page falls back to the original file."""
+    """WebP and, where this Pillow build can write it, AVIF copies at 320/800/1600 px wide (PRD ТЗ№3 §86),
+    saved as `<base>-<width>.webp|.avif` next to the original. Never enlarges; a failure only means the
+    page falls back to the original file."""
     try:
-        from PIL import Image, ImageOps
+        from PIL import Image, ImageOps, features
+
+        with_avif = features.check("avif")  # Pillow 11.3+ wheels; older builds just skip AVIF
 
         with Image.open(io.BytesIO(contents)) as src:
             src = ImageOps.exif_transpose(src)
@@ -44,6 +47,8 @@ def _write_variants(contents: bytes, base: str) -> None:
                 copy = src.copy()
                 copy.thumbnail((width, 10_000))
                 copy.save(UPLOAD_DIR / f"{base}-{width}.webp", "WEBP", quality=82)
+                if with_avif:
+                    copy.save(UPLOAD_DIR / f"{base}-{width}.avif", "AVIF", quality=55)
     except Exception:  # noqa: BLE001 - Pillow missing or an odd file: keep the original only
         logger.warning("Could not create image variants for %s", base, exc_info=True)
 

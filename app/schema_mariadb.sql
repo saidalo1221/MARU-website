@@ -78,6 +78,9 @@ CREATE TABLE promo_codes (
 	min_order_amount DECIMAL(12, 2) NOT NULL, 
 	max_uses INTEGER, 
 	used_count INTEGER NOT NULL, 
+	product_ids TEXT, 
+	category_ids TEXT, 
+	max_uses_per_customer INTEGER, 
 	valid_from DATETIME, 
 	valid_until DATETIME, 
 	is_active BOOL NOT NULL, 
@@ -110,13 +113,14 @@ CREATE TABLE tax_rules (
 	region VARCHAR(100) NOT NULL DEFAULT '*', 
 	customer_type VARCHAR(20) NOT NULL, 
 	tax_type VARCHAR(30) NOT NULL, 
+	tax_class VARCHAR(20) NOT NULL DEFAULT '*', 
 	min_order_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
 	rate DECIMAL(5, 2) NOT NULL, 
 	is_active BOOL NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
-	CONSTRAINT uq_tax_rules_lookup UNIQUE (country, region, customer_type, tax_type, min_order_amount)
+	CONSTRAINT uq_tax_rules_lookup UNIQUE (country, region, customer_type, tax_type, tax_class, min_order_amount)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
 CREATE TABLE users (
@@ -276,6 +280,7 @@ CREATE TABLE products (
 	description TEXT,
 	country_of_origin VARCHAR(100),
 	min_order_quantity INTEGER NOT NULL,
+	tax_class VARCHAR(20) NOT NULL DEFAULT 'standard', 
 	badge_mode VARCHAR(10) NOT NULL DEFAULT 'auto',
 	badge_new BOOLEAN,
 	badge_sale BOOLEAN,
@@ -602,6 +607,8 @@ CREATE TABLE order_items (
 	unit_price DECIMAL(12, 2) NOT NULL, 
 	quantity INTEGER NOT NULL, 
 	line_total DECIMAL(12, 2) NOT NULL, 
+	discount_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
+	tax_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
 	currency VARCHAR(3) NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -849,3 +856,18 @@ CREATE TABLE payments (
 	FOREIGN KEY(order_id) REFERENCES orders (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_payments_order_id ON payments (order_id);
+
+CREATE TABLE promo_redemptions (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	promo_code_id BIGINT NOT NULL,
+	order_id BIGINT NOT NULL,
+	user_id BIGINT,
+	email VARCHAR(255),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(promo_code_id) REFERENCES promo_codes (id),
+	FOREIGN KEY(order_id) REFERENCES orders (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_promo_redemptions_promo_code_id ON promo_redemptions (promo_code_id);
+CREATE INDEX ix_promo_redemptions_user_id ON promo_redemptions (user_id);
+CREATE INDEX ix_promo_redemptions_email ON promo_redemptions (email);

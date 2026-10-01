@@ -92,6 +92,7 @@ class ProductOut(BaseModel):
     description: Optional[str]
     country_of_origin: Optional[str]
     min_order_quantity: int
+    tax_class: str = "standard"
     badge_mode: str
     badge_new: Optional[bool]
     badge_sale: Optional[bool]
@@ -175,6 +176,7 @@ class ProductCreate(BaseModel):
     description: Optional[str] = None
     country_of_origin: Optional[str] = Field(default=None, max_length=100)
     min_order_quantity: int = Field(default=1, ge=1)
+    tax_class: Literal["standard", "reduced", "zero", "exempt"] = "standard"
     badge_mode: Literal["auto", "manual"] = "auto"
     badge_new: Optional[bool] = None
     badge_sale: Optional[bool] = None
@@ -202,6 +204,7 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = None
     country_of_origin: Optional[str] = Field(default=None, max_length=100)
     min_order_quantity: Optional[int] = Field(default=None, ge=1)
+    tax_class: Optional[Literal["standard", "reduced", "zero", "exempt"]] = None
     badge_mode: Optional[Literal["auto", "manual"]] = None
     badge_new: Optional[bool] = None
     badge_sale: Optional[bool] = None

@@ -8,8 +8,20 @@ from app.models.tax_rule import ANY, TaxRule
 from app.services.currency import get_rate_to_usd
 
 
+# Product tax classes (products.tax_class). zero and exempt are never taxed; reduced prefers a
+# 'reduced' rule and falls back to the general ('*') one; standard uses the general rule.
+UNTAXED_CLASSES = ("zero", "exempt")
+_RULE_CLASSES = {"reduced": ("reduced", ANY)}
+
+
 def _find_rule(
-    db: Session, country: str, region: Optional[str], customer_type: str, tax_type: str, taxable_usd: Decimal
+    db: Session,
+    country: str,
+    region: Optional[str],
+    customer_type: str,
+    tax_type: str,
+    taxable_usd: Decimal,
+    tax_class: str = "standard",
 ) -> Optional[TaxRule]:
     """Most-specific match first: country, then region, then customer type
     (same wildcard fallback shape as app/services/shipping.py._find_rate()).
@@ -17,24 +29,27 @@ def _find_rule(
     amount still reaches wins."""
     region_key = (region or "").strip().lower()
     regions = [region_key, ANY] if region_key else [ANY]
+    classes = _RULE_CLASSES.get(tax_class, ("standard", ANY))
     for country_key in (country, ANY):
         for rk in regions:
             for customer_type_key in (customer_type, ANY):
-                rule = db.execute(
-                    select(TaxRule)
-                    .where(
-                        TaxRule.country == country_key,
-                        func.lower(TaxRule.region) == rk,
-                        TaxRule.customer_type == customer_type_key,
-                        TaxRule.tax_type == tax_type,
-                        TaxRule.is_active.is_(True),
-                        TaxRule.min_order_amount <= taxable_usd,
-                    )
-                    .order_by(TaxRule.min_order_amount.desc())
-                    .limit(1)
-                ).scalar_one_or_none()
-                if rule is not None:
-                    return rule
+                for class_key in classes:
+                    rule = db.execute(
+                        select(TaxRule)
+                        .where(
+                            TaxRule.country == country_key,
+                            func.lower(TaxRule.region) == rk,
+                            TaxRule.customer_type == customer_type_key,
+                            TaxRule.tax_class == class_key,
+                            TaxRule.tax_type == tax_type,
+                            TaxRule.is_active.is_(True),
+                            TaxRule.min_order_amount <= taxable_usd,
+                        )
+                        .order_by(TaxRule.min_order_amount.desc())
+                        .limit(1)
+                    ).scalar_one_or_none()
+                    if rule is not None:
+                        return rule
     return None
 
 
@@ -62,3 +77,32 @@ def calculate_tax(
         return Decimal("0.00")
     tax = taxable_amount * (rule.rate / Decimal("100"))
     return tax.quantize(Decimal("0.01"))
+
+
+def calculate_lines_tax(
+    db: Session,
+    country: str,
+    customer_type: str,
+    lines: list,
+    tax_type: str = "vat",
+    region: Optional[str] = None,
+    currency: str = "USD",
+) -> list:
+    """Tax for each cart line (PRD ТЗ№3 §74: country, region, customer type, product, order value).
+    `lines` is a list of (tax_class, taxable_amount) where the amount is already net of the line's
+    share of any discount. The order-value tier of a rule is chosen from the whole taxable total, so a
+    big order qualifies every line for the tier; the class then picks the rate per line. Returns one
+    Decimal per line; their sum is the order tax."""
+    zero = Decimal("0.00")
+    total = sum((amount for _cls, amount in lines if amount > 0), Decimal("0"))
+    if total <= 0:
+        return [zero] * len(lines)
+    taxable_usd = total / get_rate_to_usd(db, currency)
+    out = []
+    for tax_class, amount in lines:
+        if amount <= 0 or tax_class in UNTAXED_CLASSES:
+            out.append(zero)
+            continue
+        rule = _find_rule(db, country, region, customer_type, tax_type, taxable_usd, tax_class)
+        out.append(zero if rule is None else (amount * (rule.rate / Decimal("100"))).quantize(Decimal("0.01")))
+    return out

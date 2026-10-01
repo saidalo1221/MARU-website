@@ -25,3 +25,11 @@ def test_upload_writes_webp_variants_without_enlarging(client, db_session, tmp_p
 
     widths = {w: Image.open(tmp_path / f"{base}-{w}.webp").size[0] for w in (320, 800, 1600)}
     assert widths == {320: 320, 800: 800, 1600: 1000}  # the 1600 copy is not blown up past the original
+
+    from PIL import features
+
+    if features.check("avif"):  # Pillow 11.3+; older builds skip AVIF and the page falls back to WebP
+        avif = {w: Image.open(tmp_path / f"{base}-{w}.avif").size[0] for w in (320, 800, 1600)}
+        assert avif == widths
+    else:
+        assert not list(tmp_path.glob("*.avif"))

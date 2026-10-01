@@ -66,6 +66,8 @@ class OrderItemOut(BaseModel):
     unit_price: Decimal
     quantity: int
     line_total: Decimal
+    discount_amount: Decimal = Decimal("0")
+    tax_amount: Decimal = Decimal("0")
     currency: str
 
 

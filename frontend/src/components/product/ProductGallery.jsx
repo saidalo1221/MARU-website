@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocale } from '../../context/LocaleContext'
-import { imageSrcSet } from '../../lib/images'
+import Picture from '../ui/Picture'
 import { classifyMedia, youtubeEmbed, youtubeThumb } from '../../lib/media'
 import useDialogFocus from '../../lib/useDialogFocus'
 
@@ -61,9 +61,8 @@ export default function ProductGallery({ variant, alt }) {
             aria-label={t('productDetail.zoomImage')}
             className="w-full h-full overflow-hidden cursor-zoom-in"
           >
-            <img
+            <Picture
               src={current.url}
-              srcSet={imageSrcSet(current.url)}
               sizes="(min-width: 1024px) 50vw, 100vw"
               alt={alt}
               className="w-full h-full object-cover transition-transform duration-150"

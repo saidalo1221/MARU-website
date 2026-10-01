@@ -9,5 +9,5 @@ bcrypt==4.0.1
 python-multipart
 requests
 redis
-pillow
+pillow>=11.3  # 11.3 added AVIF writing
 pyotp

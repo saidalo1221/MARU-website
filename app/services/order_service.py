@@ -24,9 +24,16 @@ from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
 from app.services.audit import log_audit
 from app.services.currency import CurrencyError
-from app.services.pricing import PromoCodeError, apply_promo, redeem_promo, resolve_unit_price, validate_promo
+from app.services.pricing import (
+    PromoCodeError,
+    promo_line_discounts,
+    record_redemption,
+    redeem_promo,
+    resolve_unit_price,
+    validate_promo,
+)
 from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g
-from app.services.tax import calculate_tax
+from app.services.tax import calculate_lines_tax
 
 
 def _now() -> datetime:
@@ -207,20 +214,28 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
     promo: Optional[PromoCode] = None
     if checkout.promo_code:
         try:
-            promo = validate_promo(db, checkout.promo_code, subtotal, cart.currency)
+            promo = validate_promo(
+                db, checkout.promo_code, subtotal, cart.currency,
+                lines=[(item.sku, total) for item, _price, total in line_data],
+                user_id=user.id if user is not None else None, email=checkout.email,
+            )
         except PromoCodeError as exc:
             raise OrderError(str(exc)) from exc
 
     try:
-        discount = apply_promo(subtotal, promo, db, cart.currency) if promo is not None else Decimal("0")
+        line_discounts = promo_line_discounts(db, promo, [(item.sku, total) for item, _price, total in line_data], cart.currency)
     except PromoCodeError as exc:
         raise OrderError(str(exc)) from exc
+    discount = sum(line_discounts, Decimal("0"))
     # PRD §69 pricing pipeline: ... Discount -> Tax -> Shipping -> Total.
     # Tax is computed on the post-discount merchandise subtotal; shipping
     # itself is not taxed (PRD doesn't specify shipping being taxable).
-    tax = calculate_tax(
-        db, checkout.country, customer_type.value, subtotal - discount, region=checkout.region, currency=cart.currency
+    line_taxes = calculate_lines_tax(
+        db, checkout.country, customer_type.value,
+        [(item.sku.variant.product.tax_class, total - line_discounts[i]) for i, (item, _price, total) in enumerate(line_data)],
+        region=checkout.region, currency=cart.currency,
     )
+    tax = sum(line_taxes, Decimal("0"))
     try:
         delivery = calculate_shipping(
             db, checkout.country, checkout.delivery_method, cart_weight_g(cart), subtotal - discount, cart.currency
@@ -271,9 +286,11 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
 
     # Appended to order.items (rather than db.add per row) so the in-memory
     # relationship is populated for _reserve_stock() below without a re-query.
-    for item, unit_price, line_total in line_data:
+    for index, (item, unit_price, line_total) in enumerate(line_data):
         order.items.append(
             OrderItem(
+                discount_amount=line_discounts[index],
+                tax_amount=line_taxes[index],
                 sku_id=item.sku_id,
                 sku_code_snapshot=item.sku.sku_code,
                 product_name_snapshot=item.sku.variant.product.name,
@@ -305,6 +322,7 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optio
             redeem_promo(db, promo)
         except PromoCodeError as exc:
             raise OrderError(str(exc)) from exc
+        record_redemption(db, promo, order, user.id if user is not None else None, checkout.email)
 
     cart.is_active = False
     cart.converted_at = _now()

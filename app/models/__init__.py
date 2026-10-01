@@ -38,6 +38,7 @@ from app.models.external_id import ExternalId
 from app.models.job import Job
 from app.models.order_document import OrderDocument
 from app.models.payment import Payment
+from app.models.promo_code import PromoRedemption
 from app.models.webhook_event import WebhookEvent
 from app.models.analytics_event import AnalyticsEvent
 from app.models.blog_category import BlogCategory
@@ -105,6 +106,7 @@ __all__ = [
     "Job",
     "OrderDocument",
     "Payment",
+    "PromoRedemption",
     "WebhookEvent",
     "IntegrationLogStatus",
     "AnalyticsEvent",

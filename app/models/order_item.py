@@ -29,6 +29,9 @@ class OrderItem(Base):
     unit_price = Column(DECIMAL(12, 2), nullable=False)
     quantity = Column(Integer, nullable=False)
     line_total = Column(DECIMAL(12, 2), nullable=False)
+    # This line's share of the order discount and tax (they add up to the order totals).
+    discount_amount = Column(DECIMAL(12, 2), nullable=False, default=0, server_default="0")
+    tax_amount = Column(DECIMAL(12, 2), nullable=False, default=0, server_default="0")
     currency = Column(String(3), nullable=False)
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

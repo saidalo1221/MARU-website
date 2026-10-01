@@ -34,9 +34,9 @@ from app.services.order_service import available_stock
 from app.services.recommendations import recommended_product_ids
 from app.services.currency import CurrencyError, convert_amount, get_rate_to_usd
 from app.services.analytics import record_event
-from app.services.pricing import PromoCodeError, apply_promo, resolve_unit_price, validate_promo
+from app.services.pricing import PromoCodeError, promo_line_discounts, resolve_unit_price, validate_promo
 from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g, free_shipping_progress
-from app.services.tax import calculate_tax
+from app.services.tax import calculate_lines_tax
 
 router = APIRouter(prefix="/cart", tags=["cart"], dependencies=[Depends(rate_limit("cart", 300, 60))])
 
@@ -82,8 +82,10 @@ def _build_cart_out(
     delivery_method: Optional[str] = None,
     region: Optional[str] = None,
     lang: Optional[str] = None,
+    user_id: Optional[int] = None,
 ) -> CartOut:
     items: list[CartItemOut] = []
+    cart_lines: list = []  # (sku, line_total): what promo targeting and per-line tax work on
     subtotal = Decimal("0")
     for item in cart.items:
         try:
@@ -92,6 +94,7 @@ def _build_cart_out(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
         line_total = unit_price * item.quantity
         subtotal += line_total
+        cart_lines.append((item.sku, line_total))
         items.append(
             CartItemOut(
                 id=item.id,
@@ -128,20 +131,31 @@ def _build_cart_out(
     promo: Optional[PromoCode] = None
     if promo_code:
         try:
-            promo = validate_promo(db, promo_code, subtotal, cart.currency)
+            promo = validate_promo(
+                db, promo_code, subtotal, cart.currency,
+                lines=cart_lines, user_id=user_id,
+            )
         except PromoCodeError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     try:
-        discount = apply_promo(subtotal, promo, db, cart.currency) if promo is not None else Decimal("0")
+        line_discounts = promo_line_discounts(db, promo, cart_lines, cart.currency)
     except PromoCodeError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    discount = sum(line_discounts, Decimal("0"))
 
     # Destination is usually unknown before checkout, so shipping/tax are only
     # estimated when the caller supplies a country (delivery method too, for shipping).
     tax = Decimal("0")
     if country:
-        tax = calculate_tax(db, country, customer_type.value, subtotal - discount, region=region, currency=cart.currency)
+        tax = sum(
+            calculate_lines_tax(
+                db, country, customer_type.value,
+                [(sku.variant.product.tax_class, total - line_discounts[i]) for i, (sku, total) in enumerate(cart_lines)],
+                region=region, currency=cart.currency,
+            ),
+            Decimal("0"),
+        )
 
     delivery = Decimal("0")
     if country and delivery_method:
@@ -196,7 +210,8 @@ def get_cart(
     db: Session = Depends(get_db),
 ) -> CartOut:
     return _build_cart_out(
-        db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method, region, lang
+        db, _load_cart_with_items(db, cart.id), _resolve_customer_type(user), promo_code, country, delivery_method, region, lang,
+        user_id=user.id if user is not None else None,
     )
 
 

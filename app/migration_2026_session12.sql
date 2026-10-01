@@ -130,3 +130,39 @@ UPDATE orders o JOIN payments p ON p.order_id = o.id SET o.payment_status = p.st
 ALTER TABLE orders
     ADD COLUMN language VARCHAR(5) NULL,
     ADD COLUMN whatsapp_opt_in TINYINT(1) NOT NULL DEFAULT 0;
+
+-- Product-level tax classes, promo targeting and per-customer promo limits, per-line tax/discount
+-- (PRD ТЗ№3 §74, §23).
+ALTER TABLE products ADD COLUMN tax_class VARCHAR(20) NOT NULL DEFAULT 'standard';
+
+ALTER TABLE tax_rules ADD COLUMN tax_class VARCHAR(20) NOT NULL DEFAULT '*';
+ALTER TABLE tax_rules DROP INDEX uq_tax_rules_lookup;
+ALTER TABLE tax_rules ADD CONSTRAINT uq_tax_rules_lookup
+    UNIQUE (country, region, customer_type, tax_type, tax_class, min_order_amount);
+
+ALTER TABLE promo_codes
+    ADD COLUMN product_ids TEXT NULL,
+    ADD COLUMN category_ids TEXT NULL,
+    ADD COLUMN max_uses_per_customer INTEGER NULL;
+
+CREATE TABLE promo_redemptions (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	promo_code_id BIGINT NOT NULL,
+	order_id BIGINT NOT NULL,
+	user_id BIGINT,
+	email VARCHAR(255),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(promo_code_id) REFERENCES promo_codes (id),
+	FOREIGN KEY(order_id) REFERENCES orders (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_promo_redemptions_promo_code_id ON promo_redemptions (promo_code_id);
+CREATE INDEX ix_promo_redemptions_user_id ON promo_redemptions (user_id);
+CREATE INDEX ix_promo_redemptions_email ON promo_redemptions (email);
+
+ALTER TABLE order_items
+    ADD COLUMN discount_amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    ADD COLUMN tax_amount DECIMAL(12, 2) NOT NULL DEFAULT 0;
+
+-- Existing orders: the whole order tax/discount was not split per line; leave the lines at 0
+-- (orders.tax_amount / discount_amount stay authoritative for them).

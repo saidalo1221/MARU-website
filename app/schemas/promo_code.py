@@ -14,6 +14,9 @@ class PromoCodeCreate(BaseModel):
     currency: Optional[str] = None
     min_order_amount: Decimal = Decimal("0")
     max_uses: Optional[int] = Field(default=None, ge=1)
+    max_uses_per_customer: Optional[int] = Field(default=None, ge=1)
+    product_ids: Optional[list[int]] = None
+    category_ids: Optional[list[int]] = None
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
     is_active: bool = True
@@ -25,6 +28,9 @@ class PromoCodeUpdate(BaseModel):
     currency: Optional[str] = None
     min_order_amount: Optional[Decimal] = None
     max_uses: Optional[int] = Field(default=None, ge=1)
+    max_uses_per_customer: Optional[int] = Field(default=None, ge=1)
+    product_ids: Optional[list[int]] = None
+    category_ids: Optional[list[int]] = None
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
     is_active: Optional[bool] = None
@@ -41,6 +47,9 @@ class PromoCodeOut(BaseModel):
     min_order_amount: Decimal
     max_uses: Optional[int]
     used_count: int
+    max_uses_per_customer: Optional[int] = None
+    product_ids: Optional[list[int]] = None
+    category_ids: Optional[list[int]] = None
     valid_from: Optional[datetime]
     valid_until: Optional[datetime]
     is_active: bool

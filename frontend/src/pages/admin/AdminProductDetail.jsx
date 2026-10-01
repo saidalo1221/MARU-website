@@ -532,7 +532,7 @@ export default function AdminProductDetail() {
     setProduct(p)
     setForm({
       name: p.name, slug: p.slug, volume_ml: p.volume_ml, shape: p.shape || '', purpose: p.purpose || '',
-      description: p.description || '', country_of_origin: p.country_of_origin || '', min_order_quantity: p.min_order_quantity,
+      description: p.description || '', country_of_origin: p.country_of_origin || '', min_order_quantity: p.min_order_quantity, tax_class: p.tax_class || 'standard',
       badge_mode: p.badge_mode, badge_new: !!p.badge_new, badge_sale: !!p.badge_sale, badge_bestseller: !!p.badge_bestseller,
     })
   }).catch((err) => setError(errorMessage(err, t('admin.productDetail.loadFailed'))))
@@ -586,6 +586,9 @@ export default function AdminProductDetail() {
         <input required placeholder={t('admin.common.slug')} aria-label={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className={inputCls} />
         <input required type="number" min="1" placeholder={t('admin.products.volumeMl')} aria-label={t('admin.products.volumeMl')} value={form.volume_ml} onChange={update('volume_ml')} className={inputCls} />
         <input type="number" min="1" placeholder={t('admin.products.minOrderQty')} aria-label={t('admin.products.minOrderQty')} value={form.min_order_quantity} onChange={update('min_order_quantity')} className={inputCls} />
+        <select value={form.tax_class} onChange={update('tax_class')} aria-label={t('admin.products.taxClass')} className={inputCls}>
+          {['standard', 'reduced', 'zero', 'exempt'].map((c) => <option key={c} value={c}>{t('admin.products.taxClass')}: {t(`admin.products.taxClass_${c}`)}</option>)}
+        </select>
         <input placeholder={t('admin.products.shape')} aria-label={t('admin.products.shape')} value={form.shape} onChange={update('shape')} className={inputCls} />
         <input placeholder={t('admin.products.purpose')} aria-label={t('admin.products.purpose')} value={form.purpose} onChange={update('purpose')} className={inputCls} />
         <input placeholder={t('admin.products.countryOfOrigin')} aria-label={t('admin.products.countryOfOrigin')} value={form.country_of_origin} onChange={update('country_of_origin')} className={`${inputCls} col-span-2`} />

@@ -54,6 +54,10 @@ class Product(Base):
     description = Column(Text, nullable=True)
     country_of_origin = Column(String(100), nullable=True)
     min_order_quantity = Column(Integer, nullable=False, default=1)
+    # Which tax treatment the product gets (PRD ТЗ№3 §74): standard | reduced | zero | exempt.
+    # app/services/tax.py: zero and exempt are never taxed; reduced looks for a 'reduced' tax rule
+    # and falls back to the general one; standard uses the general rule.
+    tax_class = Column(String(20), nullable=False, default="standard", server_default="standard")
 
     # Product badges (New / Sale / Best Seller — see app/services/badges.py).
     # "auto" computes them from created_at/SKU special_price/sales volume;

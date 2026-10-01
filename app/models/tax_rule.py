@@ -19,7 +19,7 @@ class TaxRule(Base):
     __tablename__ = "tax_rules"
     __table_args__ = (
         UniqueConstraint(
-            "country", "region", "customer_type", "tax_type", "min_order_amount", name="uq_tax_rules_lookup"
+            "country", "region", "customer_type", "tax_type", "tax_class", "min_order_amount", name="uq_tax_rules_lookup"
         ),
         {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4"},
     )
@@ -30,6 +30,8 @@ class TaxRule(Base):
     region = Column(String(100), nullable=False, default=ANY, server_default=ANY)
     customer_type = Column(String(20), nullable=False)  # a CustomerType value, or "*"
     tax_type = Column(String(30), nullable=False, default="vat")
+    # "*" = the general rule for products of any class; "reduced" = the reduced rate (product tax_class).
+    tax_class = Column(String(20), nullable=False, default=ANY, server_default=ANY)
 
     min_order_amount = Column(DECIMAL(12, 2), nullable=False, default=0, server_default="0")  # USD
     rate = Column(DECIMAL(5, 2), nullable=False, default=0)  # percentage, e.g. 12.00

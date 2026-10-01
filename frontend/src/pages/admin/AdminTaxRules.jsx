@@ -3,7 +3,7 @@ import { adminCreateTaxRule, adminListTaxRules, adminUpdateTaxRule } from '../..
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 
-const emptyForm = { country: '', region: '*', customer_type: '', tax_type: 'vat', min_order_amount: 0, rate: 0, is_active: true }
+const emptyForm = { country: '', region: '*', customer_type: '', tax_type: 'vat', tax_class: '*', min_order_amount: 0, rate: 0, is_active: true }
 
 // Pass '*' for country or customer_type to mean "any" (same wildcard
 // convention as shipping rates).
@@ -29,7 +29,7 @@ export default function AdminTaxRules() {
   const openNew = () => { setEditingId(null); setForm(emptyForm); setFormError(null); setFormOpen(true) }
   const openEdit = (r) => {
     setEditingId(r.id)
-    setForm({ country: r.country, region: r.region, customer_type: r.customer_type, tax_type: r.tax_type, min_order_amount: r.min_order_amount, rate: r.rate, is_active: r.is_active })
+    setForm({ country: r.country, region: r.region, customer_type: r.customer_type, tax_type: r.tax_type, tax_class: r.tax_class || '*', min_order_amount: r.min_order_amount, rate: r.rate, is_active: r.is_active })
     setFormError(null)
     setFormOpen(true)
   }
@@ -43,7 +43,7 @@ export default function AdminTaxRules() {
       if (editingId) {
         await adminUpdateTaxRule(editingId, payload)
       } else {
-        await adminCreateTaxRule({ ...payload, country: form.country, region: form.region || '*', customer_type: form.customer_type, tax_type: form.tax_type, min_order_amount: Number(form.min_order_amount) })
+        await adminCreateTaxRule({ ...payload, country: form.country, region: form.region || '*', customer_type: form.customer_type, tax_type: form.tax_type, tax_class: form.tax_class, min_order_amount: Number(form.min_order_amount) })
       }
       setFormOpen(false)
       await load()
@@ -78,6 +78,12 @@ export default function AdminTaxRules() {
           <label className="text-xs text-gray-500 flex flex-col gap-1">{t('admin.taxRules.taxType')}
             <input disabled={!!editingId} value={form.tax_type} onChange={update('tax_type')} className="border border-gray-300 rounded px-3 py-2 text-sm text-gray-900 disabled:bg-gray-100" />
           </label>
+          <label className="text-xs text-gray-500 flex flex-col gap-1">{t('admin.taxRules.taxClass')}
+            <select disabled={!!editingId} value={form.tax_class} onChange={update('tax_class')} className="border border-gray-300 rounded px-3 py-2 text-sm text-gray-900 disabled:bg-gray-100">
+              <option value="*">{t('admin.taxRules.taxClassAny')}</option>
+              <option value="reduced">{t('admin.taxRules.taxClassReduced')}</option>
+            </select>
+          </label>
           <label className="text-xs text-gray-500 flex flex-col gap-1">{t('admin.taxRules.minOrder')}
             <input required type="number" step="0.01" min="0" disabled={!!editingId} value={form.min_order_amount} onChange={update('min_order_amount')} className="border border-gray-300 rounded px-3 py-2 text-sm text-gray-900 disabled:bg-gray-100" />
           </label>
@@ -102,6 +108,7 @@ export default function AdminTaxRules() {
                 <th scope="col" className="px-3 py-2">{t('admin.taxRules.region')}</th>
                 <th scope="col" className="px-3 py-2">{t('admin.taxRules.customerType')}</th>
                 <th scope="col" className="px-3 py-2">{t('admin.taxRules.taxType')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.taxRules.taxClass')}</th>
                 <th scope="col" className="px-3 py-2">{t('admin.taxRules.minOrder')}</th>
                 <th scope="col" className="px-3 py-2">{t('admin.taxRules.rate')}</th>
                 <th scope="col" className="px-3 py-2">{t('admin.common.active')}</th>
@@ -115,13 +122,14 @@ export default function AdminTaxRules() {
                   <td className="px-3 py-2">{r.region}</td>
                   <td className="px-3 py-2">{r.customer_type}</td>
                   <td className="px-3 py-2">{r.tax_type}</td>
+                  <td className="px-3 py-2">{r.tax_class === 'reduced' ? t('admin.taxRules.taxClassReduced') : t('admin.taxRules.taxClassAny')}</td>
                   <td className="px-3 py-2">{Number(r.min_order_amount)}</td>
                   <td className="px-3 py-2">{Number(r.rate)}%</td>
                   <td className="px-3 py-2">{r.is_active ? t('admin.common.yes') : t('admin.common.no')}</td>
                   <td className="px-3 py-2 text-right"><button onClick={() => openEdit(r)} className="text-brand">{t('admin.common.edit')}</button></td>
                 </tr>
               ))}
-              {rules.length === 0 && <tr><td colSpan={8} className="px-3 py-6 text-center text-gray-500">{t('admin.taxRules.none')}</td></tr>}
+              {rules.length === 0 && <tr><td colSpan={9} className="px-3 py-6 text-center text-gray-500">{t('admin.taxRules.none')}</td></tr>}
             </tbody>
           </table>
         </div>
