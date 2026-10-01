@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Button from '../components/ui/Button'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
@@ -386,13 +387,9 @@ export default function Checkout() {
 
           {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-brand text-white rounded py-3 font-medium disabled:opacity-40 sticky bottom-0"
-          >
-            {submitting ? t('checkout.placingOrder') : (form.payment_method ? t('checkout.payNow') : t('checkout.placeOrder'))}
-          </button>
+          <Button type="submit" size="lg" loading={submitting} loadingLabel={t('checkout.placingOrder')} className="w-full sticky bottom-0">
+            {form.payment_method ? t('checkout.payNow') : t('checkout.placeOrder')}
+          </Button>
           <LegalNotice />
         </form>
 

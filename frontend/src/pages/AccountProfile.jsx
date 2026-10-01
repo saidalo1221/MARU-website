@@ -5,6 +5,8 @@ import { errorMessage } from '../api/client'
 import AccountNav from '../components/account/AccountNav'
 import PasswordInput from '../components/PasswordInput'
 import Seo from '../components/Seo'
+import Button from '../components/ui/Button'
+import FormField from '../components/ui/FormField'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 
@@ -77,25 +79,14 @@ export default function AccountProfile() {
 
       <form onSubmit={save} className="border border-gray-200 rounded-lg p-4 mb-8 grid sm:grid-cols-2 gap-3">
         <h2 className="font-semibold sm:col-span-2">{t('profile.personal')}</h2>
-        <label className="text-xs text-gray-500 flex flex-col gap-1">{t('profile.firstName')}
-          <input value={form.first_name} onChange={update('first_name')} autoComplete="given-name" className={`${inputClass} text-gray-900`} />
-        </label>
-        <label className="text-xs text-gray-500 flex flex-col gap-1">{t('profile.lastName')}
-          <input value={form.last_name} onChange={update('last_name')} autoComplete="family-name" className={`${inputClass} text-gray-900`} />
-        </label>
-        <label className="text-xs text-gray-500 flex flex-col gap-1">{t('profile.phone')}
-          <input value={form.phone} onChange={update('phone')} type="tel" autoComplete="tel" aria-describedby="phone-hint" className={`${inputClass} text-gray-900`} />
-          <span id="phone-hint" className="text-[11px]">{t('profile.phoneHint')}</span>
-        </label>
-        <label className="text-xs text-gray-500 flex flex-col gap-1">{t('profile.email')}
-          <input value={user.email} disabled className={`${inputClass} bg-gray-100 text-gray-600`} />
-        </label>
+        <FormField label={t('profile.firstName')} value={form.first_name} onChange={update('first_name')} autoComplete="given-name" />
+        <FormField label={t('profile.lastName')} value={form.last_name} onChange={update('last_name')} autoComplete="family-name" />
+        <FormField label={t('profile.phone')} helper={t('profile.phoneHint')} value={form.phone} onChange={update('phone')} type="tel" autoComplete="tel" />
+        <FormField label={t('profile.email')} value={user.email} disabled />
         {error && <p role="alert" className="text-sm text-red-600 sm:col-span-2">{error}</p>}
         {saved && <p role="status" className="text-sm text-green-700 sm:col-span-2">{t('profile.saved')}</p>}
         <div className="sm:col-span-2">
-          <button type="submit" disabled={saving} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
-            {saving ? t('profile.saving') : t('profile.save')}
-          </button>
+          <Button type="submit" loading={saving} loadingLabel={t('profile.saving')}>{t('profile.save')}</Button>
         </div>
       </form>
 

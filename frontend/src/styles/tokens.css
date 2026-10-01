@@ -1,0 +1,70 @@
+/* Design tokens (PRD ТЗ№2 §45, §60). The one place to change the look of the whole
+ * storefront: tailwind.config.js reads these variables, so replacing the values
+ * below (for example when the MARU brand book arrives) restyles every screen.
+ *
+ * Colours are RGB triplets ("r g b") so Tailwind can apply opacity (bg-brand/10).
+ * Brand colours are TEMPORARY placeholders - the PRD forbids inventing brand
+ * colours before a brand book exists (§45.2). */
+:root {
+  /* Colours */
+  --color-brand: 31 111 74;
+  --color-brand-dark: 21 77 51;
+  --color-brand-light: 232 244 238;
+  --color-danger: 220 38 38;
+  --color-success: 21 128 61;
+  --color-warning: 180 83 9;
+  --color-focus: 37 99 235;
+
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --text-h1: 1.875rem;
+  --text-h2: 1.5rem;
+  --text-h3: 1.25rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-caption: 0.75rem;
+  --text-button: 0.875rem;
+  --text-label: 0.75rem;
+
+  /* Spacing scale (multiples of 4px) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Radius, shadows, borders */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.1);
+  --border-width: 1px;
+
+  /* Layout grid */
+  --container-max: 80rem;
+  --gutter: 1rem;
+
+  /* Animation: short and functional (PRD §61) */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Breakpoints (PRD §51) live in tailwind.config.js `screens`: mobile 320-767,
+ * tablet 768 (md), desktop 1024 (lg), large desktop 1440 (2xl). */
+
+/* A visible keyboard focus ring everywhere (WCAG 2.1 AA, PRD §56). */
+:focus-visible {
+  outline: 2px solid rgb(var(--color-focus));
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

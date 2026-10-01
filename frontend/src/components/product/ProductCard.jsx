@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useLocale } from '../../context/LocaleContext'
 import { toggleWishlist, useWishlistSkus } from '../../lib/wishlistStore'
+import Rating from '../ui/Rating'
+import { useToast } from '../ui/Toast'
 import ProductBadges from './ProductBadges'
 import QuickViewModal from './QuickViewModal'
 
@@ -17,6 +19,7 @@ export default function ProductCard({ product }) {
   const { user } = useAuth()
   const { addItem } = useCart()
   const navigate = useNavigate()
+  const toast = useToast()
   const wishlist = useWishlistSkus(user)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
   const [adding, setAdding] = useState(false)
@@ -38,7 +41,7 @@ export default function ProductCard({ product }) {
       setAdded(true)
       setTimeout(() => setAdded(false), 2000)
     } catch {
-      // The cart context surfaces its own error state; nothing more to do on the card.
+      toast(t('productDetail.addToCartError'), 'error')
     } finally {
       setAdding(false)
     }
@@ -52,7 +55,7 @@ export default function ProductCard({ product }) {
     try {
       await toggleWishlist(sku.id)
     } catch {
-      // Leave the heart as it was; the next click retries.
+      toast(t('wishlist.failed'), 'error')
     }
   }
 
@@ -82,15 +85,7 @@ export default function ProductCard({ product }) {
         <div className="p-3">
           <h3 className="font-medium text-sm truncate">{product.name}</h3>
           <p className="text-xs text-gray-500">{product.volume_ml} ml</p>
-          {product.rating_count > 0 && (
-            <p
-              className="text-xs text-yellow-600 mt-0.5"
-              role="img"
-              aria-label={t('product.ratingLabel', { avg: product.rating_average, n: product.rating_count })}
-            >
-              <span aria-hidden="true">★ {product.rating_average} ({product.rating_count})</span>
-            </p>
-          )}
+          <Rating value={product.rating_average} count={product.rating_count} className="mt-0.5" />
           <div className="flex items-center justify-between gap-2 flex-wrap mt-2">
             <span className="font-semibold">
               {sku ? `${sku.currency} ${Number(onSale ? sku.special_price : sku.retail_price).toFixed(2)}` : '—'}

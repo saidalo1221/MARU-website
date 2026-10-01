@@ -426,6 +426,8 @@ export const translations = {
       edit: 'Edit',
     },
     wishlist: {
+      emptyHint: 'Tap the heart on any product to keep it here for later.',
+      failed: 'Could not update your wishlist. Please try again.',
       title: 'Wishlist',
       loading: 'Loading...',
       empty: 'Your wishlist is empty.',
@@ -1201,6 +1203,10 @@ export const translations = {
       settings: 'Account settings',
       loading: 'Loading...',
     },
+    errors: {
+      somethingWrong: 'Something went wrong. Please try again.',
+      tryAgain: 'Try Again',
+    },
   },
   ru: {
     header: { mainNav: 'Основное', shop: 'Магазин', login: 'Войти', logout: 'Выйти', account: 'Аккаунт', cart: 'Корзина', openMenu: 'Открыть меню', admin: 'Админка', orders: 'Заказы', addresses: 'Адреса', wishlist: 'Избранное', topBarDelivery: 'Доставка по Узбекистану и в другие страны', topBarBusiness: 'Оптовые и B2B цены', navBusiness: 'Бизнесу', navAbout: 'О MARU', navSupport: 'Поддержка', allProducts: 'Все товары', containers: 'Пищевые контейнеры', sets: 'Наборы и упаковки', newFeatured: 'Новинки и избранное', company: 'О компании', profile: 'Профиль', country: 'Страна доставки', anyCountry: 'Все страны', dashboard: 'Обзор', home: 'Главная' },
@@ -1624,6 +1630,8 @@ export const translations = {
       edit: 'Изменить',
     },
     wishlist: {
+      emptyHint: 'Нажмите на сердечко у товара, чтобы сохранить его здесь.',
+      failed: 'Не удалось обновить избранное. Попробуйте ещё раз.',
       title: 'Избранное',
       loading: 'Загрузка...',
       empty: 'В избранном пока пусто.',
@@ -2399,6 +2407,10 @@ export const translations = {
       settings: 'Настройки аккаунта',
       loading: 'Загрузка...',
     },
+    errors: {
+      somethingWrong: 'Что-то пошло не так. Попробуйте ещё раз.',
+      tryAgain: 'Попробовать снова',
+    },
   },
   uz: {
     header: { mainNav: 'Asosiy', shop: "Do'kon", login: 'Kirish', logout: 'Chiqish', account: 'Kabinet', cart: 'Savat', openMenu: 'Menyuni ochish', admin: 'Admin panel', orders: 'Buyurtmalar', addresses: 'Manzillar', wishlist: 'Sevimlilar', topBarDelivery: 'O\'zbekiston bo\'ylab va xalqaro yetkazib berish', topBarBusiness: 'Ulgurji va B2B narxlar', navBusiness: 'Biznes uchun', navAbout: 'MARU haqida', navSupport: 'Yordam', allProducts: 'Barcha mahsulotlar', containers: 'Oziq-ovqat idishlari', sets: 'To\'plamlar va qadoqlar', newFeatured: 'Yangi va tanlangan', company: 'Kompaniya', profile: 'Profil', country: 'Yetkazib berish davlati', anyCountry: 'Barcha davlatlar', dashboard: 'Boshqaruv paneli', home: 'Bosh sahifa' },
@@ -2822,6 +2834,8 @@ export const translations = {
       edit: 'Tahrirlash',
     },
     wishlist: {
+      emptyHint: 'Mahsulotni shu yerda saqlash uchun yurakchani bosing.',
+      failed: 'Sevimlilarni yangilab bo\'lmadi. Qayta urinib ko\'ring.',
       title: 'Sevimlilar',
       loading: 'Yuklanmoqda...',
       empty: "Sevimlilar ro'yxati bo'sh.",
@@ -3596,6 +3610,10 @@ export const translations = {
       addressCount: 'Saqlangan manzillar: {n}',
       settings: 'Hisob sozlamalari',
       loading: 'Yuklanmoqda...',
+    },
+    errors: {
+      somethingWrong: 'Nimadir noto\'g\'ri ketdi. Qayta urinib ko\'ring.',
+      tryAgain: 'Qayta urinish',
     },
   },
 }

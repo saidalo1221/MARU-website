@@ -48,7 +48,13 @@ export default function Wishlist() {
       <AccountNav />
       <h1 className="text-2xl font-bold mb-6">{t('wishlist.title')}</h1>
       {loading && <p>{t('wishlist.loading')}</p>}
-      {!loading && items.length === 0 && <p className="text-gray-500">{t('wishlist.empty')}</p>}
+      {!loading && items.length === 0 && (
+        <div className="text-gray-500">
+          <p>{t('wishlist.empty')}</p>
+          <p className="text-sm mt-1">{t('wishlist.emptyHint')}</p>
+          <Link to="/shop" className="inline-block mt-3 bg-brand text-white rounded px-4 py-2 text-sm font-medium">{t('dashboard.startShopping')}</Link>
+        </div>
+      )}
       {status && (
         <p role={status.type === 'success' ? 'status' : 'alert'} className={`text-sm mb-4 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
           {status.message}

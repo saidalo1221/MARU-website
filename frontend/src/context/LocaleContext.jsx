@@ -4,7 +4,7 @@ import { translations } from '../i18n/translations'
 export const LOCALES = ['ru', 'uz', 'en']
 const LOCALE_KEY = 'maru_locale'
 
-const LocaleContext = createContext(null)
+export const LocaleContext = createContext(null)
 
 function resolve(dict, path) {
   return path.split('.').reduce((node, key) => (node == null ? node : node[key]), dict)

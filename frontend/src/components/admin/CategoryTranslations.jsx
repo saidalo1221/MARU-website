@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { adminListCategoryTranslations, adminUpsertCategoryTranslation } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import Tabs from '../ui/Tabs'
 
 const LOCALES = ['ru', 'uz', 'en']
 const empty = { name: '', description: '', seo_content: '' }
@@ -57,13 +58,8 @@ export default function CategoryTranslations({ categoryId }) {
   return (
     <div className="border-t border-gray-100 pt-3">
       <p className="text-sm font-medium mb-2">{t('admin.categories.translations')}</p>
-      <div className="flex gap-2 mb-3" role="tablist">
-        {LOCALES.map((l) => (
-          <button key={l} type="button" role="tab" aria-selected={active === l} onClick={() => setActive(l)}
-            className={`px-3 py-1 rounded text-sm border ${active === l ? 'bg-brand text-white border-brand' : 'border-gray-300'}`}>
-            {l.toUpperCase()}
-          </button>
-        ))}
+      <div className="mb-3">
+        <Tabs label={t('admin.categories.translations')} active={active} onChange={setActive} items={LOCALES.map((l) => ({ key: l, label: l.toUpperCase() }))} />
       </div>
       <div className="space-y-2">
         <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.name} onChange={update('name')} className={inputCls} />

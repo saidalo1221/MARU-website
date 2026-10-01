@@ -17,10 +17,11 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ2 §30-33 B2B, wholesale, request a quote, distributor
 - [x] TZ2 §34-40 About (company, manufacturing, quality), contact, delivery, payment, returns, FAQ by category, blog
 - [x] TZ2 §41-42 International UX (country, language, currency)
-- [ ] TZ2 §43 CRO (packs, quantity discounts, reorder, free-shipping threshold)
-- [ ] TZ2 §45-47, §60 Design system and tokens, buttons, form components
-- [ ] TZ2 §51-56 Responsive, loading/empty/error states, accessibility
-- [ ] TZ2 §62-63 SEO structure, analytics events
+- [x] TZ2 §43 CRO (packs, quantity discounts, reorder, free-shipping threshold)
+- [x] TZ2 §45-47, §60 Design system and tokens, buttons, form components
+- [x] TZ2 §51-56 Responsive, loading/empty/error states, accessibility
+- [x] TZ2 §62-63 SEO structure, analytics events
+- [!] TZ2 §59, §65 Figma file, interactive prototype, wireframes and developer handoff — BLOCKED: these are designer deliverables (need a designer and Figma); tokens and the component kit are in DESIGN_SYSTEM.md
 
 ### TZ3 Architecture
 - [ ] TZ3 §16-42 Data model (see PRD_AUDIT.md)

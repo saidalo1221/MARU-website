@@ -8,6 +8,8 @@ import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import { reorder } from '../lib/reorder'
 import Seo from '../components/Seo'
+import Alert from '../components/ui/Alert'
+import Button from '../components/ui/Button'
 import ShipmentList from '../components/ShipmentList'
 
 const CANCELLABLE = new Set(['new', 'payment_pending', 'paid', 'processing'])
@@ -119,19 +121,19 @@ export default function OrderStatus() {
         </p>
       )}
       {payState === 'Paid' && (
-        <p role="status" className="mb-4 rounded border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-800">{t('orderStatus.paymentSuccessful')}</p>
+        <Alert variant="success" className="mb-4">{t('orderStatus.paymentSuccessful')}</Alert>
       )}
       {payState === 'Failed' && (
-        <p role="alert" className="mb-4 rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">{t('orderStatus.paymentFailedTitle')}</p>
+        <Alert variant="error" className="mb-4">{t('orderStatus.paymentFailedTitle')}</Alert>
       )}
       {payState === 'Pending' && (
-        <p role="status" className="mb-4 rounded border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm text-yellow-900">{t('orderStatus.paymentWaiting')}</p>
+        <Alert variant="warning" className="mb-4">{t('orderStatus.paymentWaiting')}</Alert>
       )}
       {canPay && (
         <div className="mb-4">
-          <button onClick={handlePay} disabled={paying} className="bg-brand text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-40">
+          <Button onClick={handlePay} loading={paying}>
             {payState === 'Failed' ? t('orderStatus.tryAgain') : t('orderStatus.payNow')}
-          </button>
+          </Button>
           {payError && <p role="alert" className="mt-2 text-sm text-red-600">{payError}</p>}
         </div>
       )}

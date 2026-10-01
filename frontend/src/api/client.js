@@ -1,6 +1,6 @@
 // Backend routes are now mounted under /api/v1 (PRD ТЗ№3 §43); kept here in
 // the base URL rather than in every api/*.js call site's path string.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1'
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1'
 
 const ACCESS_TOKEN_KEY = 'maru_access_token'
 const CART_TOKEN_KEY = 'maru_cart_token'
@@ -50,7 +50,11 @@ export class ApiError extends Error {
 // normalizes any shape ApiError.detail can take into a displayable string.
 export function errorMessage(err, fallback) {
   if (!(err instanceof ApiError)) return fallback
+  // Server-side failures (5xx) and anything that is not a short plain sentence
+  // (an HTML error page, a stack trace) are never shown to the visitor (PRD ТЗ№2 §55).
+  if (err.status >= 500) return fallback
   const { detail } = err
+  if (typeof detail === 'string' && (detail.length > 300 || /<\/?[a-z][\s\S]*>/i.test(detail))) return fallback
   if (typeof detail === 'string' && detail) return detail
   if (Array.isArray(detail) && detail.length) {
     return detail.map((d) => (typeof d === 'string' ? d : d.msg)).filter(Boolean).join(', ') || fallback

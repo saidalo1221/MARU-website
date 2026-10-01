@@ -7,6 +7,8 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { LocaleProvider } from './context/LocaleContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
+import { ToastProvider } from './components/ui/Toast.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
 import { captureAttribution, clearAttribution } from './lib/attribution'
 import { hasConsent, subscribeConsent } from './lib/consent'
@@ -23,7 +25,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <LocaleProvider>
             <AuthProvider>
               <CartProvider>
-                <App />
+                <ToastProvider>
+                  <ErrorBoundary>
+                    <App />
+                  </ErrorBoundary>
+                </ToastProvider>
               </CartProvider>
             </AuthProvider>
           </LocaleProvider>

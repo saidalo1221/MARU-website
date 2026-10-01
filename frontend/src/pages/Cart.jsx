@@ -150,7 +150,7 @@ export default function Cart() {
       <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
         <div className="divide-y divide-gray-200">
           {cart.items.map((item) => (
-            <div key={item.id} className="py-4 flex items-center gap-4">
+            <div key={item.id} className="py-4 flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link to={item.product_slug ? `/products/${item.product_slug}` : '/shop'} className="shrink-0" tabIndex={-1} aria-hidden="true">
                 {item.image_url ? (
                   <img src={item.image_url} alt="" className="h-16 w-16 rounded object-cover bg-gray-100" />
@@ -158,7 +158,7 @@ export default function Cart() {
                   <span className="block h-16 w-16 rounded bg-gray-100" />
                 )}
               </Link>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-[9rem]">
                 <p className="font-medium text-sm">
                   {item.product_slug ? <Link to={`/products/${item.product_slug}`} className="hover:underline">{item.product_name || item.sku_code}</Link> : item.sku_code}
                 </p>

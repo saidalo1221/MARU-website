@@ -9,6 +9,7 @@ import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
 import { trackEvent } from '../lib/analytics'
 import Breadcrumbs from '../components/Breadcrumbs'
+import Pagination from '../components/ui/Pagination'
 import Seo from '../components/Seo'
 import { ProductGridSkeleton } from '../components/Skeleton'
 import useDialogFocus from '../lib/useDialogFocus'
@@ -331,23 +332,7 @@ export default function Catalog({ category = null }) {
             ))}
           </div>
 
-          {pageCount > 1 && (
-            <nav aria-label={t('catalog.pagination')} className="flex items-center justify-center gap-3 mt-6 text-sm">
-              <button
-                type="button" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}
-                className="border border-gray-300 rounded px-3 py-1.5 disabled:opacity-40"
-              >
-                {t('catalog.prev')}
-              </button>
-              <span>{t('catalog.pageOf', { page, total: pageCount })}</span>
-              <button
-                type="button" disabled={page >= pageCount} onClick={() => setPage((n) => n + 1)}
-                className="border border-gray-300 rounded px-3 py-1.5 disabled:opacity-40"
-              >
-                {t('catalog.next')}
-              </button>
-            </nav>
-          )}
+          <Pagination page={page} pageCount={pageCount} onChange={setPage} />
         </div>
       </div>
 

@@ -60,3 +60,9 @@ Newest entries last. Blocked items are marked `[!]` in the BUILD STATUS block at
 28. **Category pages** live at `/shop/:slug` and reuse the catalog (pinned to the category and its subcategories). Content
     (description, SEO text, image URL, per-language overrides) is edited under Admin > Categories. The category FAQ block
     shows the first general FAQ questions (the FAQ topics are not tied to product categories). The sitemap lists category pages.
+29. **Design tokens** are CSS variables in `frontend/src/styles/tokens.css`, read by `tailwind.config.js`; brand colours stay
+    the temporary placeholders (PRD §45.2: do not invent brand colours). See `DESIGN_SYSTEM.md`.
+30. **Error display**: `errorMessage()` hides every 5xx and any HTML/long server text behind the caller's friendly fallback;
+    `ErrorBoundary` wraps the app. `html { overflow-x: hidden }` (pre-existing) can mask overflow, so layout was checked
+    element by element at 375px instead.
+31. **No Figma**: design-file artifacts (§59, §65) are marked blocked in PRD.md.
