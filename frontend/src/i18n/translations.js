@@ -177,6 +177,9 @@ export const translations = {
     },
     common: { loading: 'Loading...', skipToContent: 'Skip to main content', close: 'Close', breadcrumb: 'Breadcrumb' },
     cart: {
+      packaging: 'Packed: {boxes} boxes{loose}, about {kg} kg, {l} L{approx}',
+      packagingLoose: ' + {n} loose',
+      packagingApprox: ' (estimate)',
       estimatedDelivery: 'Estimated delivery',
       loading: 'Loading...',
       saveForLater: 'Save for later',
@@ -1531,6 +1534,9 @@ export const translations = {
     },
     common: { loading: 'Загрузка...', skipToContent: 'Перейти к основному содержимому', close: 'Закрыть', breadcrumb: 'Хлебные крошки' },
     cart: {
+      packaging: 'Упаковка: {boxes} коробок{loose}, около {kg} кг, {l} л{approx}',
+      packagingLoose: ' + {n} россыпью',
+      packagingApprox: ' (оценка)',
       estimatedDelivery: 'Ожидаемая доставка',
       loading: 'Загрузка...',
       saveForLater: 'Отложить',
@@ -2885,6 +2891,9 @@ export const translations = {
     },
     common: { loading: 'Yuklanmoqda...', skipToContent: "Asosiy kontentga o'tish", close: 'Yopish', breadcrumb: 'Sahifa yo\'li' },
     cart: {
+      packaging: 'Qadoq: {boxes} quti{loose}, taxminan {kg} kg, {l} L{approx}',
+      packagingLoose: ' + {n} dona ochiq',
+      packagingApprox: ' (taxminiy)',
       estimatedDelivery: 'Taxminiy yetkazib berish',
       loading: 'Yuklanmoqda...',
       saveForLater: 'Keyinroqqa saqlash',

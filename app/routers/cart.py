@@ -36,6 +36,7 @@ from app.services.currency import CurrencyError, convert_amount, get_rate_to_usd
 from app.services.analytics import record_event
 from app.services.pricing import PromoCodeError, promo_line_discounts, resolve_unit_price, validate_promo
 from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g, free_shipping_progress
+from app.services.packaging import packaging_for
 from app.services.tax import calculate_lines_tax
 
 router = APIRouter(prefix="/cart", tags=["cart"], dependencies=[Depends(rate_limit("cart", 300, 60))])
@@ -183,6 +184,7 @@ def _build_cart_out(
         free_shipping_threshold=threshold,
         free_shipping_remaining=remaining,
         saved_items=saved_items,
+        packaging=packaging_for((i.sku, i.quantity) for i in cart.items).as_dict() if cart.items else None,
     )
 
 

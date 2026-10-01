@@ -52,6 +52,8 @@ class CartOut(BaseModel):
     # Cart currency. Remaining is 0 once shipping is free; both None = no offer.
     free_shipping_threshold: Optional[Decimal] = None
     free_shipping_remaining: Optional[Decimal] = None
+    # Boxes / weight / volume of the cart (app/services/packaging.py); None for an empty cart.
+    packaging: Optional[dict] = None
 
 
 class CartRecommendationsOut(BaseModel):
