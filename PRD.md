@@ -1,3 +1,51 @@
+<!-- BUILD STATUS START -->
+## BUILD STATUS (agent-maintained)
+Legend: [x] built and tested, [!] blocked (reason given), [ ] not built yet.
+Details of how each was verified are in git history; assumptions are in NOTES.md.
+
+### TZ2 UI/UX
+- [ ] TZ2 §5-7 Header (Shop/Business/About/Support/Blog menus, country selector), mobile header, footer columns + bottom row
+- [ ] TZ2 §8 Home page (11 blocks)
+- [x] TZ2 §9, §50 Catalog: filters (capacity, color, price, category, availability), sort, pagination, mobile bottom sheet
+- [ ] TZ2 §10 Category page (H1, description, image, SEO content, FAQ)
+- [x] TZ2 §11, §48-49 Product card (price, old price, discount, availability, rating, Add to Cart, Quick View, Wishlist), badges
+- [ ] TZ2 §12-17 Product page (gallery, variants, quantity tiers, CTAs incl. Request a Quote, delivery block)
+- [ ] TZ2 §18-19 Search (autocomplete, suggestions, SKU, typo tolerance, results page)
+- [ ] TZ2 §20-21 Cart and upsell
+- [ ] TZ2 §22-25 Checkout, payment states, order success
+- [ ] TZ2 §26-29 Login/registration, account (dashboard, orders, wishlist, addresses, profile)
+- [ ] TZ2 §30-33 B2B, wholesale, request a quote, distributor
+- [ ] TZ2 §34-40 About (company, manufacturing, quality), contact, delivery, payment, returns, FAQ by category, blog
+- [ ] TZ2 §41-42 International UX (country, language, currency)
+- [ ] TZ2 §43 CRO (packs, quantity discounts, reorder, free-shipping threshold)
+- [ ] TZ2 §45-47, §60 Design system and tokens, buttons, form components
+- [ ] TZ2 §51-56 Responsive, loading/empty/error states, accessibility
+- [ ] TZ2 §62-63 SEO structure, analytics events
+
+### TZ3 Architecture
+- [ ] TZ3 §16-42 Data model (see PRD_AUDIT.md)
+- [ ] TZ3 §43-53 API design (filters, sorting whitelist, pagination limit, error format)
+- [ ] TZ3 §54-58 Auth, RBAC, admin MFA
+- [ ] TZ3 §59-68 Order engine, state machine, idempotency, inventory
+- [ ] TZ3 §69-75 Pricing, i18n, currency, tax, timezone
+- [ ] TZ3 §76-83 Security, audit log, backups
+- [ ] TZ3 §84-92 Performance, caching, async, logging
+- [ ] TZ3 §93-101 Alerting, environments, CI/CD, tests, migrations
+- [ ] TZ3 §102-105 GDPR/privacy, admin architecture, analytics
+
+### TZ4 Integrations
+- [ ] TZ4 §1-5 Integration layer, adapter interfaces, master-data matrix
+- [ ] TZ4 §6-13 ERP/1C
+- [ ] TZ4 §14-18 CRM, RFQ, attribution
+- [ ] TZ4 §19-28 Payments
+- [ ] TZ4 §29-33 Shipping
+- [ ] TZ4 §34-39 Marketplace/Uzum
+- [ ] TZ4 §40-44 SMS, email, templates, WhatsApp, Telegram
+- [ ] TZ4 §45-49 Analytics: GA4, GTM, Meta, server-side
+- [ ] TZ4 §50-69 Webhooks, retry, DLQ, logging, health, reconciliation
+- [ ] TZ4 §70-93 Contracts, data mapping, documents, B2B, testing
+<!-- BUILD STATUS END -->
+
 [8/15/2026 1:57 PM] Ada: ТЕХНИЧЕСКОЕ ЗАДАНИЕ №2
 UI/UX интернет-магазина MARU
 Проект: MARU E-commerce

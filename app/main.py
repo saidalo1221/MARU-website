@@ -116,7 +116,7 @@ app.add_middleware(
     allow_headers=["*"],
     # Guest carts return this header when a cart is first created; JavaScript
     # must be able to read it to persist the cart across requests.
-    expose_headers=["X-Cart-Token"],
+    expose_headers=["X-Cart-Token", "X-Total-Count"],
 )
 
 # Serves admin-uploaded images (app/routers/admin_uploads.py); see that

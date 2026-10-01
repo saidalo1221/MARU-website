@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { getWishlist, removeFromWishlist } from '../api/wishlist'
+import { markWishlist } from '../lib/wishlistStore'
 import { useCart } from '../context/CartContext'
 import AccountNav from '../components/account/AccountNav'
 import Seo from '../components/Seo'
@@ -27,6 +28,7 @@ export default function Wishlist() {
 
   const handleRemove = async (skuId) => {
     const updated = await removeFromWishlist(skuId, locale, currency)
+    markWishlist(skuId, false)
     setItems(updated)
   }
 

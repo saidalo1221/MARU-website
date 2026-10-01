@@ -12,6 +12,10 @@ export function listProducts(lang, currency) {
   return apiRequest(`/products/${buildQuery({ lang, currency })}`)
 }
 
+export function listCategories(lang) {
+  return apiRequest(`/categories/${buildQuery({ lang })}`)
+}
+
 export function getProduct(slug, lang, currency) {
   return apiRequest(`/products/${encodeURIComponent(slug)}${buildQuery({ lang, currency })}`)
 }

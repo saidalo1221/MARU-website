@@ -4,6 +4,7 @@ import { getProduct } from '../api/products'
 import { listShippingCountries } from '../api/shipping'
 import { trackEvent } from '../lib/analytics'
 import { addToWishlist, getWishlist, removeFromWishlist } from '../api/wishlist'
+import { markWishlist } from '../lib/wishlistStore'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -82,9 +83,11 @@ export default function ProductDetail() {
     if (!sku) return
     if (wishlisted) {
       await removeFromWishlist(sku.id)
+      markWishlist(sku.id, false)
       setWishlisted(false)
     } else {
       await addToWishlist(sku.id)
+      markWishlist(sku.id, true)
       setWishlisted(true)
     }
   }

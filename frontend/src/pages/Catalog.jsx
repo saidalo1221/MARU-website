@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { listProducts } from '../api/products'
+import { listCategories, listProducts } from '../api/products'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import ProductCard from '../components/product/ProductCard'
@@ -8,9 +8,15 @@ import Seo from '../components/Seo'
 import { ProductGridSkeleton } from '../components/Skeleton'
 import useDialogFocus from '../lib/useDialogFocus'
 
+const PAGE_SIZE = 12
+
 function minPrice(product) {
   const prices = product.variants.flatMap((v) => v.skus.map((s) => Number(s.retail_price)))
   return prices.length ? Math.min(...prices) : Infinity
+}
+
+function flattenCategories(nodes) {
+  return nodes.flatMap((c) => [c, ...flattenCategories(c.children || [])])
 }
 
 export default function Catalog() {
@@ -22,6 +28,12 @@ export default function Catalog() {
   const [error, setError] = useState(null)
   const [volumeFilter, setVolumeFilter] = useState('')
   const [availabilityFilter, setAvailabilityFilter] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [colorFilter, setColorFilter] = useState('')
+  const [priceMin, setPriceMin] = useState('')
+  const [priceMax, setPriceMax] = useState('')
+  const [categories, setCategories] = useState([])
+  const [page, setPage] = useState(1)
   const [sort, setSort] = useState('default')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const listTracked = useRef(false)
@@ -39,7 +51,13 @@ export default function Catalog() {
     { value: 'default', label: t('catalog.sortDefault') },
     { value: 'price_asc', label: t('catalog.sortPriceAsc') },
     { value: 'price_desc', label: t('catalog.sortPriceDesc') },
+    { value: 'newest', label: t('catalog.sortNewest') },
+    { value: 'rating', label: t('catalog.sortRating') },
   ]
+
+  useEffect(() => {
+    listCategories(locale).then((tree) => setCategories(flattenCategories(tree))).catch(() => setCategories([]))
+  }, [locale])
 
   useEffect(() => {
     setLoading(true)
@@ -61,9 +79,22 @@ export default function Catalog() {
     [products]
   )
 
-  const visible = useMemo(() => {
+  const colors = useMemo(
+    () => [...new Set(products.flatMap((p) => p.variants.map((v) => v.color)))].sort(),
+    [products]
+  )
+  const categoryOptions = useMemo(() => {
+    const used = new Set(products.map((p) => p.category_id))
+    return categories.filter((c) => used.has(c.id))
+  }, [categories, products])
+
+  const filtered = useMemo(() => {
     let list = [...products]
     if (volumeFilter) list = list.filter((p) => String(p.volume_ml) === volumeFilter)
+    if (categoryFilter) list = list.filter((p) => String(p.category_id) === categoryFilter)
+    if (colorFilter) list = list.filter((p) => p.variants.some((v) => v.color === colorFilter))
+    if (priceMin !== '') list = list.filter((p) => minPrice(p) >= Number(priceMin))
+    if (priceMax !== '') list = list.filter((p) => minPrice(p) <= Number(priceMax))
     if (availabilityFilter) {
       list = list.filter((p) =>
         p.variants.some((v) => v.skus.some((s) => s.available_quantity > 0))
@@ -71,8 +102,25 @@ export default function Catalog() {
     }
     if (sort === 'price_asc') list.sort((a, b) => minPrice(a) - minPrice(b))
     if (sort === 'price_desc') list.sort((a, b) => minPrice(b) - minPrice(a))
+    if (sort === 'newest') list.sort((a, b) => b.id - a.id)
+    if (sort === 'rating') list.sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0))
     return list
-  }, [products, volumeFilter, availabilityFilter, sort])
+  }, [products, volumeFilter, categoryFilter, colorFilter, priceMin, priceMax, availabilityFilter, sort])
+
+  // Any filter or sort change starts again from the first page.
+  useEffect(() => setPage(1), [volumeFilter, categoryFilter, colorFilter, priceMin, priceMax, availabilityFilter, sort])
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const hasFilters = volumeFilter || categoryFilter || colorFilter || priceMin !== '' || priceMax !== '' || availabilityFilter
+  const clearFilters = () => {
+    setVolumeFilter('')
+    setCategoryFilter('')
+    setColorFilter('')
+    setPriceMin('')
+    setPriceMax('')
+    setAvailabilityFilter(false)
+  }
 
   const FiltersPanel = (
     <div className="space-y-4">
@@ -90,6 +138,49 @@ export default function Catalog() {
           ))}
         </select>
       </div>
+      {categoryOptions.length > 1 && (
+        <div>
+          <label className="block text-sm font-medium mb-1" htmlFor="filter-category">{t('catalog.category')}</label>
+          <select
+            id="filter-category"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+          >
+            <option value="">{t('catalog.all')}</option>
+            {categoryOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+      )}
+      {colors.length > 1 && (
+        <div>
+          <label className="block text-sm font-medium mb-1" htmlFor="filter-color">{t('catalog.color')}</label>
+          <select
+            id="filter-color"
+            value={colorFilter}
+            onChange={(e) => setColorFilter(e.target.value)}
+            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+          >
+            <option value="">{t('catalog.all')}</option>
+            {colors.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      )}
+      <fieldset>
+        <legend className="block text-sm font-medium mb-1">{t('catalog.price')}</legend>
+        <div className="flex gap-2">
+          <input
+            type="number" min="0" inputMode="decimal" value={priceMin} onChange={(e) => setPriceMin(e.target.value)}
+            aria-label={t('catalog.priceMin')} placeholder={t('catalog.priceMin')}
+            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+          />
+          <input
+            type="number" min="0" inputMode="decimal" value={priceMax} onChange={(e) => setPriceMax(e.target.value)}
+            aria-label={t('catalog.priceMax')} placeholder={t('catalog.priceMax')}
+            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+          />
+        </div>
+      </fieldset>
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
@@ -98,6 +189,9 @@ export default function Catalog() {
         />
         {t('catalog.inStockOnly')}
       </label>
+      {hasFilters && (
+        <button type="button" onClick={clearFilters} className="text-sm text-brand underline">{t('catalog.clearFilters')}</button>
+      )}
     </div>
   )
 
@@ -165,8 +259,16 @@ export default function Catalog() {
 
           {loading && products.length === 0 && <ProductGridSkeleton />}
           {error && <p role="alert" className="text-red-600">{t('catalog.loadError')}</p>}
-          {!loading && !error && visible.length === 0 && (
-            <p className="text-gray-500">{t('catalog.noProducts')}</p>
+          {!loading && !error && filtered.length === 0 && (
+            <div className="text-gray-500">
+              <p>{t('catalog.noProducts')}</p>
+              {hasFilters && (
+                <button type="button" onClick={clearFilters} className="mt-2 text-brand underline">{t('catalog.clearFilters')}</button>
+              )}
+            </div>
+          )}
+          {!loading && !error && filtered.length > 0 && (
+            <p className="text-sm text-gray-500 mb-3" role="status">{t('catalog.results', { n: filtered.length })}</p>
           )}
 
           <h2 className="sr-only">{t('catalog.title')}</h2>
@@ -175,6 +277,24 @@ export default function Catalog() {
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
+
+          {pageCount > 1 && (
+            <nav aria-label={t('catalog.pagination')} className="flex items-center justify-center gap-3 mt-6 text-sm">
+              <button
+                type="button" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}
+                className="border border-gray-300 rounded px-3 py-1.5 disabled:opacity-40"
+              >
+                {t('catalog.prev')}
+              </button>
+              <span>{t('catalog.pageOf', { page, total: pageCount })}</span>
+              <button
+                type="button" disabled={page >= pageCount} onClick={() => setPage((n) => n + 1)}
+                className="border border-gray-300 rounded px-3 py-1.5 disabled:opacity-40"
+              >
+                {t('catalog.next')}
+              </button>
+            </nav>
+          )}
         </div>
       </div>
     </div>

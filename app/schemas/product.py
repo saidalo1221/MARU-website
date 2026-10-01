@@ -71,6 +71,8 @@ class ProductOut(BaseModel):
     badge_bestseller: Optional[bool]
     variants: list[ProductVariantOut]
     badges: Optional[ProductBadges] = None
+    rating_average: Optional[float] = None
+    rating_count: int = 0
 
 
 class SKUCreate(BaseModel):

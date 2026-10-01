@@ -108,6 +108,15 @@ def _reset_module_level_state():
     rate_limit_module._redis_warned = False
 
 
+@pytest.fixture(autouse=True)
+def _no_real_email(monkeypatch):
+    """The developer's .env may hold real SMTP credentials; without this every
+    registration in a test would try to send actual mail."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "SMTP_HOST", None)
+
+
 @pytest.fixture()
 def warehouse(db_session):
     wh = Warehouse(name="Main", country="Uzbekistan", priority=1)
