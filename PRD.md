@@ -3,6 +3,33 @@
 Legend: [x] built and tested, [!] blocked (reason given), [ ] not built yet.
 Details of how each was verified are in git history; assumptions are in NOTES.md.
 
+### TZ1 Functional specification (re-audited against the code on 2026-10-01)
+- [x] TZ1 §1-6 Goals, customer types, markets, assortment fields, catalogue structure, variants
+- [x] TZ1 §7 Kits / packs: a set is its own SKU (price, tiers, stock) with its contents listed (`sku_bundle_items`)
+- [x] TZ1 §8-10 Cart, checkout (person / company), guest order
+- [x] TZ1 §11 Account: profile, addresses, orders, reorder, wishlist, invoices/documents
+- [!] TZ1 §11 Account: saved payment methods (needs a tokenising payment provider) and bonuses/loyalty (PRD §62 second stage) — not built
+- [x] TZ1 §12-13 Order statuses with history; payment gateways as separate modules (see TZ4 §19-28 for the untested-provider caveat)
+- [x] TZ1 §14-16 Currencies, languages, country detection and market-specific tax, shipping and payment methods (a per-market product assortment is not built)
+- [x] TZ1 §17-20 Shipping, packaging calculation (boxes / weight / volume), warehouses, stock transfers and movement log
+- [x] TZ1 §21-23 Price types, quantity tiers, promo codes (products, categories, countries, customers, per-customer limit, validity, usage cap)
+- [x] TZ1 §24-26 B2B form, request a quote, CRM push (Bitrix24)
+- [x] TZ1 §27-28, §59-60 Admin dashboard: sales, units, AOV, margin, customers, LTV, markets, sources, funnel, CAC/ROAS (needs cost prices and ad spend entered)
+- [x] TZ1 §29-31 SEO fields, canonical / Open Graph / structured data, server-rendered pages for crawlers, content blocks, photo variants (WebP/AVIF)
+- [x] TZ1 §32 Reviews with ratings, text and photos; approve / reject / delete (linked to the product, not to a single SKU)
+- [x] TZ1 §33-34 Admin panel areas and roles (customers page, orders, products, stock, promos, dashboard)
+- [!] TZ1 §35 ERP integration — see TZ4 §6-13 (no 1C spec / credentials)
+- [x] TZ1 §36-37 REST API with auth, rate limits, logging, versioning; signed outbound webhooks (order, payment, inventory events)
+- [x] TZ1 §38 E-mail notifications; Telegram staff alerts
+- [!] TZ1 §38 SMS and customer WhatsApp/Telegram — see TZ4 §40-44
+- [x] TZ1 §39 Abandoned cart e-mail for signed-in customers (push and ad remarketing are not built)
+- [x] TZ1 §40-41 Wishlist; recommendations (similar, other sizes, bought together, sets)
+- [x] TZ1 §42-45 Mobile-first site, security, daily backup script
+- [x] TZ1 §46-48 Performance at catalogue scale (SQL filtering / sorting / paging / search / suggestions; tested to 20 000 products), search with typo tolerance, filters (CDN needs infrastructure)
+- [!] TZ1 §49-50 Marketplace channels / omnichannel — see TZ4 §34-39
+- [x] TZ1 §51-58 Architecture, data model, price pipeline, taxes (incl. product classes), international orders, B2B/export flow, documents (confirmation, invoice, proforma, packing list), audit log
+- [x] TZ1 §61-64 MVP scope and acceptance criteria (guest purchase, stock reservation, notification, tracking, status history, languages, currencies, delivery, promo codes) — covered by the test suite
+
 ### TZ2 UI/UX
 - [x] TZ2 §5-7 Header (Shop/Business/About/Support/Blog menus, country selector), mobile header, footer columns + bottom row
 - [x] TZ2 §8 Home page (11 blocks)
@@ -30,7 +57,7 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ3 §59-68 Order engine, state machine, idempotency, inventory
 - [x] TZ3 §69-75 Pricing, i18n, currency, tax, timezone
 - [x] TZ3 §76-83 Security, audit log, backups
-- [x] TZ3 §84-92 Performance, caching, async, logging
+- [x] TZ3 §84-92 Performance, caching, async, logging (CDN and a managed image CDN need infrastructure; pre-rendering for bots is built)
 - [x] TZ3 §93-101 Alerting, environments, CI/CD, tests, migrations
 - [x] TZ3 §102-105 GDPR/privacy, admin architecture, analytics
 
@@ -46,6 +73,911 @@ Details of how each was verified are in git history; assumptions are in NOTES.md
 - [x] TZ4 §50-69 Webhooks, retry, DLQ, logging, health, reconciliation
 - [x] TZ4 §70-93 Contracts, data mapping, documents, B2B, testing
 <!-- BUILD STATUS END -->
+
+[8/14/2026 9:06 AM] Ada: ТЕХНИЧЕСКОЕ ЗАДАНИЕ
+Интернет-магазин пластиковых контейнеров MARU
+Продажи на локальном и международном рынках
+Версия: 1.0
+Дата: 14.08.2026
+Тип документа: Product Requirements Document / Technical Specification
+1. ЦЕЛЬ ПРОЕКТА
+Создать единую e-commerce платформу для продажи пластиковых контейнеров собственного производства под брендом MARU.
+Система должна обеспечивать:
+Продажу товаров на рынке Узбекистана.
+Продажу товаров на международных рынках.
+Розничные и оптовые продажи.
+Продажу через собственный интернет-магазин.
+Возможность подключения маркетплейсов.
+Управление каталогом, остатками, ценами и заказами.
+Приём онлайн-оплаты.
+Расчёт стоимости доставки.
+Международную доставку.
+Многоязычность и мультивалютность.
+Интеграцию с CRM/ERP/учётной системой.
+Масштабирование ассортимента без переработки архитектуры.
+2. БИЗНЕС-МОДЕЛЬ
+2.1. Основные категории клиентов
+Система должна поддерживать следующие типы покупателей:
+B2C
+Конечный покупатель.
+B2B
+Магазины, рестораны, кафе, производственные компании, дистрибьюторы, оптовики.
+Distributor
+Региональные и международные дистрибьюторы.
+Wholesale
+Крупный оптовый покупатель.
+3. ЦЕЛЕВЫЕ РЫНКИ
+3.1. Локальный рынок
+Основной рынок первого этапа:
+Узбекистан
+В дальнейшем:
+Казахстан;
+Кыргызстан;
+Таджикистан;
+Туркменистан;
+Азербайджан;
+другие рынки СНГ.
+3.2. Международные рынки
+Архитектура должна предусматривать возможность продаж:
+Европа;
+Ближний Восток;
+США;
+Канада;
+другие рынки.
+Страна покупателя должна определяться автоматически либо пользователем вручную.
+4. АССОРТИМЕНТ
+На первом этапе необходимо предусмотреть следующие размеры контейнеров:
+350 ml;
+470 ml;
+800 ml;
+1000 ml;
+1900 ml.
+Материал:
+Polypropylene (PP).
+Для каждого товара необходимо хранить:
+SKU;
+название;
+категорию;
+объём;
+размеры;
+вес;
+материал;
+цвет;
+форму;
+назначение;
+фотографии;
+видео;
+описание;
+характеристики;
+наличие;
+минимальное количество заказа;
+цену;
+оптовую цену;
+международную цену;
+упаковочную информацию;
+количество единиц в коробке;
+размеры коробки;
+вес коробки;
+штрихкод;
+страну производства.
+5. СТРУКТУРА КАТАЛОГА
+Каталог должен поддерживать следующую структуру:
+Категория → Серия → Товар → Вариант → SKU
+Например:
+Контейнеры
+→ Пищевые контейнеры
+→ MARU 1000 ml
+→ Прозрачный
+→ SKU-1000-TR
+6. ВАРИАНТЫ ТОВАРА
+Один товар может иметь несколько вариантов.
+Пример:
+MARU Food Container 1000 ml
+Варианты:
+прозрачный;
+белый;
+другие цвета.
+Каждый вариант может иметь отдельный:
+SKU;
+остаток;
+цену;
+фотографию;
+штрихкод.
+7. КОМПЛЕКТЫ
+Система должна поддерживать продажу комплектов.
+Например:
+Pack 3
+3 контейнера.
+Pack 5
+5 контейнеров.
+Pack 7
+7 контейнеров.
+Комплект может содержать:
+одинаковые контейнеры;
+разные размеры;
+разные цвета.
+Цена комплекта должна рассчитываться отдельно.
+Например:
+Розничная цена:
+$10
+Цена Pack 5:
+$8.50
+Скидка:
+15%.
+8. КОРЗИНА
+Пользователь должен иметь возможность:
+добавить товар;
+изменить количество;
+удалить товар;
+изменить вариант товара;
+увидеть стоимость товаров;
+увидеть скидку;
+увидеть стоимость доставки;
+увидеть итоговую стоимость.
+Формула:
+Subtotal + Delivery − Discount = Total
+9. ОФОРМЛЕНИЕ ЗАКАЗА
+Checkout должен включать:
+Для физического лица
+имя;
+фамилия;
+телефон;
+e-mail;
+страна;
+город;
+адрес;
+индекс;
+способ доставки;
+способ оплаты.
+Для юридического лица
+Дополнительно:
+название компании;
+регистрационные данные;
+налоговый номер;
+адрес компании;
+контактное лицо.
+10. ГОСТЕВОЙ ЗАКАЗ
+Регистрация пользователя не должна быть обязательной.
+Покупатель может оформить заказ как Guest.
+После заказа система должна предложить создать аккаунт.
+11. ЛИЧНЫЙ КАБИНЕТ
+Пользователь должен видеть:
+профиль;
+адреса доставки;
+историю заказов;
+текущие заказы;
+статус заказа;
+повторить заказ;
+избранные товары;
+сохранённые способы оплаты;
+счета/инвойсы;
+бонусы/скидки.
+12. СТАТУСЫ ЗАКАЗА
+Минимальный набор:
+New
+Payment Pending
+Paid
+Processing
+[8/14/2026 9:06 AM] Ada: Packed
+Shipped
+In Transit
+Delivered
+Cancelled
+Returned
+Refunded
+История изменения статуса должна сохраняться.
+13. ОПЛАТА
+Узбекистан
+Предусмотреть интеграцию с локальными платёжными системами.
+Архитектура должна позволять подключать несколько провайдеров.
+Международные платежи
+Предусмотреть возможность подключения:
+банковских карт;
+международных payment gateways;
+других разрешённых способов оплаты.
+Payment Gateway должен быть отдельным модулем.
+Это позволит заменить платёжного провайдера без изменения checkout.
+14. МУЛЬТИВАЛЮТНОСТЬ
+Основные валюты:
+UZS;
+USD;
+EUR;
+KZT;
+AED.
+В дальнейшем список должен расширяться.
+Цена товара должна храниться независимо от отображаемой валюты.
+Система должна поддерживать:
+фиксированные цены;
+автоматический валютный курс;
+отдельные цены для рынка.
+Например:
+Узбекистан:
+250 000 UZS
+Экспорт:
+$20
+15. МУЛЬТИЯЗЫЧНОСТЬ
+Минимально:
+русский;
+узбекский;
+английский.
+Архитектура должна позволять добавить:
+казахский;
+арабский;
+другие языки.
+Перевод должен быть независимым от программного кода.
+16. GEOLOCATION
+При входе пользователя система может определить страну.
+Например:
+Пользователь из Узбекистана:
+UZ market
+Пользователь из Казахстана:
+KZ market
+Пользователь из Германии:
+EU market
+Для каждого рынка могут применяться:
+собственная валюта;
+цена;
+доставка;
+налог;
+доступный ассортимент;
+способы оплаты.
+17. ДОСТАВКА
+Система должна поддерживать несколько способов доставки.
+Локальная доставка
+курьер;
+пункты выдачи;
+транспортная компания;
+самовывоз.
+Международная доставка
+courier;
+postal;
+freight;
+air;
+sea.
+Стоимость доставки должна рассчитываться с учётом:
+страны;
+региона;
+города;
+веса;
+объёма;
+количества;
+способа доставки.
+18. УПАКОВКА И ЛОГИСТИКА
+Для каждого SKU необходимо хранить:
+вес единицы;
+длину;
+ширину;
+высоту;
+количество в коробке;
+вес коробки;
+размеры коробки.
+Система должна рассчитывать упаковочные параметры заказа.
+Пример:
+Заказ:
+50 × 350 ml
+Система определяет:
+количество коробок;
+общий вес;
+объём;
+ориентировочную стоимость доставки.
+19. СКЛАД
+Необходимо предусмотреть складской модуль.
+Для каждого SKU:
+остаток;
+зарезервировано;
+доступно;
+ожидается;
+минимальный остаток.
+Формула:
+Available = Stock − Reserved
+При создании оплаченного заказа товар резервируется.
+При отмене заказа резерв снимается.
+20. НЕСКОЛЬКО СКЛАДОВ
+Архитектура должна позволять создать несколько складов.
+Например:
+Uzbekistan Warehouse;
+Tashkent Warehouse;
+Kazakhstan Warehouse;
+Dubai Warehouse;
+EU Warehouse.
+В дальнейшем товар может автоматически отправляться со склада, оптимального для клиента.
+21. ЦЕНООБРАЗОВАНИЕ
+Система должна поддерживать несколько типов цен:
+Retail
+Розничная цена.
+Wholesale
+Оптовая цена.
+Distributor
+Цена дистрибьютора.
+Export
+Экспортная цена.
+Special
+Специальная цена клиента.
+22. СКИДКИ
+Поддержать:
+процентную скидку;
+фиксированную скидку;
+скидку на количество;
+скидку на комплект;
+промокод;
+скидку для B2B;
+персональную скидку;
+сезонную скидку.
+Пример:
+1–9 шт. — $2.00
+10–49 шт. — $1.80
+50–199 шт. — $1.60
+200+ шт. — $1.40
+23. ПРОМОКОДЫ
+Администратор должен иметь возможность создавать:
+код;
+размер скидки;
+срок действия;
+минимальную сумму заказа;
+количество использований;
+список товаров;
+список стран;
+список клиентов.
+24. B2B-ПРОДАЖИ
+На сайте должна быть отдельная секция:
+Wholesale / For Business
+Форма заявки:
+компания;
+страна;
+город;
+контактное лицо;
+телефон;
+e-mail;
+интересующие товары;
+необходимое количество;
+предполагаемый объём закупки;
+комментарий.
+После отправки заявка поступает в CRM.
+25. ЗАПРОС КОММЕРЧЕСКОГО ПРЕДЛОЖЕНИЯ
+Для крупных заказов должна быть кнопка:
+Request a Quote
+Покупатель формирует заявку из товаров.
+Например:
+1000 × 350 ml
+500 × 800 ml
+1000 × 1000 ml
+Нажимает:
+Request Quote
+Менеджер получает заявку и формирует предложение.
+26. ИНТЕГРАЦИЯ С CRM
+Каждый заказ должен автоматически передаваться в CRM.
+[8/14/2026 9:06 AM] Ada: Передавать:
+клиент;
+контакты;
+страна;
+товары;
+количество;
+сумма;
+валюта;
+доставка;
+источник;
+способ оплаты;
+статус.
+Источники:
+Website;
+Instagram;
+Facebook;
+Google;
+Marketplace;
+WhatsApp;
+Telegram;
+Direct;
+Referral.
+27. АНАЛИТИКА
+Необходимо отслеживать:
+Продажи
+количество заказов;
+оборот;
+средний чек;
+количество товаров;
+прибыль;
+маржа.
+Клиенты
+новые клиенты;
+повторные клиенты;
+LTV;
+частота покупок.
+Marketing
+источник заказа;
+CAC;
+ROAS;
+conversion rate.
+28. ВОРОНКА ПРОДАЖ
+Система должна фиксировать:
+Visitor → Product View → Add to Cart → Checkout → Payment → Order → Repeat Order
+Необходимо измерять конверсию между этапами.
+29. SEO
+Каждый товар должен иметь:
+SEO Title;
+Meta Description;
+URL slug;
+H1;
+structured data;
+canonical URL;
+Open Graph;
+sitemap.
+URL должен быть человекочитаемым.
+Например:
+/products/maru-food-container-1000ml
+30. КОНТЕНТ ТОВАРА
+Карточка товара должна содержать:
+Название.
+Фотографии.
+Видео.
+Цена.
+Старую цену при наличии.
+Скидку.
+Наличие.
+Характеристики.
+Описание.
+Преимущества.
+Сценарии использования.
+Инструкцию.
+Информацию о материале.
+Доставку.
+Отзывы.
+FAQ.
+Рекомендованные товары.
+31. ФОТОГРАФИИ
+Поддержать:
+основное фото;
+несколько дополнительных;
+фото упаковки;
+фото размеров;
+lifestyle-фото;
+фото использования;
+видео.
+Изображения должны автоматически оптимизироваться для web.
+32. ОТЗЫВЫ
+Пользователь может оставить:
+оценку 1–5;
+текст;
+фотографии.
+Отзыв должен быть связан с конкретным SKU.
+Администратор может:
+одобрить;
+скрыть;
+удалить.
+33. АДМИН-ПАНЕЛЬ
+Администратор должен управлять:
+Catalog
+товары;
+категории;
+варианты;
+характеристики.
+Orders
+заказы;
+статусы;
+оплаты;
+возвраты.
+Customers
+пользователи;
+B2B-клиенты;
+дистрибьюторы.
+Warehouse
+остатки;
+резервы;
+перемещения.
+Pricing
+цены;
+скидки;
+акции.
+Marketing
+промокоды;
+баннеры;
+SEO;
+landing pages.
+Analytics
+продажи;
+прибыль;
+конверсия.
+34. РОЛИ АДМИНИСТРАТОРОВ
+Предусмотреть RBAC.
+Super Admin
+Полный доступ.
+Product Manager
+Каталог и цены.
+Sales Manager
+Заказы и клиенты.
+Warehouse Manager
+Склад.
+Accountant
+Платежи и документы.
+Marketing Manager
+Реклама и контент.
+35. ИНТЕГРАЦИЯ С УЧЁТНОЙ СИСТЕМОЙ
+Необходимо предусмотреть API-интеграцию с ERP/учётной системой компании.
+Передавать:
+SKU;
+остатки;
+цены;
+заказы;
+оплаты;
+возвраты;
+клиентов.
+Важно:
+не создавать отдельную независимую базу складских остатков без синхронизации с учётной системой.
+Должен существовать один источник истины для складских остатков.
+36. API
+Система должна иметь REST API или GraphQL API.
+Основные endpoints:
+/products
+/categories
+/customers
+/orders
+/payments
+/inventory
+/shipping
+/prices
+/promocodes
+/reviews
+API должен использовать:
+authentication;
+authorization;
+rate limiting;
+logging;
+versioning.
+37. WEBHOOKS
+Предусмотреть webhooks для:
+order.created;
+order.paid;
+order.cancelled;
+order.shipped;
+order.delivered;
+payment.success;
+payment.failed;
+inventory.updated.
+38. УВЕДОМЛЕНИЯ
+Клиенту отправляются уведомления:
+E-mail
+регистрация;
+заказ создан;
+оплата;
+отправка;
+доставка;
+отмена;
+возврат.
+SMS
+Ключевые события.
+Telegram/WhatsApp
+В дальнейшем.
+39. БРОШЕННАЯ КОРЗИНА
+Система должна автоматически определять abandoned cart.
+Например:
+Пользователь добавил товар → не оформил заказ.
+Через заданное время:
+e-mail;
+push;
+рекламный remarketing.
+40. ИЗБРАННОЕ
+Пользователь может добавить товар в:
+Wishlist
+Система должна сохранять избранные товары.
+41. РЕКОМЕНДАЦИИ
+На карточке товара показывать:
+похожие товары;
+часто покупаемые вместе;
+аксессуары;
+другие размеры;
+комплекты.
+42. МОБИЛЬНАЯ ВЕРСИЯ
+Сайт должен быть:
+Mobile First.
+Основной трафик предполагается с мобильных устройств.
+Обязательные требования:
+быстрый checkout;
+крупные кнопки;
+оптимизированные изображения;
+удобный поиск;
+быстрый переход в корзину.
+43. PWA / MOBILE APP
+На первом этапе отдельное мобильное приложение не является обязательным.
+Архитектура должна позволять в дальнейшем создать:
+[8/14/2026 9:06 AM] Ada: Android App;
+iOS App.
+44. БЕЗОПАСНОСТЬ
+Обязательные требования:
+HTTPS;
+шифрование паролей;
+secure authentication;
+RBAC;
+защита API;
+защита от SQL Injection;
+XSS protection;
+CSRF protection;
+rate limiting;
+audit log;
+backup.
+Платёжные данные банковских карт не должны храниться непосредственно в системе, если это не требуется соответствующим платёжным стандартом.
+45. РЕЗЕРВНОЕ КОПИРОВАНИЕ
+Необходимо предусмотреть:
+ежедневный backup;
+резервное хранение;
+восстановление базы;
+контроль успешности backup.
+46. ПРОИЗВОДИТЕЛЬНОСТЬ
+Целевые показатели:
+быстрая загрузка главной страницы;
+быстрая загрузка каталога;
+оптимизация изображений;
+CDN;
+caching.
+Система должна быть рассчитана минимум на:
+100 000 товаров
+и возможность масштабирования без изменения архитектуры.
+47. ПОИСК
+Поиск должен искать по:
+названию;
+SKU;
+категории;
+характеристикам;
+ключевым словам.
+Поддержать:
+autocomplete;
+typo tolerance;
+фильтры.
+48. ФИЛЬТРЫ
+Минимум:
+объём;
+материал;
+цвет;
+назначение;
+цена;
+наличие.
+49. ОТДЕЛЬНЫЕ MARKETPLACE-КАНАЛЫ
+Архитектура должна позволять подключить:
+Uzum;
+другие локальные marketplace;
+международные marketplace;
+собственный website.
+Все каналы должны получать данные из единого каталога.
+50. OMNICHANNEL
+Целевая архитектура:
+ERP / Master Data
+↓
+Central Commerce Platform
+↓
+Website
+Marketplace
+B2B Portal
+Social Commerce
+Mobile App
+При этом:
+один SKU → единый товар → единые остатки → единая система заказов.
+51. АРХИТЕКТУРА
+Рекомендуемая логическая архитектура:
+Frontend
+↓
+API Gateway
+↓
+Commerce Backend
+↓
+Product Service
+Order Service
+Customer Service
+Inventory Service
+Pricing Service
+Payment Service
+Shipping Service
+Notification Service
+↓
+Database
+ERP / CRM / Payment / Delivery integrations
+52. БАЗА ДАННЫХ
+Минимальные сущности:
+Users;
+Customers;
+Companies;
+Products;
+Categories;
+ProductVariants;
+SKUs;
+Prices;
+Inventory;
+Warehouses;
+Orders;
+OrderItems;
+Payments;
+Shipments;
+Addresses;
+Discounts;
+PromoCodes;
+Reviews;
+Wishlists;
+Carts;
+Coupons;
+Countries;
+Currencies;
+TaxRules.
+53. ЛОГИКА ЦЕНЫ
+Итоговая цена должна рассчитываться динамически:
+Base Price
+↓
+Market Price
+↓
+Customer Price
+↓
+Quantity Discount
+↓
+Promo Discount
+↓
+Final Price
+Система должна сохранять цену, которая была применена к заказу.
+Изменение текущей цены не должно изменять исторические заказы.
+54. НАЛОГИ
+Налоговая логика должна быть отделена от основного кода магазина.
+Для разных рынков могут применяться разные правила.
+Например:
+UZ → локальные правила
+EU → VAT
+Другие страны → соответствующие tax rules.
+55. МЕЖДУНАРОДНЫЕ ПРОДАЖИ
+Для международного заказа система должна определить:
+страну;
+валюту;
+способ доставки;
+доступность товара;
+стоимость доставки;
+налог;
+итоговую стоимость.
+При необходимости заказ передаётся менеджеру для ручной проверки.
+56. EXPORT / B2B
+Для крупных международных заказов должна существовать отдельная процедура:
+Request → Sales Manager → Quote → Proforma Invoice → Payment → Shipment
+57. ДОКУМЕНТЫ
+Для заказа предусмотреть:
+Invoice;
+Proforma Invoice;
+Packing List;
+Order Confirmation;
+Shipping Document.
+Документы должны генерироваться автоматически либо через интеграцию с ERP.
+58. АДМИНИСТРАТИВНЫЙ AUDIT LOG
+Система должна записывать:
+кто изменил цену;
+кто изменил остаток;
+кто изменил товар;
+кто отменил заказ;
+кто изменил статус;
+когда произошло изменение.
+59. ANALYTICS DASHBOARD
+Главная панель администратора:
+Today
+Orders;
+Revenue;
+Units Sold;
+Average Order Value.
+This Month
+Revenue;
+Gross Profit;
+Orders;
+Customers;
+Conversion Rate.
+Markets
+Uzbekistan;
+Kazakhstan;
+International;
+другие.
+60. KPI ПРОЕКТА
+Основные KPI:
+Conversion Rate
+Количество заказов / количество посетителей.
+AOV
+Revenue / Orders.
+Repeat Purchase Rate
+Повторные покупки / общее количество клиентов.
+CAC
+Marketing Cost / New Customers.
+ROAS
+Revenue from Ads / Advertising Cost.
+Gross Margin
+Revenue − COGS.
+[8/14/2026 9:06 AM] Ada: 61. MVP — ПЕРВАЯ ВЕРСИЯ
+Первый этап не должен перегружаться сложными функциями.
+MVP должен включать:
+каталог;
+карточки товаров;
+корзину;
+checkout;
+регистрацию;
+Guest Checkout;
+локальную оплату;
+международную оплату;
+доставку;
+Узбекистан;
+международные страны;
+мультивалютность;
+русский;
+узбекский;
+английский;
+админ-панель;
+управление заказами;
+управление товарами;
+склад;
+базовую аналитику;
+CRM integration;
+SEO;
+промокоды.
+62. ВТОРОЙ ЭТАП
+После запуска MVP:
+B2B portal;
+distributor accounts;
+wholesale pricing;
+marketplace integrations;
+advanced analytics;
+abandoned cart;
+loyalty program;
+WhatsApp;
+Telegram;
+advanced shipping;
+multiple warehouses.
+63. ТРЕТИЙ ЭТАП
+Международное масштабирование:
+EU market;
+Middle East;
+USA;
+localized storefronts;
+local payment gateways;
+local fulfillment;
+marketplace integrations;
+mobile applications.
+64. КРИТЕРИИ ПРИЁМКИ
+Проект считается выполненным только если:
+Клиент может найти товар.
+Клиент может выбрать вариант.
+Клиент может добавить товар в корзину.
+Клиент может оформить заказ без регистрации.
+Клиент может оплатить заказ.
+Система создаёт заказ.
+Остаток корректно резервируется.
+Менеджер видит заказ.
+Клиент получает уведомление.
+Заказ передаётся в CRM/ERP.
+После отправки появляется tracking information.
+Клиент может увидеть статус заказа.
+Администратор может изменить статус.
+История изменений сохраняется.
+Система корректно работает на мобильном устройстве.
+Работают языковые версии.
+Работают валюты.
+Работает расчёт доставки.
+Работают промокоды.
+Данные заказа сохраняются корректно.
+65. ГЛАВНЫЙ ПРИНЦИП ПРОЕКТА
+Система не должна проектироваться просто как:
+«сайт для продажи контейнеров».
+Она должна проектироваться как:
+единая международная e-commerce инфраструктура MARU.
+То есть с самого начала необходимо предусмотреть:
+Product → SKU → Price → Inventory → Order → Payment → Shipping → CRM → ERP → Analytics
+и возможность подключать новые страны, валюты, склады, маркетплейсы и каналы продаж без переделки основной системы.
+66. РЕЗУЛЬТАТ ПРОЕКТА
+После реализации компания должна получить единый цифровой канал продаж, который позволяет:
+Производство
+↓
+Единый каталог MARU
+↓
+Website + Marketplace + B2B
+↓
+Клиент
+↓
+Оплата
+↓
+Склад
+↓
+Доставка
+↓
+CRM / ERP
+↓
+Аналитика
+↓
+Повторная продажа
+Таким образом, интернет-магазин становится не отдельным сайтом, а центральной системой управления онлайн-продажами пластиковых контейнеров MARU на локальном и международном рынках.
 
 [8/15/2026 1:57 PM] Ada: ТЕХНИЧЕСКОЕ ЗАДАНИЕ №2
 UI/UX интернет-магазина MARU
