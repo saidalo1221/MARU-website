@@ -97,7 +97,7 @@ class Order(Base):
         "OrderStatusHistory",
         back_populates="order",
         cascade="all, delete-orphan",
-        order_by="OrderStatusHistory.created_at",
+        order_by="OrderStatusHistory.created_at, OrderStatusHistory.id",
     )
     shipments = relationship(
         "Shipment",
