@@ -1,3 +1,5 @@
+import io
+import logging
 import uuid
 from pathlib import Path
 
@@ -23,6 +25,27 @@ MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 ALLOWED_VIDEO_TYPES = {"video/mp4": ".mp4", "video/webm": ".webm"}
 MAX_VIDEO_BYTES = 25 * 1024 * 1024
+
+
+VARIANT_WIDTHS = (320, 800, 1600)
+logger = logging.getLogger("maru.uploads")
+
+
+def _write_variants(contents: bytes, base: str) -> None:
+    """WebP copies at 320/800/1600 px wide (PRD ТЗ№3 §86), saved as `<base>-<width>.webp` next to the
+    original. Never enlarges; a failure only means the page falls back to the original file."""
+    try:
+        from PIL import Image, ImageOps
+
+        with Image.open(io.BytesIO(contents)) as src:
+            src = ImageOps.exif_transpose(src)
+            src = src.convert("RGBA" if "A" in src.getbands() else "RGB")
+            for width in VARIANT_WIDTHS:
+                copy = src.copy()
+                copy.thumbnail((width, 10_000))
+                copy.save(UPLOAD_DIR / f"{base}-{width}.webp", "WEBP", quality=82)
+    except Exception:  # noqa: BLE001 - Pillow missing or an odd file: keep the original only
+        logger.warning("Could not create image variants for %s", base, exc_info=True)
 
 
 def _matches_signature(content_type: str, data: bytes) -> bool:
@@ -62,8 +85,12 @@ async def upload_image(
     extension = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}[
         file.content_type
     ]
-    filename = f"{uuid.uuid4().hex}{extension}"
+    # The `img-` prefix marks files that have -320/-800/-1600 WebP variants (see frontend lib/images.js).
+    base = f"img-{uuid.uuid4().hex}"
+    filename = f"{base}{extension}"
     (UPLOAD_DIR / filename).write_bytes(contents)
+    if file.content_type != "image/gif":
+        _write_variants(contents, base)
 
     return {"url": f"{settings.BACKEND_URL.rstrip('/')}/static/uploads/{filename}"}
 

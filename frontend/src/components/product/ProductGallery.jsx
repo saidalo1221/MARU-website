@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocale } from '../../context/LocaleContext'
+import { imageSrcSet } from '../../lib/images'
 import { classifyMedia, youtubeEmbed, youtubeThumb } from '../../lib/media'
 import useDialogFocus from '../../lib/useDialogFocus'
 
@@ -62,6 +63,8 @@ export default function ProductGallery({ variant, alt }) {
           >
             <img
               src={current.url}
+              srcSet={imageSrcSet(current.url)}
+              sizes="(min-width: 1024px) 50vw, 100vw"
               alt={alt}
               className="w-full h-full object-cover transition-transform duration-150"
               style={

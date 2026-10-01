@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useLocale } from '../../context/LocaleContext'
+import { imageSrcSet } from '../../lib/images'
 import { toggleWishlist, useWishlistSkus } from '../../lib/wishlistStore'
 import Rating from '../ui/Rating'
 import { useToast } from '../ui/Toast'
@@ -77,7 +78,7 @@ export default function ProductCard({ product }) {
       <Link to={`/products/${product.slug}`} className="block">
         <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
           {coverImage ? (
-            <img src={coverImage} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+            <img src={coverImage} srcSet={imageSrcSet(coverImage)} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           ) : (
             <span className="text-gray-500 text-sm">{t('product.noImage')}</span>
           )}

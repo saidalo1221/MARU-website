@@ -811,3 +811,20 @@ CREATE TABLE external_ids (
 	CONSTRAINT uq_external_ids_internal UNIQUE (`system`, entity, internal_id),
 	CONSTRAINT uq_external_ids_external UNIQUE (`system`, entity, external_id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
+
+-- Order documents: invoices, fiscal receipts, shipping and return documents (PRD ТЗ№4 §81-83).
+CREATE TABLE order_documents (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	order_id BIGINT NOT NULL,
+	doc_type VARCHAR(30) NOT NULL,
+	status VARCHAR(20) NOT NULL,
+	external_id VARCHAR(120),
+	filename VARCHAR(255) NOT NULL,
+	storage_name VARCHAR(80) NOT NULL,
+	content_type VARCHAR(100) NOT NULL,
+	size_bytes INTEGER NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(order_id) REFERENCES orders (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_order_documents_order_id ON order_documents (order_id);

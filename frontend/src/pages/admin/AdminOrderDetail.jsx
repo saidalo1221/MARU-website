@@ -5,6 +5,7 @@ import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import Money from '../../components/admin/Money'
 import ShipmentsPanel from '../../components/admin/ShipmentsPanel'
+import OrderDocumentsPanel from '../../components/admin/OrderDocumentsPanel'
 import { formatDateTime } from '../../lib/format'
 
 const STATUSES = [
@@ -122,6 +123,7 @@ export default function AdminOrderDetail() {
           </form>
 
           <ShipmentsPanel order={order} onChanged={load} />
+          <OrderDocumentsPanel orderId={order.id} />
 
           <form onSubmit={handleRefund} className="border border-gray-200 rounded-lg p-4">
             <h2 className="font-semibold mb-3">{t('admin.orderDetail.refund')}</h2>

@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     # Background jobs (PRD ТЗ№3 §88-89). With JOBS_ASYNC=false order emails are sent inside the
     # request (simple, fine for development); set it to true in production and run
     # `python -m app.tasks.worker` so checkout never waits for SMTP.
+    # Private order documents (invoices, receipts). Empty = app/private_documents; on UzCloud point it
+    # at a persistent volume outside the web root.
+    DOCUMENTS_DIR: str = ""
     JOBS_ASYNC: bool = False
     # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
     CACHE_ENABLED: bool = True

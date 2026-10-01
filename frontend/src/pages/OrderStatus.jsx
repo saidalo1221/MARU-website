@@ -8,6 +8,7 @@ import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import { reorder } from '../lib/reorder'
 import Seo from '../components/Seo'
+import OrderDocuments from '../components/OrderDocuments'
 import Alert from '../components/ui/Alert'
 import Button from '../components/ui/Button'
 import ShipmentList from '../components/ShipmentList'
@@ -194,6 +195,8 @@ export default function OrderStatus() {
       <div className="mb-6">
         <ShipmentList shipments={order.shipments} />
       </div>
+
+      <OrderDocuments orderId={order.id} orderToken={orderToken} />
 
       {order.status_history?.length > 0 && (
         <div className="mb-6">
