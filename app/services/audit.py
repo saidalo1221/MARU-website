@@ -19,3 +19,15 @@ def log_audit(db: Session, user: Optional[User], action: str, entity: str, entit
             new_value=json.dumps(new, default=str) if new is not None else None,
         )
     )
+
+
+def audit_create(db: Session, user: Optional[User], action: str, entity: str, obj, data=None) -> None:
+    """Flushes so `obj` has an id, then logs its creation in the caller's transaction."""
+    db.flush()
+    log_audit(db, user, action, entity, obj.id, None, data)
+
+
+def audit_update(db: Session, user: Optional[User], action: str, entity: str, obj, changes: dict) -> None:
+    """Call BEFORE applying `changes`: records the old and new value of each changed field."""
+    log_audit(db, user, action, entity, obj.id, {f: getattr(obj, f) for f in changes}, changes)
+

@@ -7,6 +7,7 @@ from app.database import get_db
 from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.user import User
+from app.services.audit import audit_create, audit_update, log_audit
 from app.schemas.user import AdminPromoteRequest, UserOut
 
 router = APIRouter(prefix="/admin/users", tags=["admin-users"])
@@ -51,6 +52,7 @@ def promote_to_admin(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No account registered with that email")
 
     try:
+        log_audit(db, user, "admin_role_change", "user", target.id, {"role": target.role}, {"role": payload.role})
         target.role = payload.role
         db.commit()
     except SQLAlchemyError as exc:
@@ -73,6 +75,7 @@ def demote_to_customer(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot demote yourself")
 
     try:
+        log_audit(db, user, "admin_role_change", "user", target.id, {"role": target.role}, {"role": UserRole.CUSTOMER})
         target.role = UserRole.CUSTOMER
         target.admin_mfa_verified_until = None
         db.commit()

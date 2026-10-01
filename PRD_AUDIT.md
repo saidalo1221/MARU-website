@@ -124,12 +124,22 @@ Next.js SSR, NestJS modules, PostgreSQL JSONB/UUID keys, OpenSearch,
 Redis-queue, Kubernetes. The app uses integer keys, per-locale translation
 tables, MariaDB, and Redis only for rate limits.
 
+## Audit log (TZ3 §81) - updated 2026-10-01
+Previously only SKU update, inventory update, order status, refunds, shipments,
+quote changes and account erasure wrote audit rows. Now also: inventory/SKU
+create, exchange rates, promo codes, shipping rates, tax rules, warehouses,
+product update/delete and admin role changes. Not covered: content routes (blog,
+about, page sections, site settings, translations, uploads, categories,
+notification templates, reviews, variant images, product/variant create),
+integration retry, and auth/MFA events.
+
 ## Verified in a browser on 2026-10-01
 Newsletter double opt-in, self-service erasure, `/track`, back-in-stock
 signup + notify task (stubbed mailer), save-for-later, admin tax form + checkout
 region repricing, MARU shipment form, integration health cards, admin video
-upload + attach (empty webm only - playback not proven). Not yet: a real phone,
-Safari/Firefox, axe after the latest UI changes.
+upload + attach (empty webm only - playback not proven), cart minimum-order
+hint, translated statuses, and axe (0 violations) on the changed pages. Not yet:
+a real phone, Safari/Firefox.
 
 ## Suggested order
 1. ~~Shipments + tracking~~ done (manual carrier).

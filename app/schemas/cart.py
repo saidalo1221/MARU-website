@@ -24,6 +24,7 @@ class CartItemOut(BaseModel):
     sku_id: int
     sku_code: str
     quantity: int
+    min_order_quantity: int = 1
     unit_price: Decimal
     line_total: Decimal
 

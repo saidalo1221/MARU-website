@@ -8,6 +8,7 @@ from app.dependencies import require_role
 from app.models import Inventory, ProductVariant, SKU, VariantImage, Warehouse
 from app.models.enums import UserRole
 from app.models.user import User
+from app.services.audit import audit_create, audit_update, log_audit
 from app.schemas.product import (
     ProductVariantOut,
     ProductVariantUpdate,
@@ -73,6 +74,7 @@ def create_sku(
         db.flush()
         # admin_inventory assumes this row already exists and 404s on GET/PATCH if it doesn't.
         db.add(Inventory(sku_id=sku.id, warehouse_id=default_warehouse.id))
+        audit_create(db, user, "sku_create", "sku", sku, payload.model_dump())
         db.commit()
     except IntegrityError as exc:
         db.rollback()

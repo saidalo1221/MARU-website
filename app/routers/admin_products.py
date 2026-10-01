@@ -11,6 +11,7 @@ from app.models import Category, Product, ProductVariant
 from app.models.enums import UserRole
 from app.models.product_translation import ProductTranslation
 from app.models.user import User
+from app.services.audit import audit_create, audit_update, log_audit
 from app.schemas.product import (
     ProductCreate,
     ProductOut,
@@ -128,6 +129,7 @@ def update_product(
         if product is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
+        audit_update(db, user, "product_update", "product", product, data)
         for field, value in data.items():
             setattr(product, field, value)
 
@@ -162,6 +164,7 @@ def delete_product(
                 detail="Product has variants; deactivate them instead of deleting the product",
             )
 
+        log_audit(db, user, "product_delete", "product", product.id, {"slug": product.slug, "name": product.name})
         db.delete(product)
         db.commit()
     except SQLAlchemyError as exc:

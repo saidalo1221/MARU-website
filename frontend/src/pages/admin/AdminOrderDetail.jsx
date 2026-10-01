@@ -101,7 +101,7 @@ export default function AdminOrderDetail() {
           <h2 className="font-semibold mt-6 mb-2">{t('admin.orderDetail.history')}</h2>
           <ul className="text-xs text-gray-500 space-y-1">
             {order.status_history.map((h, i) => (
-              <li key={i}>{h.from_status ?? '—'} → {h.to_status} · {new Date(h.created_at).toLocaleString()}{h.note ? ` · ${h.note}` : ''}</li>
+              <li key={i}>{h.from_status ? t(`orderStatus.statusLabels.${h.from_status}`) : '—'} → {t(`orderStatus.statusLabels.${h.to_status}`)} · {new Date(h.created_at).toLocaleString()}{h.note ? ` · ${h.note}` : ''}</li>
             ))}
           </ul>
         </div>
@@ -109,9 +109,9 @@ export default function AdminOrderDetail() {
         <div className="space-y-6">
           <form onSubmit={handleStatusUpdate} className="border border-gray-200 rounded-lg p-4">
             <h2 className="font-semibold mb-3">{t('admin.orderDetail.updateStatus')}</h2>
-            <p className="text-sm text-gray-500 mb-2">{t('admin.orderDetail.current', { status: order.status })}</p>
+            <p className="text-sm text-gray-500 mb-2">{t('admin.orderDetail.current', { status: t(`orderStatus.statusLabels.${order.status}`) })}</p>
             <select value={statusChoice} aria-label={t('admin.orderDetail.updateStatus')} onChange={(e) => setStatusChoice(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2">
-              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              {STATUSES.map((s) => <option key={s} value={s}>{t(`orderStatus.statusLabels.${s}`)}</option>)}
             </select>
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('admin.orderDetail.note')} aria-label={t('admin.orderDetail.note')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
             {error && <p role="alert" className="text-sm text-red-600 mb-2">{error}</p>}

@@ -117,6 +117,7 @@ export const translations = {
     cart: {
       loading: 'Loading...',
       saveForLater: 'Save for later',
+      minOrder: 'Minimum order: {n} units',
       savedTitle: 'Saved for later ({n})',
       moveToCart: 'Move to cart',
       moveFailed: 'Could not move this item to the cart.',
@@ -250,6 +251,7 @@ export const translations = {
       orderNumber: 'Order Number: {number}',
       status: 'Status',
       paymentStatus: 'Payment status',
+      paymentMethod: 'Payment method',
       shippingTo: 'Shipping to',
       total: 'Total',
       items: 'Items',
@@ -1141,6 +1143,7 @@ export const translations = {
     cart: {
       loading: 'Загрузка...',
       saveForLater: 'Отложить',
+      minOrder: 'Минимальный заказ: {n} шт.',
       savedTitle: 'Отложено ({n})',
       moveToCart: 'Вернуть в корзину',
       moveFailed: 'Не удалось вернуть товар в корзину.',
@@ -1274,6 +1277,7 @@ export const translations = {
       orderNumber: 'Номер заказа: {number}',
       status: 'Статус',
       paymentStatus: 'Статус оплаты',
+      paymentMethod: 'Способ оплаты',
       shippingTo: 'Доставка по адресу',
       total: 'Итого',
       items: 'Товары',
@@ -2165,6 +2169,7 @@ export const translations = {
     cart: {
       loading: 'Yuklanmoqda...',
       saveForLater: 'Keyinroqqa saqlash',
+      minOrder: 'Minimal buyurtma: {n} dona',
       savedTitle: 'Keyinroqqa saqlangan ({n})',
       moveToCart: 'Savatga qaytarish',
       moveFailed: 'Mahsulotni savatga qaytarib bo‘lmadi.',
@@ -2298,6 +2303,7 @@ export const translations = {
       orderNumber: 'Buyurtma raqami: {number}',
       status: 'Holati',
       paymentStatus: "To'lov holati",
+      paymentMethod: 'To‘lov usuli',
       shippingTo: 'Yetkazib berish manzili',
       total: 'Jami',
       items: 'Mahsulotlar',

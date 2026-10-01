@@ -95,3 +95,12 @@ def test_uncapped_promo_keeps_counting(db_session, sku):
     redeem_promo(db_session, promo)
     redeem_promo(db_session, promo)
     assert promo.used_count == 2
+
+
+def test_cart_lines_report_the_product_minimum(client, db_session, sku):
+    sku.variant.product.min_order_quantity = 5
+    db_session.commit()
+
+    r = client.post("/api/v1/cart/items", json={"sku_id": sku.id, "quantity": 1})
+    assert r.status_code == 201, r.text
+    assert r.json()["items"][0]["min_order_quantity"] == 5

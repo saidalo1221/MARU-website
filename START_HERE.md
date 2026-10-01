@@ -22,7 +22,7 @@ a build on 2026-10-01 — not copied from older notes. Read this file, then
   committed**: 33 modified files plus two new ones
   (`app/migration_2026_session10.sql`, `tests/test_pricing_edge_cases.py`).
   See "Changed 2026-10-01" below. Review and commit when ready.
-- `python -m pytest -q`: **186 passed in ~7 min** (slow; run single files while
+- `python -m pytest -q`: **190 passed in ~5-7 min** (slow; run single files while
   iterating). `npx vite build` in `frontend/`: passes.
 - `dev.db` (gitignored, hand-patched) has all model tables and every column,
   including the session-10 tax columns (`tax_rules` was rebuilt; `orders.region`
@@ -57,6 +57,23 @@ a build on 2026-10-01 — not copied from older notes. Read this file, then
   no region. **Needs `app/migration_2026_session10.sql` on MariaDB (never run).**
 - **Order statuses are translated** on `/track`, the order page and order
   history (`orderStatus.statusLabels`, en/ru/uz; ru/uz are my draft).
+- **Audit log coverage** (PRD §81) now includes: inventory create, SKU create,
+  exchange rate create/update/delete/sync, promo create/update, shipping rate
+  create/update, tax rule create/update, warehouse create/update, product
+  update/delete, admin role promote/demote (helpers `audit_create` /
+  `audit_update` in `app/services/audit.py`). **Still NOT audited:** content
+  routes (blog, about, page sections, site settings, translations, uploads,
+  categories, notification templates, reviews, variant images, product/variant
+  create, integration retry) and auth/MFA events.
+- **Cart minimum UX:** cart lines carry `min_order_quantity`; the cart page shows
+  "Minimum order: N" (red while below) and disables checkout until every line
+  meets it.
+- **Statuses translated everywhere** (storefront + admin orders list/detail/
+  history/filters). Quote, review and integration-log statuses in admin are
+  still raw. The customer order page now labels the payment *method* correctly.
+- axe (WCAG 2.0/2.1 A+AA) re-run in the browser on /cart, /checkout (new-address
+  form), /track, admin tax rules (form open), integration logs, orders list and
+  order detail: **0 violations**.
 - UI fixes: footer newsletter input was squeezed to ~40px; checkout region
   input is debounced (per-keystroke requests came back out of order and left
   the totals on a stale region's tax).
@@ -109,7 +126,7 @@ multi-currency, dark mode, full admin panel. Highlights:
 1. **Browser checks still open:** real mp4/webm *playback* (the 2026-10-01
    upload test used an empty webm container, so only the upload/attach path was
    proven), a real phone, Safari/Firefox, and re-running axe after the
-   2026-10-01 UI changes. Already browser-verified on 2026-10-01: newsletter
+   2026-10-01 UI changes beyond the pages listed above. Already browser-verified on 2026-10-01: newsletter
    double opt-in, privacy/erasure, `/track`, back-in-stock, save-for-later,
    admin tax form + checkout region, MARU shipment form, health cards.
 2. **Native-speaker review** of ru/uz text: FAQ (my draft; `dev.db` has it but is
@@ -119,8 +136,10 @@ multi-currency, dark mode, full admin panel. Highlights:
    it) — make it absolute once the domain is known.
 4. Per `PRD_AUDIT.md`, still open: no unified payments ledger /
    `payment_status` (**on hold at the user's request**); product-level tax and a
-   region on saved addresses; no webhook queue / real worker (retries are cron
-   sweeps). The order page labels the payment *method* as "Payment status".
+   region on saved addresses; health metrics (latency/queue/lag) and alerts
+   beyond the reconciliation email; per-product/customer promo targeting; no
+   webhook queue / real worker (retries are cron sweeps); audit coverage for the
+   content/auth routes listed above.
 
 ## To do — needs a decision or access from the user (don't guess)
 - **Legal**: `/privacy` and `/terms` are drafts written from what the code does

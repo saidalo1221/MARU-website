@@ -106,6 +106,8 @@ export default function Cart() {
     }
   }
 
+  const belowMinimum = cart.items.some((i) => i.quantity < i.min_order_quantity)
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       <Seo title={t('cart.title')} noindex />
@@ -120,6 +122,11 @@ export default function Cart() {
                 <p className="text-xs text-gray-500">
                   {t('cart.each', { currency: cart.currency, price: Number(item.unit_price).toFixed(2) })}
                 </p>
+                {item.min_order_quantity > 1 && (
+                  <p className={`text-xs mt-0.5 ${item.quantity < item.min_order_quantity ? 'text-red-600' : 'text-gray-500'}`}>
+                    {t('cart.minOrder', { n: item.min_order_quantity })}
+                  </p>
+                )}
               </div>
               <QuantitySelector
                 value={item.quantity}
@@ -193,7 +200,8 @@ export default function Cart() {
 
           <button
             onClick={() => navigate('/checkout')}
-            className="w-full bg-brand text-white rounded py-3 font-medium mt-4"
+            disabled={belowMinimum}
+            className="w-full bg-brand text-white rounded py-3 font-medium mt-4 disabled:opacity-40"
           >
             {t('cart.checkoutButton')}
           </button>

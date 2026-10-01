@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.services.audit import log_audit
+from app.services.audit import audit_create, audit_update, log_audit
 from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.inventory import Inventory
@@ -52,6 +52,7 @@ def add_inventory_for_warehouse(
     inventory = Inventory(sku_id=sku_id, **payload.model_dump())
     db.add(inventory)
     try:
+        audit_create(db, user, "inventory_create", "inventory", inventory, payload.model_dump())
         db.commit()
     except IntegrityError as exc:
         db.rollback()

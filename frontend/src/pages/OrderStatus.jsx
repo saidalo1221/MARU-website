@@ -52,7 +52,7 @@ export default function OrderStatus() {
           <span className="font-medium">{t(`orderStatus.statusLabels.${order.status}`)}</span>
         </div>
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-gray-500">{t('orderStatus.paymentStatus')}</span>
+          <span className="text-gray-500">{t('orderStatus.paymentMethod')}</span>
           <span className="font-medium">{order.payment_method || '—'}</span>
         </div>
         <div className="flex justify-between text-sm mb-2">
@@ -85,7 +85,7 @@ export default function OrderStatus() {
           <h2 className="font-semibold mb-2">{t('orderStatus.history')}</h2>
           <ul className="text-xs text-gray-500 space-y-1">
             {order.status_history.map((h, i) => (
-              <li key={i}>{h.to_status} — {new Date(h.created_at).toLocaleString()}</li>
+              <li key={i}>{t(`orderStatus.statusLabels.${h.to_status}`)} — {new Date(h.created_at).toLocaleString()}</li>
             ))}
           </ul>
         </div>

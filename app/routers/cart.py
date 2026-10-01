@@ -69,6 +69,7 @@ def _build_cart_out(
                 sku_id=item.sku_id,
                 sku_code=item.sku.sku_code,
                 quantity=item.quantity,
+                min_order_quantity=item.sku.variant.product.min_order_quantity or 1,
                 unit_price=unit_price,
                 line_total=line_total,
             )
