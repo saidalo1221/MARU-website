@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -16,7 +16,10 @@ from app.models.review import Review, ReviewStatus
 from app.models.user import User
 from app.schemas.extras import FeaturedReviewOut, ReviewCreate, ReviewOut, ReviewSummary
 from app.services.i18n import get_product_translations
+from app.config import settings
+from app.routers import admin_uploads
 from app.services.order_service import _RESERVED_STATUSES
+import uuid
 
 router = APIRouter(prefix="/products", tags=["reviews"])
 featured_router = APIRouter(prefix="/reviews", tags=["reviews"])
@@ -50,6 +53,43 @@ def featured_reviews(
         )
         for review, first_name, product in rows
     ]
+
+
+REVIEW_IMAGE_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+MAX_REVIEW_IMAGE_BYTES = 3 * 1024 * 1024
+
+
+def _review_image_prefix() -> str:
+    return f"{settings.BACKEND_URL.rstrip('/')}/static/uploads/rv-"
+
+
+def _checked_image_urls(urls: list) -> list:
+    """Only files we stored ourselves through POST /reviews/images may be attached - never an arbitrary
+    external URL (it could track viewers or point at something unsafe)."""
+    clean = []
+    for url in urls:
+        name = url[len(_review_image_prefix()):] if url.startswith(_review_image_prefix()) else None
+        if not name or "/" in name or ".." in name or not (admin_uploads.UPLOAD_DIR / f"rv-{name}").is_file():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Review photos must be uploaded through the site")
+        clean.append(url)
+    return clean
+
+
+@featured_router.post(
+    "/images", status_code=status.HTTP_201_CREATED, dependencies=[Depends(rate_limit("review_image", 20, 3600))]
+)
+async def upload_review_image(file: UploadFile, user: User = Depends(get_current_user_required)) -> dict:
+    """A signed-in customer uploads one photo to attach to a review (JPEG/PNG/WebP, 3 MB)."""
+    if file.content_type not in REVIEW_IMAGE_TYPES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported image type")
+    data = await file.read()
+    if len(data) > MAX_REVIEW_IMAGE_BYTES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Image too large (max 3MB)")
+    if not admin_uploads._matches_signature(file.content_type, data):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File content does not match its image type")
+    name = f"rv-{uuid.uuid4().hex}{REVIEW_IMAGE_TYPES[file.content_type]}"
+    (admin_uploads.UPLOAD_DIR / name).write_bytes(data)
+    return {"url": f"{_review_image_prefix()}{name[3:]}"}
 
 
 def _get_product(db: Session, slug: str) -> Product:
@@ -105,7 +145,10 @@ def create_review(
             status_code=status.HTTP_403_FORBIDDEN, detail="Only customers who bought this product can review it"
         )
 
-    review = Review(user_id=user.id, product_id=product.id, rating=payload.rating, content=payload.content)
+    review = Review(
+        user_id=user.id, product_id=product.id, rating=payload.rating, content=payload.content,
+        image_urls=_checked_image_urls(payload.image_urls),
+    )
     try:
         db.add(review)
         db.commit()

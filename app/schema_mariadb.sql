@@ -406,6 +406,7 @@ CREATE TABLE reviews (
 	product_id BIGINT NOT NULL, 
 	rating SMALLINT NOT NULL, 
 	content TEXT, 
+	image_urls TEXT, 
 	status VARCHAR(20) NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 

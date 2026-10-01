@@ -217,3 +217,6 @@ ALTER TABLE product_translations
     ADD COLUMN usage_scenarios TEXT NULL,
     ADD COLUMN instructions TEXT NULL,
     ADD COLUMN material_info TEXT NULL;
+
+-- Photos attached to reviews (PRD ТЗ№1 §32): JSON list of image URLs.
+ALTER TABLE reviews ADD COLUMN image_urls TEXT NULL;

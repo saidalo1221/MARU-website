@@ -11,6 +11,7 @@ from app.models.enums import UserRole
 from app.models.review import Review, ReviewStatus
 from app.models.user import User
 from app.schemas.extras import ReviewModeration, ReviewOut
+from app.services.audit import log_audit
 
 router = APIRouter(prefix="/admin/reviews", tags=["admin-reviews"])
 
@@ -47,3 +48,18 @@ def moderate_review(
         raise HTTPException(status_code=500, detail="Failed to update review") from exc
     db.refresh(review)
     return review
+
+
+@router.delete("/{review_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_review(
+    review_id: int,
+    user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
+    db: Session = Depends(get_db),
+) -> None:
+    """Removes a review for good (hiding it is the reversible option); audited."""
+    review = db.get(Review, review_id)
+    if review is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
+    log_audit(db, user, "review_delete", "review", review.id, old={"product_id": review.product_id, "rating": review.rating})
+    db.delete(review)
+    db.commit()

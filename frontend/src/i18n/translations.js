@@ -481,6 +481,10 @@ export const translations = {
       confirmation: 'Your request {number} has been received. Our team will contact you shortly.',
     },
     reviews: {
+      addPhotos: 'Add photos (up to 3, JPEG/PNG/WebP, 3 MB each)',
+      photoFailed: 'Could not upload the photo.',
+      removePhoto: 'Remove photo',
+      photoAlt: 'Customer photo',
       title: 'Reviews',
       none: 'No reviews yet.',
       leaveReview: 'Leave a review',
@@ -722,6 +726,8 @@ export const translations = {
         convertFailed: 'Failed to convert quote',
       },
       reviews: {
+        delete: 'Delete',
+        confirmDelete: 'Delete this review permanently? (Reject keeps it but hides it.)',
         title: 'Reviews',
         noComment: 'No comment',
         product: 'Product #{id}',
@@ -1854,6 +1860,10 @@ export const translations = {
       confirmation: 'Ваш запрос {number} получен. Наша команда свяжется с вами в ближайшее время.',
     },
     reviews: {
+      addPhotos: 'Добавить фото (до 3, JPEG/PNG/WebP, до 3 МБ)',
+      photoFailed: 'Не удалось загрузить фото.',
+      removePhoto: 'Убрать фото',
+      photoAlt: 'Фото покупателя',
       title: 'Отзывы',
       none: 'Пока нет отзывов.',
       leaveReview: 'Оставить отзыв',
@@ -2095,6 +2105,8 @@ export const translations = {
         convertFailed: 'Не удалось превратить запрос в заказ',
       },
       reviews: {
+        delete: 'Удалить',
+        confirmDelete: 'Удалить отзыв навсегда? («Отклонить» скрывает, но сохраняет его.)',
         title: 'Отзывы',
         noComment: 'Без комментария',
         product: 'Товар №{id}',
@@ -3227,6 +3239,10 @@ export const translations = {
       confirmation: "Sizning {number} so'rovingiz qabul qilindi. Jamoamiz tez orada siz bilan bog'lanadi.",
     },
     reviews: {
+      addPhotos: 'Rasm qo\'shish (3 tagacha, JPEG/PNG/WebP, 3 MB gacha)',
+      photoFailed: 'Rasmni yuklab bo\'lmadi.',
+      removePhoto: 'Rasmni olib tashlash',
+      photoAlt: 'Mijoz rasmi',
       title: 'Sharhlar',
       none: "Hali sharhlar yo'q.",
       leaveReview: 'Sharh qoldirish',
@@ -3468,6 +3484,8 @@ export const translations = {
         convertFailed: "So'rovni buyurtmaga aylantirib bo'lmadi",
       },
       reviews: {
+        delete: 'O\'chirish',
+        confirmDelete: 'Sharh butunlay o\'chirilsinmi? («Rad etish» uni yashiradi, lekin saqlaydi.)',
         title: 'Sharhlar',
         noComment: 'Izohsiz',
         product: 'Mahsulot №{id}',

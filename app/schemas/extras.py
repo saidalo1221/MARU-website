@@ -117,6 +117,7 @@ class AddressOut(AddressIn):
 class ReviewCreate(BaseModel):
     rating: int = Field(ge=1, le=5)
     content: Optional[str] = Field(default=None, max_length=5000)
+    image_urls: list[str] = Field(default_factory=list, max_length=3)
 
 
 class ReviewOut(BaseModel):
@@ -126,6 +127,7 @@ class ReviewOut(BaseModel):
     product_id: int
     rating: int
     content: Optional[str]
+    image_urls: list[str] = []
     status: ReviewStatus
     created_at: datetime
 
