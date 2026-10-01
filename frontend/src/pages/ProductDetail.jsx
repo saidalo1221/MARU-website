@@ -311,6 +311,17 @@ export default function ProductDetail() {
             </div>
           )}
 
+          {sku?.bundle_items?.length > 0 && (
+            <div className="mt-6 border-t border-gray-200 pt-4">
+              <p className="text-sm font-medium mb-2">{t('productDetail.setContents')}</p>
+              <ul className="text-sm text-gray-700 space-y-1">
+                {sku.bundle_items.map((i) => (
+                  <li key={i.sku_code}>{i.quantity} × {i.product_name}{i.variant_name && i.variant_name !== i.product_name ? ` — ${i.variant_name}` : ''}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {[['contentAdvantages', product.advantages, true], ['contentUsage', product.usage_scenarios, true], ['contentMaterial', product.material_info, false], ['contentInstructions', product.instructions, false]].map(([key, text, asList]) => {
             const lines = (text || '').split('\n').map((l) => l.trim()).filter(Boolean)
             if (!lines.length) return null

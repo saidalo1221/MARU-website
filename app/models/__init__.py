@@ -3,6 +3,7 @@ from app.models.product import Product, ALLOWED_VOLUMES_ML
 from app.models.product_variant import ProductVariant
 from app.models.variant_image import VariantImage
 from app.models.sku import SKU
+from app.models.sku_bundle_item import SkuBundleItem
 from app.models.inventory import Inventory
 from app.models.warehouse import Warehouse
 from app.models.user import User
@@ -64,6 +65,7 @@ __all__ = [
     "ProductVariant",
     "VariantImage",
     "SKU",
+    "SkuBundleItem",
     "Inventory",
     "Warehouse",
     "User",

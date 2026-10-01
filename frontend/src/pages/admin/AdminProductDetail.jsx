@@ -10,6 +10,7 @@ import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
 import SkuTiers from '../../components/admin/SkuTiers'
 import SkuCost from '../../components/admin/SkuCost'
+import SkuBundle from '../../components/admin/SkuBundle'
 import Money from '../../components/admin/Money'
 import { classifyMedia, youtubeThumb } from '../../lib/media'
 
@@ -188,6 +189,7 @@ function SkuBlock({ sku, warehouses, onChanged }) {
           </form>
           {error && <p role="alert" className="text-red-600 text-xs mt-1">{error}</p>}
           <SkuCost sku={sku} />
+          <SkuBundle key={JSON.stringify(sku.bundle_items)} sku={sku} onChanged={onChanged} />
           <SkuTiers key={JSON.stringify(sku.quantity_tiers)} sku={sku} onChanged={onChanged} />
           <InventoryRow sku={sku} warehouses={warehouses} onProductChanged={onChanged} />
         </>

@@ -3,6 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -13,7 +14,8 @@ from app.models import SKU
 from app.models.enums import UserRole
 from app.models.user import User
 from app.models.quantity_price_tier import QuantityPriceTier
-from app.schemas.product import SKUOut, SKUTiersIn, SKUUpdate
+from app.models.sku_bundle_item import SkuBundleItem
+from app.schemas.product import SKUBundleIn, SKUOut, SKUTiersIn, SKUUpdate
 
 router = APIRouter(prefix="/admin/skus", tags=["admin-skus"])
 
@@ -104,3 +106,35 @@ def set_sku_cost(
     sku.cost_price = payload.cost_price
     db.commit()
     return SKUCost(cost_price=sku.cost_price)
+
+
+@router.put("/{sku_id}/bundle", response_model=SKUOut)
+def set_bundle_contents(
+    sku_id: int,
+    payload: SKUBundleIn,
+    user: User = Depends(require_role(UserRole.PRODUCT_MANAGER)),
+    db: Session = Depends(get_db),
+) -> SKU:
+    """Describes what is inside a set / pack SKU (PRD ТЗ№1 §7). The list replaces the old one; an empty list
+    makes it an ordinary SKU again. A set cannot contain itself or another set."""
+    sku = db.get(SKU, sku_id)
+    if sku is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="SKU not found")
+    wanted: dict = {}
+    for item in payload.items:
+        component = db.execute(select(SKU).where(SKU.sku_code == item.sku_code.strip())).scalar_one_or_none()
+        if component is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"SKU {item.sku_code} not found")
+        if component.id == sku.id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A set cannot contain itself")
+        if component.bundle_items:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{component.sku_code} is itself a set; sets cannot be nested")
+        wanted[component.id] = wanted.get(component.id, 0) + item.quantity
+    old = [{"sku": i.sku_code, "quantity": i.quantity} for i in sku.bundle_items]
+    sku.bundle_items = [SkuBundleItem(component_sku_id=cid, quantity=qty) for cid, qty in wanted.items()]
+    db.flush()
+    db.refresh(sku)
+    log_audit(db, user, "sku_bundle_update", "sku", sku.id, {"items": old}, {"items": [{"sku": i.sku_code, "quantity": i.quantity} for i in sku.bundle_items]})
+    db.commit()
+    db.refresh(sku)
+    return sku

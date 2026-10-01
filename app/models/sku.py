@@ -60,6 +60,15 @@ class SKU(Base):
         lazy="selectin",
     )
 
+    # Contents of a set (see app/models/sku_bundle_item.py); empty for ordinary SKUs.
+    bundle_items = relationship(
+        "SkuBundleItem",
+        foreign_keys="SkuBundleItem.bundle_sku_id",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="SkuBundleItem.id",
+    )
+
     @property
     def available_quantity(self) -> int:
         """Aggregate across every active warehouse (PRD ТЗ№3 §68) — this

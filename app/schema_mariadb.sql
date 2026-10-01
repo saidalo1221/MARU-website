@@ -936,3 +936,16 @@ CREATE TABLE stock_movements (
 	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 CREATE INDEX ix_stock_movements_sku_id ON stock_movements (sku_id);
+
+-- Contents of set / pack SKUs (PRD ТЗ№1 §7).
+CREATE TABLE sku_bundle_items (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	bundle_sku_id BIGINT NOT NULL,
+	component_sku_id BIGINT NOT NULL,
+	quantity INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	CONSTRAINT uq_sku_bundle_items_pair UNIQUE (bundle_sku_id, component_sku_id),
+	FOREIGN KEY(bundle_sku_id) REFERENCES skus (id) ON DELETE CASCADE,
+	FOREIGN KEY(component_sku_id) REFERENCES skus (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_sku_bundle_items_bundle_sku_id ON sku_bundle_items (bundle_sku_id);

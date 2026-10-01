@@ -32,6 +32,25 @@ class SKUTiersIn(BaseModel):
         return tiers
 
 
+class BundleItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    sku_code: str
+    product_name: str
+    variant_name: str
+    color: str
+    quantity: int
+
+
+class BundleItemIn(BaseModel):
+    sku_code: str = Field(min_length=1, max_length=100)
+    quantity: int = Field(ge=1, le=10000)
+
+
+class SKUBundleIn(BaseModel):
+    items: list[BundleItemIn] = Field(max_length=20)
+
+
 class SKUOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -47,6 +66,7 @@ class SKUOut(BaseModel):
     is_active: bool
     available_quantity: int
     quantity_tiers: list[QuantityTierOut] = []
+    bundle_items: list[BundleItemOut] = []
 
 
 class VariantImageOut(BaseModel):

@@ -128,6 +128,7 @@ export const translations = {
     },
     product: { inStock: 'In stock', outOfStock: 'Out of stock', color: 'Color', decreaseQty: 'Decrease quantity', increaseQty: 'Increase quantity', noImage: 'No image', badgeNew: 'New', badgeSale: 'Sale', badgeBestseller: 'Best Seller', badgeOutOfStock: 'Out of Stock', quickView: 'Quick View', quickViewClose: 'Close quick view', viewFullDetails: 'View full details', added: 'Added', ratingLabel: 'Rated {avg} out of 5 from {n} reviews' },
     productDetail: {
+      setContents: 'What is in this set',
       contentAdvantages: 'Advantages',
       contentUsage: 'Where to use it',
       contentInstructions: 'Instructions',
@@ -767,6 +768,9 @@ export const translations = {
         notVisibleYet: 'Not visible yet',
       },
       productDetail: {
+        bundleItems: 'Set contents: one line per item, SKU code and quantity (e.g. SKU-350-TR x 3). Leave empty for an ordinary SKU.',
+        saveBundle: 'Save set contents',
+        bundleInvalid: 'Each line must look like: SKU-CODE x 3',
         costPrice: 'Cost per unit (internal, not shown to customers)',
         saveCost: 'Save cost',
         tiers: 'Quantity prices',
@@ -1530,6 +1534,7 @@ export const translations = {
     },
     product: { inStock: 'В наличии', outOfStock: 'Нет в наличии', color: 'Цвет', decreaseQty: 'Уменьшить количество', increaseQty: 'Увеличить количество', noImage: 'Нет изображения', badgeNew: 'Новинка', badgeSale: 'Скидка', badgeBestseller: 'Хит продаж', badgeOutOfStock: 'Нет в наличии', quickView: 'Быстрый просмотр', quickViewClose: 'Закрыть быстрый просмотр', viewFullDetails: 'Подробнее о товаре', added: 'Добавлено', ratingLabel: 'Оценка {avg} из 5, отзывов: {n}' },
     productDetail: {
+      setContents: 'Что входит в комплект',
       contentAdvantages: 'Преимущества',
       contentUsage: 'Где использовать',
       contentInstructions: 'Инструкция',
@@ -2169,6 +2174,9 @@ export const translations = {
         notVisibleYet: 'Пока не виден',
       },
       productDetail: {
+        bundleItems: 'Состав комплекта: по строке на позицию, код SKU и количество (например, SKU-350-TR x 3). Пусто для обычного SKU.',
+        saveBundle: 'Сохранить состав комплекта',
+        bundleInvalid: 'Каждая строка должна выглядеть так: SKU-КОД x 3',
         costPrice: 'Себестоимость единицы (внутреннее поле, клиентам не видно)',
         saveCost: 'Сохранить себестоимость',
         tiers: 'Цены за количество',
@@ -2932,6 +2940,7 @@ export const translations = {
     },
     product: { inStock: 'Mavjud', outOfStock: "Mavjud emas", color: 'Rang', decreaseQty: 'Miqdorni kamaytirish', increaseQty: 'Miqdorni oshirish', noImage: "Rasm yo'q", badgeNew: 'Yangi', badgeSale: 'Chegirma', badgeBestseller: 'Ko\'p sotilgan', badgeOutOfStock: 'Mavjud emas', quickView: "Tezkor ko'rish", quickViewClose: "Tezkor ko'rishni yopish", viewFullDetails: "To'liq ma'lumot", added: "Qo'shildi", ratingLabel: "Baho {avg} / 5, sharhlar: {n}" },
     productDetail: {
+      setContents: 'To\'plamda nimalar bor',
       contentAdvantages: 'Afzalliklar',
       contentUsage: 'Qayerda ishlatish mumkin',
       contentInstructions: 'Yo\'riqnoma',
@@ -3571,6 +3580,9 @@ export const translations = {
         notVisibleYet: 'Hali ko\'rinmaydi',
       },
       productDetail: {
+        bundleItems: 'To\'plam tarkibi: har qatorda bitta pozitsiya, SKU kodi va miqdor (masalan, SKU-350-TR x 3). Oddiy SKU uchun bo\'sh qoldiring.',
+        saveBundle: 'To\'plam tarkibini saqlash',
+        bundleInvalid: 'Har qator shunday bo\'lishi kerak: SKU-KOD x 3',
         costPrice: 'Birlik tannarxi (ichki, mijozlarga ko\'rinmaydi)',
         saveCost: 'Tannarxni saqlash',
         tiers: 'Miqdor bo\'yicha narxlar',
