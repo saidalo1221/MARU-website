@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.cart import Cart
 from app.models.category import Category
 from app.models.order import Order
-from app.models.enums import CustomerType
+from app.models.enums import CustomerType, OrderStatus
 from app.models.promo_code import PromoCode, PromoDiscountType, PromoRedemption
 from app.models.quantity_price_tier import QuantityPriceTier
 from app.models.sku import SKU
@@ -105,7 +105,7 @@ def customer_uses(db: Session, promo_id: int, user_id: Optional[int], email: Opt
     return db.execute(
         select(func.count(PromoRedemption.id))
         .join(Order, Order.id == PromoRedemption.order_id)
-        .where(PromoRedemption.promo_code_id == promo_id, or_(*who), Order.status.notin_(("cancelled", "payment_failed")))
+        .where(PromoRedemption.promo_code_id == promo_id, or_(*who), Order.status.notin_((OrderStatus.CANCELLED, OrderStatus.PAYMENT_FAILED)))
     ).scalar_one()
 
 

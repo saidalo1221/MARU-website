@@ -85,7 +85,8 @@ CREATE TABLE order_documents (
 CREATE INDEX ix_order_documents_order_id ON order_documents (order_id);
 
 -- Payments ledger (PRD ТЗ№3 §31, ТЗ№4 §23): one row per payment attempt, orders.payment_status mirrors the latest.
-ALTER TABLE orders ADD COLUMN payment_status VARCHAR(24) NOT NULL DEFAULT 'created';
+-- NOTE: enum columns store the member NAME in upper case (SQLAlchemy Enum default), e.g. 'CREATED'.
+ALTER TABLE orders ADD COLUMN payment_status VARCHAR(24) NOT NULL DEFAULT 'CREATED';
 
 CREATE TABLE payments (
 	id BIGINT NOT NULL AUTO_INCREMENT,
@@ -110,16 +111,16 @@ CREATE INDEX ix_payments_order_id ON payments (order_id);
 INSERT INTO payments (order_id, provider, amount, currency, status, idempotency_key, paid_at, created_at, updated_at)
 SELECT o.id, o.payment_method, o.total_amount, o.currency,
        CASE o.status
-         WHEN 'new' THEN 'created'
-         WHEN 'payment_pending' THEN 'pending'
-         WHEN 'payment_failed' THEN 'failed'
-         WHEN 'cancelled' THEN IF(EXISTS(SELECT 1 FROM order_status_history h WHERE h.order_id = o.id AND h.to_status = 'paid'), 'paid', 'cancelled')
-         WHEN 'refunded' THEN 'refunded'
-         WHEN 'partially_refunded' THEN 'partially_refunded'
-         ELSE 'paid'
+         WHEN 'NEW' THEN 'CREATED'
+         WHEN 'PAYMENT_PENDING' THEN 'PENDING'
+         WHEN 'PAYMENT_FAILED' THEN 'FAILED'
+         WHEN 'CANCELLED' THEN IF(EXISTS(SELECT 1 FROM order_status_history h WHERE h.order_id = o.id AND h.to_status = 'PAID'), 'PAID', 'CANCELLED')
+         WHEN 'REFUNDED' THEN 'REFUNDED'
+         WHEN 'PARTIALLY_REFUNDED' THEN 'PARTIALLY_REFUNDED'
+         ELSE 'PAID'
        END,
        CONCAT('order-', o.id, '-1'),
-       (SELECT MIN(h.created_at) FROM order_status_history h WHERE h.order_id = o.id AND h.to_status = 'paid'),
+       (SELECT MIN(h.created_at) FROM order_status_history h WHERE h.order_id = o.id AND h.to_status = 'PAID'),
        o.created_at, o.created_at
 FROM orders o
 WHERE NOT EXISTS (SELECT 1 FROM payments p WHERE p.order_id = o.id);

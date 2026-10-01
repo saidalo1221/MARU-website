@@ -1017,6 +1017,8 @@ export const translations = {
         saveFailed: 'Failed to save',
         deleteFailed: 'Failed to delete',
         page: {
+          privacy: 'Privacy Policy',
+          terms: 'Terms of Use',
           manufacturing: 'Manufacturing',
           quality: 'Quality',
           delivery: 'Delivery',
@@ -2274,6 +2276,8 @@ export const translations = {
         saveFailed: 'Не удалось сохранить',
         deleteFailed: 'Не удалось удалить',
         page: {
+          privacy: 'Политика конфиденциальности',
+          terms: 'Условия использования',
           manufacturing: 'Производство',
           quality: 'Качество',
           delivery: 'Доставка',
@@ -3531,6 +3535,8 @@ export const translations = {
         saveFailed: "Saqlab bo'lmadi",
         deleteFailed: "O'chirib bo'lmadi",
         page: {
+          privacy: 'Maxfiylik siyosati',
+          terms: 'Foydalanish shartlari',
           manufacturing: 'Ishlab chiqarish',
           quality: 'Sifat',
           delivery: 'Yetkazib berish',
