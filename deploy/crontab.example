@@ -20,3 +20,5 @@ PY=/srv/maru/venv/bin/python
 30 3 * * *    cd $APP && $PY -m app.tasks.reconcile_stock       >> /var/log/maru/reconcile.log 2>&1
 # Database + uploads backup (see scripts/backup_db.sh for setup)
 15 2 * * *    /srv/maru/scripts/backup_db.sh                    >> /var/log/maru/backup.log 2>&1
+# Background jobs - only if you do NOT run the maru-worker systemd unit (JOBS_ASYNC=true)
+* * * * *     cd $APP && $PY -m app.tasks.worker --once         >> /var/log/maru/worker.log 2>&1

@@ -14,7 +14,7 @@ from app.models.user import User
 from app.schemas.extras import RefundCreate, RefundOut
 from app.schemas.order import OrderOut, OrderStatusUpdate
 from app.schemas.shipment import ShipmentCreate, ShipmentEventCreate, ShipmentOut, ShipmentUpdate
-from app.services.notifications.email import EmailNotifier
+from app.services.notifications.queued import QueuedNotifier
 from app.services.notifications.logging import LoggingNotifier
 from app.services.order_service import InsufficientStockError, InvalidTransitionError, set_order_status, validate_transition
 from app.services.refund_service import RefundError, create_refund
@@ -23,7 +23,7 @@ from app.services.shipment_service import ShipmentError, add_shipment_event, cre
 router = APIRouter(prefix="/admin/orders", tags=["admin-orders"])
 notifier = LoggingNotifier()
 # Shipment updates are the one admin action customers must actually hear about.
-shipment_notifier = EmailNotifier()
+shipment_notifier = QueuedNotifier()
 
 
 def _load_order(db: Session, order_id: int) -> Optional[Order]:

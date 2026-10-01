@@ -26,6 +26,8 @@ from app.routers import (
     admin_categories,
     admin_exchange_rates,
     admin_integration_logs,
+    admin_jobs,
+    integration_webhooks,
     admin_inventory,
     admin_newsletter,
     admin_notification_templates,
@@ -143,6 +145,8 @@ api_v1.include_router(admin_blog.router)
 api_v1.include_router(admin_categories.router)
 api_v1.include_router(admin_exchange_rates.router)
 api_v1.include_router(admin_integration_logs.router)
+api_v1.include_router(admin_jobs.router)
+api_v1.include_router(integration_webhooks.router)
 api_v1.include_router(admin_inventory.router)
 api_v1.include_router(admin_newsletter.router)
 api_v1.include_router(admin_notification_templates.router)

@@ -13,6 +13,7 @@ machine). Treat every step as "verify on staging first".
 | Alerts (dead-letter / stuck integrations / payment-failure spike; needs `ALERT_EMAIL`, thresholds `ALERT_*`; same alert not repeated within `ALERT_COOLDOWN_MINUTES`) | `python -m app.tasks.check_alerts` | every 10 min |
 | Stock drift report | `python -m app.tasks.reconcile_stock` (add `--fix` only after reading the report; exit 1 = mismatches found; also emails `ALERT_EMAIL` if set) | nightly |
 | Database + uploads backup | `scripts/backup_db.sh` | daily, 02:15 |
+| Background jobs (queued emails, webhooks; only needed when `JOBS_ASYNC=true`) | `python -m app.tasks.worker --once`, or run the `deploy/maru-worker.service` unit instead of cron | every minute (cron) / always on (systemd) |
 
 Run each from the project root with the production `.env` loaded.
 

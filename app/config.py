@@ -90,6 +90,16 @@ class Settings(BaseSettings):
     ALERT_RETRY_BACKLOG: int = 20  # integration calls waiting for a retry
     ALERT_SYNC_LAG_MINUTES: int = 60  # oldest unresolved integration failure
     ALERT_COOLDOWN_MINUTES: int = 360  # don't repeat the same alert sooner than this
+    ALERT_JOB_BACKLOG_MINUTES: int = 30  # a due background job waiting this long raises an alert
+
+    # Background jobs (PRD ТЗ№3 §88-89). With JOBS_ASYNC=false order emails are sent inside the
+    # request (simple, fine for development); set it to true in production and run
+    # `python -m app.tasks.worker` so checkout never waits for SMTP.
+    JOBS_ASYNC: bool = False
+    JOB_MAX_ATTEMPTS: int = 5
+    JOB_RETRY_BACKOFF_MINUTES: str = "1,5,15,30,60"  # delay before attempt 2, 3, 4, ...
+    # Inbound webhooks (PRD ТЗ№4 §50-51): JSON object {"provider": "shared secret"}.
+    WEBHOOK_SECRETS: str = ""
 
 
 settings = Settings()

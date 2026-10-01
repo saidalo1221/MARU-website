@@ -77,3 +77,10 @@ Newest entries last. Blocked items are marked `[!]` in the BUILD STATUS block at
 35. **Audit rows** record the caller's IP (as seen by the app; behind a proxy it needs `--proxy-headers`) and the request id.
 36. **Roles**: PRD lists B2B_CUSTOMER and ADMIN; the code has customer types (retail/wholesale/distributor/export/special) for B2B
     customers and SUPER_ADMIN plus the five manager roles. Treated as equivalent; no new roles were added.
+37. **Job queue**: the database is the queue (table `jobs`, `SELECT ... FOR UPDATE SKIP LOCKED` on MariaDB) instead of adding
+    Celery/RQ - no new dependency, and Redis stays optional. `JOBS_ASYNC=false` by default (emails sent inside the request, as
+    before); production should set it to true and run the worker. Retries back off 1/5/15/30/60 min, 5 attempts, then the job is
+    "dead" (dead-letter queue) and an admin retries it via `POST /admin/jobs/{id}/retry`. Not run against real MariaDB.
+38. **Inbound webhooks**: `POST /api/v1/integrations/{provider}/webhook`, HMAC-SHA256 over `"<timestamp>.<body>"`, 5 min tolerance,
+    secrets in `WEBHOOK_SECRETS` JSON. The signing scheme is my choice (no provider spec was given); events are stored and queued
+    but no connector consumes them until a vendor (1C, Uzum, ...) is chosen.

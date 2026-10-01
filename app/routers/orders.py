@@ -21,7 +21,7 @@ from app.schemas.order import CheckoutOut, CheckoutRequest, OrderOut, PaymentIni
 from app.schemas.shipment import TrackOrderOut, TrackOrderRequest
 from app.services.crm.bitrix24 import Bitrix24Connector
 from app.services.integrations.log import run_with_log
-from app.services.notifications.email import EmailNotifier
+from app.services.notifications.queued import QueuedNotifier
 from app.services.order_service import InsufficientStockError, OrderError, create_order, set_order_status
 from app.services.payment.errors import PaymentConfigError
 from app.services.payment.registry import (
@@ -35,7 +35,7 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 # Real providers (PRD sections 13, 26, 38) — see each module's docstring for
 # what's verified vs. still needs sandbox testing, and .env for required keys.
-notifier = EmailNotifier()
+notifier = QueuedNotifier()
 crm = Bitrix24Connector()
 
 _CANCELLABLE_STATUSES = {OrderStatus.NEW, OrderStatus.PAYMENT_PENDING, OrderStatus.PAID, OrderStatus.PROCESSING}

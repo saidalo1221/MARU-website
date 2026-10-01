@@ -1,0 +1,20 @@
+# systemd unit for the background job worker (queued emails, inbound webhooks).
+# Needed when JOBS_ASYNC=true in .env. NOT TESTED on a real server. Adjust paths and user.
+#   sudo cp deploy/maru-worker.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now maru-worker
+# Several copies may run side by side; a job is claimed by exactly one of them.
+[Unit]
+Description=MARU background job worker
+After=network.target
+
+[Service]
+User=maru
+WorkingDirectory=/srv/maru
+EnvironmentFile=/srv/maru/.env
+ExecStart=/srv/maru/venv/bin/python -m app.tasks.worker
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

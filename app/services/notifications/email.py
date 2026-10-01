@@ -20,6 +20,10 @@ class EmailNotifier(NotificationBase):
     the relay allows anonymous send). Never raises — a notification failure
     must not fail an already-committed order; failures are logged instead."""
 
+    def __init__(self, raise_errors: bool = False) -> None:
+        # In a background job a failed send must raise so the job is retried; in a request it must not.
+        self.raise_errors = raise_errors
+
     def _send(self, to_email: str, subject: str, body: str) -> None:
         if not settings.SMTP_HOST or not settings.SMTP_FROM_EMAIL:
             logger.warning("Email not sent (SMTP not configured): %s -> %s", subject, to_email)
@@ -39,6 +43,8 @@ class EmailNotifier(NotificationBase):
                 server.send_message(message)
         except (smtplib.SMTPException, OSError):
             logger.exception("Failed to send email: %s -> %s", subject, to_email)
+            if self.raise_errors:
+                raise
 
     def admin_alert(self, subject: str, body: str) -> None:
         """Operational alert to ALERT_EMAIL; a no-op when it is not set."""

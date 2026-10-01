@@ -29,6 +29,7 @@ from app.models.audit_log import AuditLog
 from app.models.enums import OrderStatus
 from app.models.order_status_history import OrderStatusHistory
 from app.services.integrations.health import integration_metrics
+from app.services.jobs import queue_stats
 from app.services.notifications.email import EmailNotifier
 
 logger = logging.getLogger("maru.tasks.check_alerts")
@@ -92,6 +93,12 @@ def run_checks(db: Session, notifier=None, now: Optional[datetime] = None) -> li
     backlog = sum(m["pending_retries"] for m in metrics.values())
     if backlog >= settings.ALERT_RETRY_BACKLOG:
         fire("retry_backlog", f"{backlog} integration calls are waiting for a retry", "Check the retry cron job and the connector.")
+
+    jobs = queue_stats(db, now)
+    if jobs["dead"] > 0:
+        fire("jobs_dead", f"{jobs['dead']} background job(s) failed for good", "See Admin > Integration Logs > Background jobs and retry them.")
+    if jobs["oldest_due_seconds"] is not None and jobs["oldest_due_seconds"] >= settings.ALERT_JOB_BACKLOG_MINUTES * 60:
+        fire("jobs_backlog", f"Background jobs are waiting {jobs['oldest_due_seconds'] // 60} minutes", "Is the worker running? (python -m app.tasks.worker)")
 
     failures = db.execute(
         select(func.count(OrderStatusHistory.id)).where(
