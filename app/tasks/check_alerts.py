@@ -29,6 +29,7 @@ from app.models.audit_log import AuditLog
 from app.models.enums import OrderStatus
 from app.models.order_status_history import OrderStatusHistory
 from app.services.integrations.health import integration_metrics
+from app.services.integrations.telegram import notify_admin as telegram_notify_admin
 from app.services.jobs import queue_stats
 from app.services.notifications.email import EmailNotifier
 
@@ -73,6 +74,7 @@ def run_checks(db: Session, notifier=None, now: Optional[datetime] = None) -> li
     def fire(key: str, subject: str, body: str) -> None:
         if _send(db, notifier, key, f"MARU alert: {subject}", body, now):
             sent.append(key)
+            telegram_notify_admin(f"MARU alert: {subject}\n{body}")
 
     metrics = integration_metrics(db, now)
     for name, m in sorted(metrics.items()):

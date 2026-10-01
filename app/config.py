@@ -98,6 +98,10 @@ class Settings(BaseSettings):
     # Private order documents (invoices, receipts). Empty = app/private_documents; on UzCloud point it
     # at a persistent volume outside the web root.
     DOCUMENTS_DIR: str = ""
+    # Telegram bot (app/services/integrations/telegram.py). The token comes from @BotFather; keep it in .env only.
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_BOT_USERNAME: str = ""
+    TELEGRAM_ADMIN_CHAT_ID: str = ""  # chat/group id that receives operational alerts
     JOBS_ASYNC: bool = False
     # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
     CACHE_ENABLED: bool = True

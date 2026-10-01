@@ -100,6 +100,12 @@ def register_adapter(kind: str, adapter) -> None:
 
 
 def get_adapter(kind: str):
+    if kind == "telegram" and kind not in _REGISTERED:
+        from app.services.integrations.telegram import build  # lazy: needs settings and requests
+
+        built = build()
+        if built is not None:
+            _REGISTERED[kind] = built
     return _REGISTERED.get(kind) or _NULLS[kind]
 
 
