@@ -17,7 +17,7 @@ from app.services import jobs
 from app.services.notifications import queued  # noqa: F401 - registers the notify.* handlers
 from app.services import webhooks  # noqa: F401 - registers the webhook.* dispatch
 from app.services.integrations import ga4, meta, whatsapp  # noqa: F401 - registers the ga4.send / meta.send / whatsapp.send handlers
-from app.services import outbound_webhooks, push  # noqa: F401 - registers webhook.deliver / push.send
+from app.services import campaigns, outbound_webhooks, push  # noqa: F401 - registers webhook.deliver / push.send / newsletter.send
 
 logger = logging.getLogger("maru.worker")
 

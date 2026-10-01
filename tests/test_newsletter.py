@@ -111,3 +111,37 @@ def test_confirming_records_a_newsletter_signup_event_without_pii(client, db_ses
     events = db_session.query(AnalyticsEvent).filter_by(event_name="newsletter_signup").all()
     assert len(events) == 1
     assert "evt@example.com" not in (events[0].properties or "")
+
+
+@pytest.fixture()
+def mailbox(monkeypatch):
+    from app.services.notifications.email import EmailNotifier
+
+    out = []
+    monkeypatch.setattr(EmailNotifier, "_send", lambda self, to, subject, body: out.append((to, subject, body)))
+    return out
+
+
+def test_campaign_goes_only_to_confirmed_subscribers_with_their_own_unsubscribe_link(client, db_session, sent, mailbox):
+    for email in ("a@example.com", "b@example.com", "c@example.com"):
+        _subscribe(client, email=email)
+    client.post("/api/v1/newsletter/confirm", json={"token": sent[0][1]})
+    client.post("/api/v1/newsletter/confirm", json={"token": sent[1][1]})
+    client.post("/api/v1/newsletter/unsubscribe", json={"token": sent[1][1]})  # c stays pending, b left
+
+    assert client.post("/api/v1/admin/newsletter/campaigns", json={"subject": "S", "body": "B"}).status_code in (401, 403)
+    make_admin(db_session, "mkt@example.com", UserRole.MARKETING_MANAGER)
+    headers = login(client, "mkt@example.com")
+    r = client.post("/api/v1/admin/newsletter/campaigns", json={"subject": "Sale", "body": "Hello"}, headers=headers)
+    assert r.status_code == 201
+    assert r.json()["recipients_total"] == 1 and r.json()["sent"] == 1 and r.json()["waiting"] == 0
+    assert [m[0] for m in mailbox] == ["a@example.com"]
+    assert f"unsubscribe?token={sent[0][1]}" in mailbox[0][2]
+    assert client.get("/api/v1/admin/newsletter/campaigns", headers=headers).json()[0]["subject"] == "Sale"
+
+
+def test_test_send_goes_to_the_admin_only(client, db_session, mailbox):
+    make_admin(db_session, "mkt@example.com", UserRole.MARKETING_MANAGER)
+    headers = login(client, "mkt@example.com")
+    r = client.post("/api/v1/admin/newsletter/campaigns/test", json={"subject": "Draft", "body": "x"}, headers=headers)
+    assert r.status_code == 200 and mailbox[0][0] == "mkt@example.com" and mailbox[0][1].startswith("[TEST]")

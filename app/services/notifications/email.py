@@ -46,6 +46,10 @@ class EmailNotifier(NotificationBase):
             if self.raise_errors:
                 raise
 
+    def custom(self, to_email: str, subject: str, body: str) -> None:
+        """A free-text mail written by an admin (newsletter campaign, test send)."""
+        self._send(to_email, subject, body)
+
     def admin_alert(self, subject: str, body: str) -> None:
         """Operational alert to ALERT_EMAIL; a no-op when it is not set."""
         if not settings.ALERT_EMAIL:

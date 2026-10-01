@@ -306,6 +306,16 @@ export function adminListNewsletter(statusFilter) {
   return apiRequest(`/admin/newsletter/${qs}`)
 }
 
+export function adminListCampaigns() {
+  return apiRequest('/admin/newsletter/campaigns')
+}
+export function adminTestCampaign(payload) {
+  return apiRequest('/admin/newsletter/campaigns/test', { method: 'POST', body: payload })
+}
+export function adminSendCampaign(payload) {
+  return apiRequest('/admin/newsletter/campaigns', { method: 'POST', body: payload })
+}
+
 export function adminListAnalyticsEvents(eventName) {
   const qs = eventName ? `?event_name=${encodeURIComponent(eventName)}` : ''
   return apiRequest(`/admin/analytics-events/${qs}`)

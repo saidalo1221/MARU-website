@@ -322,3 +322,17 @@ CREATE TABLE loyalty_tiers (
 	earn_multiplier DECIMAL(4, 2) NOT NULL,
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
+
+-- Newsletter campaigns sent from the admin panel.
+CREATE TABLE newsletter_campaigns (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	subject VARCHAR(200) NOT NULL, 
+	body TEXT NOT NULL, 
+	locale VARCHAR(5), 
+	recipients_total INTEGER NOT NULL, 
+	sent_count INTEGER NOT NULL, 
+	created_by_user_id BIGINT, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;

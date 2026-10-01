@@ -561,6 +561,19 @@ CREATE TABLE newsletter_subscribers (
 	UNIQUE (token)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
+CREATE TABLE newsletter_campaigns (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	subject VARCHAR(200) NOT NULL, 
+	body TEXT NOT NULL, 
+	locale VARCHAR(5), 
+	recipients_total INTEGER NOT NULL, 
+	sent_count INTEGER NOT NULL, 
+	created_by_user_id BIGINT, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
 CREATE TABLE skus (
 	id BIGINT NOT NULL AUTO_INCREMENT, 
 	variant_id BIGINT NOT NULL, 

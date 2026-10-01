@@ -35,6 +35,8 @@ accounts or documents from the owner (section 4). Do not rebuild anything listed
   | What each SKU costs (profit and margin) | Admin > SKU costs (inline edit or paste a list) | Empty: dashboard shows "n/a" |
   | Monthly ad spend (CAC and ROAS) | Admin > Dashboard (marketing section) | Empty: CAC/ROAS show "n/a" |
   | Loyalty point adjustments, promo codes (products, categories, countries, customers, limits), shipping rates, exchange rates | their Admin pages | n/a |
+- **Admin e-mail:** Admin > Newsletter has a compose form (test to yourself, then send to all confirmed subscribers, optionally by language), NOTES 68.
+  Confirmation/unsubscribe links use `FRONTEND_URL`: set it to the public site before launch or the links point at localhost.
 - **Cookie banner has three choices:** analytics (own statistics + campaign attribution), advertising (GA4/Meta server events), geolocation.
   GA4/Meta get events only with the advertising choice (`X-Ads-Consent` header; orders remember it in `orders.ads_consent`). Visitors who accepted
   before the split are asked again. The privacy-policy text is editable in Admin > Support-page content; the owner/lawyer should mention advertising there.
