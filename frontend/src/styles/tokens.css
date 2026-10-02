@@ -7,16 +7,18 @@
  * colours before a brand book exists (§45.2). */
 :root {
   /* Colours */
-  --color-brand: 31 111 74;
-  --color-brand-dark: 21 77 51;
-  --color-brand-light: 232 244 238;
+  --color-brand: 200 60 30;
+  --color-brand-dark: 158 42 18;
+  --color-brand-light: 236 236 232;
+  --color-page: 246 246 244;
+  --color-ink: 20 20 19;
   --color-danger: 220 38 38;
   --color-success: 21 128 61;
   --color-warning: 180 83 9;
-  --color-focus: 37 99 235;
+  --color-focus: 20 20 19;
 
   /* Typography */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   --text-h1: 1.875rem;
   --text-h2: 1.5rem;
   --text-h3: 1.25rem;
@@ -50,6 +52,14 @@
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Dark theme: neutral graphite page, light focus ring. Tailwind colours that read these
+ * variables (bg-page, bg-ink, ring colours) follow without per-class overrides. */
+.dark {
+  --color-page: 17 17 16;
+  --color-ink: 27 27 26;
+  --color-focus: 240 240 236;
 }
 
 /* Breakpoints (PRD §51) live in tailwind.config.js `screens`: mobile 320-767,

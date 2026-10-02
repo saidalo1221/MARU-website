@@ -9,6 +9,7 @@ import { LocaleProvider } from './context/LocaleContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import { ToastProvider } from './components/ui/Toast.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import '@fontsource-variable/manrope' // self-hosted; the cyrillic and latin-ext files cover ru and uz
 import './index.css'
 import { captureAttribution, clearAttribution } from './lib/attribution'
 import { hasConsent, subscribeConsent } from './lib/consent'

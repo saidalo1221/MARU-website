@@ -9,8 +9,8 @@ export default function ProductBadges({ badges, className = '' }) {
   if (!badges) return null
 
   const items = [
-    badges.is_new && { key: 'new', label: t('product.badgeNew'), cls: 'bg-blue-600 text-white' },
-    badges.is_sale && { key: 'sale', label: t('product.badgeSale'), cls: 'bg-red-600 text-white' },
+    badges.is_new && { key: 'new', label: t('product.badgeNew'), cls: 'bg-brand text-white' },
+    badges.is_sale && { key: 'sale', label: t('product.badgeSale'), cls: 'bg-red-700 text-white' },
     badges.is_bestseller && { key: 'bestseller', label: t('product.badgeBestseller'), cls: 'bg-amber-700 text-white' },
     badges.is_out_of_stock && { key: 'oos', label: t('product.badgeOutOfStock'), cls: 'bg-gray-700 text-white' },
   ].filter(Boolean)
@@ -20,7 +20,7 @@ export default function ProductBadges({ badges, className = '' }) {
   return (
     <div className={`flex flex-wrap gap-1 ${className}`}>
       {items.map((item) => (
-        <span key={item.key} className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${item.cls}`}>
+        <span key={item.key} className={`text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${item.cls}`}>
           {item.label}
         </span>
       ))}

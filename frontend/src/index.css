@@ -8,6 +8,18 @@ html {
   overflow-x: hidden;
 }
 
+body {
+  background-color: rgb(var(--color-page));
+  color: #141413;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.015em;
+}
+
 /* Dark mode (toggled via ThemeContext adding/removing `dark` on <html>,
  * see tailwind.config.js's darkMode:'class'). The app was built with
  * hardcoded light-mode utility classes throughout ~70 components rather
@@ -19,33 +31,33 @@ html {
  * pick up dark mode for free; only reach for `dark:` variants directly if
  * a component needs a shade not covered here. */
 .dark body {
-  background-color: #0f172a;
-  color: #e2e8f0;
+  background-color: #111110;
+  color: #ececea;
 }
 
-.dark .bg-white { background-color: #1e293b; }
-.dark .bg-gray-50 { background-color: #0f172a; }
-.dark .bg-gray-100 { background-color: #1e293b; }
-.dark .bg-gray-200 { background-color: #334155; }
-.dark .bg-gray-700 { background-color: #334155; }
-.dark .hover\:bg-white:hover { background-color: #1e293b; }
+.dark .bg-white { background-color: #1b1b1a; }
+.dark .bg-gray-50 { background-color: #111110; }
+.dark .bg-gray-100 { background-color: #1b1b1a; }
+.dark .bg-gray-200 { background-color: #2e2e2c; }
+.dark .bg-gray-700 { background-color: #2e2e2c; }
+.dark .hover\:bg-white:hover { background-color: #1b1b1a; }
 .dark .hover\:bg-gray-50:hover,
-.dark .hover\:bg-gray-100:hover { background-color: #334155; }
+.dark .hover\:bg-gray-100:hover { background-color: #2e2e2c; }
 
-.dark .text-gray-400 { color: #94a3b8; }
-.dark .text-gray-500 { color: #94a3b8; }
-.dark .text-gray-600 { color: #cbd5e1; }
-.dark .text-gray-700 { color: #cbd5e1; }
-.dark .text-gray-800 { color: #e2e8f0; }
-.dark .text-gray-900 { color: #f1f5f9; }
+.dark .text-gray-400 { color: #a3a39e; }
+.dark .text-gray-500 { color: #a3a39e; }
+.dark .text-gray-600 { color: #d2d2cd; }
+.dark .text-gray-700 { color: #d2d2cd; }
+.dark .text-gray-800 { color: #ececea; }
+.dark .text-gray-900 { color: #f4f4f2; }
 .dark .hover\:text-gray-600:hover,
-.dark .hover\:text-gray-800:hover { color: #f1f5f9; }
+.dark .hover\:text-gray-800:hover { color: #f4f4f2; }
 
 .dark .border-gray-100,
 .dark .border-gray-200,
-.dark .border-gray-300 { border-color: #334155; }
+.dark .border-gray-300 { border-color: #2e2e2c; }
 .dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
-.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #2e2e2c; }
 
 .dark .bg-amber-50 { background-color: #451a03; }
 .dark .border-amber-200 { border-color: #92400e; }
@@ -53,7 +65,7 @@ html {
 .dark .text-amber-700,
 .dark .text-amber-800 { color: #fbbf24; }
 
-.dark .bg-brand-light { background-color: #12372a; }
+.dark .bg-brand-light { background-color: #262624; }
 .dark .bg-green-50 { background-color: #052e16; }
 .dark .border-green-200,
 .dark .border-green-300 { border-color: #166534; }
@@ -75,13 +87,13 @@ html {
 .dark input,
 .dark select,
 .dark textarea {
-  background-color: #1e293b;
-  color: #f1f5f9;
-  border-color: #334155;
+  background-color: #1b1b1a;
+  color: #f4f4f2;
+  border-color: #2e2e2c;
 }
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #64748b;
+  color: #7a7a75;
 }
 .dark .bg-transparent { background-color: transparent; }
 
@@ -90,18 +102,18 @@ html {
  * their options would otherwise inherit transparent and render light-on-white. */
 .dark { color-scheme: dark; }
 .dark select option,
-.dark select optgroup { background-color: #1e293b; color: #f1f5f9; }
+.dark select optgroup { background-color: #1b1b1a; color: #f4f4f2; }
 
-/* Outlined form controls: #334155 on the dark surfaces is ~1.5:1, so the
+/* Outlined form controls: #2e2e2c on the dark surfaces is ~1.5:1, so the
  * language/currency choosers and inputs nearly vanish (WCAG 1.4.11 wants 3:1). */
 .dark input.border,
 .dark select.border,
-.dark textarea.border { border-color: #64748b; }
+.dark textarea.border { border-color: #7a7a75; }
 
 /* Brand/status text colors: the light-mode shades are too dark on the dark
  * surfaces above (axe color-contrast). */
 .dark .text-brand,
-.dark .hover\:text-brand:hover { color: #6ee7b7; }
+.dark .hover\:text-brand:hover { color: #ff8d70; }
 .dark .text-red-500,
 .dark .text-red-600 { color: #f87171; }
 .dark .text-green-700 { color: #4ade80; }
@@ -130,7 +142,7 @@ html {
 
 .dark .bg-white\/85,
 .dark .bg-white\/70,
-.dark .bg-white\/60 { background-color: rgb(30 41 59 / 0.7); }
+.dark .bg-white\/60 { background-color: rgb(27 27 26 / 0.7); }
 
 /* Scroll reveal for the home sections (components/home/Reveal.jsx). */
 .maru-reveal {

@@ -47,7 +47,7 @@ export default function NavMenu({ label, groups, align = 'left' }) {
         className="flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:bg-gray-100"
       >
         {label}
-        <span aria-hidden="true" className="text-[10px]">▾</span>
+        <span aria-hidden="true" className="text-xs">▾</span>
       </button>
       {open && (
         <div

@@ -70,7 +70,7 @@ export default function Header() {
       <div ref={sentinelRef} aria-hidden="true" className="h-px" />
 
       <header
-        className={`sticky top-0 z-40 -mt-px border-b border-gray-200 bg-white/85 backdrop-blur transition-shadow ${
+        className={`sticky top-0 z-40 -mt-px border-b border-gray-200 bg-page/95 backdrop-blur transition-shadow ${
           scrolled ? 'shadow-token' : ''
         }`}
       >
@@ -119,7 +119,7 @@ export default function Header() {
             <Link to="/cart" className="flex items-center whitespace-nowrap rounded-full bg-brand px-4 py-1.5 text-white transition-colors hover:bg-brand-dark">
               {t('header.cart')}
               {itemCount > 0 && (
-                <span className="ml-1.5 rounded-full bg-white/95 px-1.5 py-0.5 text-xs leading-none text-brand-dark">{itemCount}</span>
+                <span className="ml-1.5 rounded-full bg-white/95 px-1.5 py-0.5 text-xs leading-none !text-ink">{itemCount}</span>
               )}
             </Link>
           </div>

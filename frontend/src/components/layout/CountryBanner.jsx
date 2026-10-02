@@ -77,7 +77,7 @@ export default function CountryBanner() {
     suggestedCurrency && suggestedCurrency !== cart.currency && availableCurrencies.includes(suggestedCurrency)
 
   return (
-    <div className="bg-blue-50 border-b border-blue-200 text-blue-900 text-sm px-4 py-2 flex flex-wrap items-center justify-center gap-2 text-center">
+    <div className="bg-brand-light border-b border-gray-200 text-gray-800 text-sm px-4 py-2 flex flex-wrap items-center justify-center gap-2 text-center">
       <span>{t('countryBanner.message', { country: country.name })}</span>
       <span className="text-blue-700">{t('countryBanner.shippingNote')}</span>
       {canSwitchCurrency && (
