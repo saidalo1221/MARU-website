@@ -187,14 +187,14 @@ export default function ProductDetail() {
         current={product.name}
       />
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div>
+      <div className="grid gap-8 md:grid-cols-2 md:gap-12">
+        <div className="self-start md:sticky md:top-24">
           <ProductGallery variant={variant} alt={product.name} />
         </div>
 
         <div>
           <ProductBadges badges={product.badges} className="mb-2" />
-          <h1 className="text-2xl font-bold">{product.name}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{product.name}</h1>
           {sku && <p className="text-xs text-gray-500 mt-1">SKU: {sku.sku_code}</p>}
           {product.rating_count > 0 && (
             <p className="text-sm mt-1">
@@ -204,8 +204,8 @@ export default function ProductDetail() {
             </p>
           )}
 
-          <p className="text-2xl font-semibold mt-3">
-            {sku ? `${sku.currency} ${Number(onSale ? sku.special_price : sku.retail_price).toFixed(2)}` : '—'}
+          <p className="mt-4 text-3xl font-semibold">
+            {sku ? `${sku.currency} ${Number(onSale ? sku.special_price : sku.retail_price).toFixed(2)}` : '-'}
             {onSale && (
               <>
                 {' '}
@@ -222,7 +222,7 @@ export default function ProductDetail() {
           {rows.length > 0 && (
             <div className="mt-4">
               <p className="text-sm font-medium mb-1">{t('productDetail.tiersTitle')}</p>
-              <table className="w-full max-w-xs text-sm border border-gray-200 rounded">
+              <table className="w-full max-w-xs overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-sm">
                 <tbody>
                   {rows.map((row) => (
                     <tr key={row.from} className={tierActive(row) ? 'bg-brand-light font-medium' : ''}>
@@ -266,23 +266,23 @@ export default function ProductDetail() {
           </div>
 
           {product.available_in_country === false && (
-            <p role="alert" className="mt-6 border border-yellow-300 bg-yellow-50 text-yellow-900 rounded px-3 py-2 text-sm">
+            <p role="alert" className="mt-6 rounded-2xl border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-900">
               {t('market.notSold', { country: shipCountry })}
             </p>
           )}
 
-          <div className="flex gap-3 mt-6 sticky bottom-0 bg-white py-2 md:static">
+          <div className="sticky bottom-0 z-30 mt-6 flex gap-3 bg-page/95 py-3 backdrop-blur md:static md:bg-transparent md:py-0 md:backdrop-blur-none">
             <button
               onClick={handleAddToCart}
               disabled={!inStock || product.available_in_country === false}
-              className="flex-1 border border-brand text-brand rounded py-3 font-medium disabled:opacity-40"
+              className="flex-1 rounded-full border border-brand py-3 font-semibold text-brand transition-colors hover:bg-brand-light active:scale-[0.98] disabled:opacity-40"
             >
               {t('productDetail.addToCart')}
             </button>
             <button
               onClick={handleBuyNow}
               disabled={!inStock || product.available_in_country === false}
-              className="flex-1 bg-brand text-white rounded py-3 font-medium disabled:opacity-40"
+              className="flex-1 rounded-full bg-brand py-3 font-semibold text-white transition-colors hover:bg-brand-dark active:scale-[0.98] disabled:opacity-40"
             >
               {t('productDetail.buyNow')}
             </button>
@@ -290,7 +290,7 @@ export default function ProductDetail() {
               <button
                 onClick={handleToggleWishlist}
                 aria-label={wishlisted ? t('wishlist.remove') : t('wishlist.add')}
-                className={`border rounded px-4 py-3 font-medium text-xl leading-none ${wishlisted ? 'border-red-400 text-red-600' : 'border-gray-300 text-gray-500'}`}
+                className={`rounded-full border px-5 py-3 text-xl font-medium leading-none ${wishlisted ? 'border-red-400 text-red-600' : 'border-gray-300 text-gray-500'}`}
               >
                 {wishlisted ? '♥' : '♡'}
               </button>
@@ -329,7 +329,7 @@ export default function ProductDetail() {
               <p className="text-sm font-medium mb-2">{t('productDetail.setContents')}</p>
               <ul className="text-sm text-gray-700 space-y-1">
                 {sku.bundle_items.map((i) => (
-                  <li key={i.sku_code}>{i.quantity} × {i.product_name}{i.variant_name && i.variant_name !== i.product_name ? ` — ${i.variant_name}` : ''}</li>
+                  <li key={i.sku_code}>{i.quantity} × {i.product_name}{i.variant_name && i.variant_name !== i.product_name ? ` - ${i.variant_name}` : ''}</li>
                 ))}
               </ul>
             </div>
@@ -350,7 +350,7 @@ export default function ProductDetail() {
             )
           })}
 
-          <dl className="mt-6 border-t border-gray-200 pt-4 text-sm grid grid-cols-2 gap-y-1">
+          <dl className="mt-6 grid grid-cols-2 gap-y-2 rounded-3xl border border-gray-200 bg-gray-50 p-5 text-sm">
             <dt className="text-gray-500">{t('productDetail.volume')}</dt>
             <dd>{t('catalog.ml', { n: product.volume_ml })}</dd>
             <dt className="text-gray-500">{t('productDetail.material')}</dt>
@@ -376,9 +376,9 @@ export default function ProductDetail() {
       </div>
 
       {faq.length > 0 && (
-        <section className="mt-12" aria-labelledby="product-faq">
+        <section className="mt-16" aria-labelledby="product-faq">
           <div className="flex items-end justify-between gap-4 mb-3">
-            <h2 id="product-faq" className="text-xl font-bold">{t('home.faqTitle')}</h2>
+            <h2 id="product-faq" className="text-2xl font-semibold tracking-tight">{t('home.faqTitle')}</h2>
             <Link to="/faq" className="text-sm text-brand underline">{t('home.allQuestions')}</Link>
           </div>
           <div className="max-w-3xl">
@@ -389,8 +389,8 @@ export default function ProductDetail() {
 
       {[['otherSizes', groups.other_sizes], ['boughtTogether', groups.bought_together], ['inSets', groups.sets]].map(([key, list]) =>
         list.length > 0 ? (
-          <section key={key} className="mt-12" aria-labelledby={`rel-${key}`}>
-            <h2 id={`rel-${key}`} className="text-xl font-bold mb-4">{t(`productDetail.${key}`)}</h2>
+          <section key={key} className="mt-16" aria-labelledby={`rel-${key}`}>
+            <h2 id={`rel-${key}`} className="mb-5 text-2xl font-semibold tracking-tight">{t(`productDetail.${key}`)}</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {list.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
@@ -399,8 +399,8 @@ export default function ProductDetail() {
       )}
 
       {related.length > 0 && (
-        <section className="mt-12" aria-labelledby="related-products">
-          <h2 id="related-products" className="text-xl font-bold mb-4">{t('productDetail.recommended')}</h2>
+        <section className="mt-16" aria-labelledby="related-products">
+          <h2 id="related-products" className="mb-5 text-2xl font-semibold tracking-tight">{t('productDetail.recommended')}</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {related.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>

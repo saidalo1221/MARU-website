@@ -157,14 +157,14 @@ export default function Catalog({ category = null }) {
   }
 
   const FiltersPanel = (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium mb-1">{t('catalog.capacity')}</label>
+        <label className="block text-sm font-medium mb-1.5">{t('catalog.capacity')}</label>
         <select
           aria-label={t('catalog.capacity')}
           value={volumeFilter}
           onChange={(e) => setVolumeFilter(e.target.value)}
-          className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm"
         >
           <option value="">{t('catalog.all')}</option>
           {volumes.map((v) => (
@@ -179,7 +179,7 @@ export default function Catalog({ category = null }) {
             id="filter-category"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+            className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">{t('catalog.all')}</option>
             {categoryOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -193,7 +193,7 @@ export default function Catalog({ category = null }) {
             id="filter-color"
             value={colorFilter}
             onChange={(e) => setColorFilter(e.target.value)}
-            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+            className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm"
           >
             <option value="">{t('catalog.all')}</option>
             {colors.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -201,23 +201,24 @@ export default function Catalog({ category = null }) {
         </div>
       )}
       <fieldset>
-        <legend className="block text-sm font-medium mb-1">{t('catalog.price')}</legend>
+        <legend className="block text-sm font-medium mb-1.5">{t('catalog.price')}</legend>
         <div className="flex gap-2">
           <input
             type="number" min="0" inputMode="decimal" value={priceMin} onChange={(e) => setPriceMin(e.target.value)}
             aria-label={t('catalog.priceMin')} placeholder={t('catalog.priceMin')}
-            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+            className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm"
           />
           <input
             type="number" min="0" inputMode="decimal" value={priceMax} onChange={(e) => setPriceMax(e.target.value)}
             aria-label={t('catalog.priceMax')} placeholder={t('catalog.priceMax')}
-            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+            className="w-full rounded-2xl border border-gray-300 bg-white px-3 py-2 text-sm"
           />
         </div>
       </fieldset>
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
+          className="h-4 w-4 accent-brand"
           checked={availabilityFilter}
           onChange={(e) => setAvailabilityFilter(e.target.checked)}
         />
@@ -229,8 +230,21 @@ export default function Catalog({ category = null }) {
     </div>
   )
 
+  const sortSelect = (
+    <select
+      aria-label={t('catalog.sortBy')}
+      value={sort}
+      onChange={(e) => setSort(e.target.value)}
+      className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm"
+    >
+      {SORT_OPTIONS.map((o) => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  )
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <Seo title={category ? category.name : t('catalog.title')} description={category?.description || undefined} image={category?.image_url || undefined} />
       <Breadcrumbs
         items={[
@@ -241,10 +255,10 @@ export default function Catalog({ category = null }) {
         current={category ? category.name : t('header.shop')}
         className="mb-2"
       />
-      <h1 className="text-2xl font-bold mb-2">{category ? category.name : t('catalog.title')}</h1>
+      <h1 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">{category ? category.name : t('catalog.title')}</h1>
       {category && (category.description || category.image_url) && (
         <div className="flex flex-wrap items-start gap-4 mb-4">
-          {category.image_url && <img src={category.image_url} alt="" className="h-28 w-28 rounded-lg object-cover bg-gray-100" />}
+          {category.image_url && <img src={category.image_url} alt="" className="h-28 w-28 rounded-3xl object-cover bg-gray-100" />}
           {category.description && <p className="flex-1 min-w-[16rem] text-gray-600 whitespace-pre-wrap">{category.description}</p>}
         </div>
       )}
@@ -252,38 +266,29 @@ export default function Catalog({ category = null }) {
         <ul aria-label={t('catalog.subcategories')} className="flex flex-wrap gap-2 mb-4">
           {category.children.map((c) => (
             <li key={c.id}>
-              <Link to={`/shop/${c.slug}`} className="inline-block border border-gray-300 rounded px-3 py-1 text-sm hover:bg-gray-50">{c.name}</Link>
+              <Link to={`/shop/${c.slug}`} className="inline-block rounded-full border border-gray-300 px-4 py-1.5 text-sm transition-colors hover:bg-brand-light">{c.name}</Link>
             </li>
           ))}
         </ul>
       )}
 
-      <div className="flex items-center justify-between mb-4 md:hidden">
+      <div className="mb-4 flex items-center justify-between gap-3 md:hidden">
         <button
           onClick={() => setFiltersOpen(true)}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+          className="rounded-full border border-gray-300 bg-white px-5 py-2 text-sm font-medium"
         >
           {t('catalog.filters')}
         </button>
-        <select
-          aria-label={t('catalog.sortBy')}
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm"
-        >
-          {SORT_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+        {sortSelect}
       </div>
 
-      <div className="md:grid md:grid-cols-[220px_1fr] md:gap-8">
-        <aside className="hidden md:block">{FiltersPanel}</aside>
+      <div className="md:grid md:grid-cols-[250px_1fr] md:gap-8">
+        <aside className="hidden self-start rounded-3xl border border-gray-200 bg-gray-50 p-5 md:sticky md:top-24 md:block">{FiltersPanel}</aside>
 
         {filtersOpen && (
           <div ref={filtersDialogRef} className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label={t('catalog.filters')}>
             <div className="absolute inset-0 bg-black/40" onClick={() => setFiltersOpen(false)} />
-            <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white p-4 shadow-xl">
+            <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-5 shadow-xl">
               <div className="mx-auto mb-3 h-1 w-10 rounded bg-gray-300" aria-hidden="true" />
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-bold">{t('catalog.filters')}</h2>
@@ -292,7 +297,7 @@ export default function Catalog({ category = null }) {
               {FiltersPanel}
               <button
                 onClick={() => setFiltersOpen(false)}
-                className="mt-6 w-full bg-brand text-white py-2 rounded"
+                className="mt-6 w-full rounded-full bg-brand py-3 font-semibold text-white"
               >
                 {t('catalog.apply')}
               </button>
@@ -301,35 +306,29 @@ export default function Catalog({ category = null }) {
         )}
 
         <div>
-          <div className="hidden md:flex justify-end mb-4">
-            <select
-              aria-label={t('catalog.sortBy')}
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1.5 text-sm"
-            >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+          <div className="mb-4 hidden items-center justify-between md:flex">
+            <p className="text-sm text-gray-500" role="status">
+              {!loading && !error && total > 0 ? t('catalog.results', { n: total }) : ''}
+            </p>
+            {sortSelect}
           </div>
 
           {loading && products.length === 0 && <ProductGridSkeleton />}
           {error && <p role="alert" className="text-red-600">{t('catalog.loadError')}</p>}
           {!loading && !error && total === 0 && (
-            <div className="text-gray-500">
-              <p>{t('catalog.noProducts')}</p>
+            <div className="rounded-3xl bg-brand-light px-6 py-14 text-center">
+              <p className="text-lg text-gray-700">{t('catalog.noProducts')}</p>
               {hasFilters && (
-                <button type="button" onClick={clearFilters} className="mt-2 text-brand underline">{t('catalog.clearFilters')}</button>
+                <button type="button" onClick={clearFilters} className="mt-5 rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">{t('catalog.clearFilters')}</button>
               )}
             </div>
           )}
           {!loading && !error && total > 0 && (
-            <p className="text-sm text-gray-500 mb-3" role="status">{t('catalog.results', { n: total })}</p>
+            <p className="mb-3 text-sm text-gray-500 md:hidden" role="status">{t('catalog.results', { n: total })}</p>
           )}
 
           <h2 className="sr-only">{t('catalog.title')}</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 md:gap-5">
             {visible.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -346,7 +345,7 @@ export default function Catalog({ category = null }) {
       )}
       {category && faq.length > 0 && (
         <section className="mt-10 max-w-3xl" aria-labelledby="category-faq">
-          <h2 id="category-faq" className="text-xl font-bold mb-3">{t('home.faqTitle')}</h2>
+          <h2 id="category-faq" className="mb-4 text-2xl font-semibold tracking-tight">{t('home.faqTitle')}</h2>
           {faq.map((q) => <FaqItem key={q.id} question={q.title} answer={q.body} />)}
         </section>
       )}

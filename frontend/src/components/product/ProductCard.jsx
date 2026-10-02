@@ -61,35 +61,35 @@ export default function ProductCard({ product }) {
   }
 
   return (
-    <div className="relative border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition group">
-      <ProductBadges badges={product.badges} className="absolute top-2 left-2 z-10" />
+    <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 transition duration-base hover:-translate-y-1 hover:shadow-token">
+      <ProductBadges badges={product.badges} className="absolute top-5 left-5 z-10" />
       {sku && (
         <button
           type="button"
           onClick={handleWishlist}
           aria-pressed={wishlisted}
           aria-label={wishlisted ? t('wishlist.remove') : t('wishlist.add')}
-          className={`absolute top-2 right-2 z-10 h-9 w-9 rounded-full bg-white/90 text-xl leading-none shadow ${wishlisted ? 'text-red-600' : 'text-gray-500'}`}
+          className={`absolute top-5 right-5 z-10 h-9 w-9 rounded-full bg-white/90 text-xl leading-none shadow ${wishlisted ? 'text-red-600' : 'text-gray-500'}`}
         >
           {wishlisted ? '♥' : '♡'}
         </button>
       )}
 
-      <Link to={`/products/${product.slug}`} className="block">
-        <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+      <Link to={`/products/${product.slug}`} className="block flex-1">
+        <div className="m-2 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-100">
           {coverImage ? (
             <Picture src={coverImage} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           ) : (
             <span className="text-gray-500 text-sm">{t('product.noImage')}</span>
           )}
         </div>
-        <div className="p-3">
-          <h3 className="font-medium text-sm truncate">{product.name}</h3>
-          <p className="text-xs text-gray-500">{product.volume_ml} ml</p>
+        <div className="px-4 pb-3 pt-2">
+          <h3 className="truncate font-semibold">{product.name}</h3>
+          <p className="text-sm text-gray-500">{product.volume_ml} ml</p>
           <Rating value={product.rating_average} count={product.rating_count} className="mt-0.5" />
-          <div className="flex items-center justify-between gap-2 flex-wrap mt-2">
-            <span className="font-semibold">
-              {sku ? `${sku.currency} ${Number(onSale ? sku.special_price : sku.retail_price).toFixed(2)}` : '—'}
+          <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-lg font-semibold">
+              {sku ? `${sku.currency} ${Number(onSale ? sku.special_price : sku.retail_price).toFixed(2)}` : '-'}
               {onSale && (
                 <>
                   {' '}
@@ -110,7 +110,7 @@ export default function ProductCard({ product }) {
           type="button"
           onClick={handleAdd}
           disabled={adding}
-          className="block w-full bg-brand text-white py-2 text-sm font-medium disabled:opacity-50"
+          className="mx-3 block rounded-full bg-brand py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark active:scale-[0.98] disabled:opacity-50"
         >
           {added ? t('product.added') : t('productDetail.addToCart')}
         </button>
@@ -118,7 +118,7 @@ export default function ProductCard({ product }) {
       <button
         type="button"
         onClick={() => setQuickViewOpen(true)}
-        className="block w-full border-t border-gray-200 py-2 text-xs font-medium text-brand hover:bg-gray-50"
+        className="block w-full py-3 text-xs font-medium text-brand hover:underline"
       >
         {t('product.quickView')}
       </button>

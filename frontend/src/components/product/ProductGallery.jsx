@@ -31,7 +31,7 @@ export default function ProductGallery({ variant, alt }) {
 
   if (items.length === 0) {
     return (
-      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+      <div className="aspect-square bg-gray-100 rounded-3xl overflow-hidden flex items-center justify-center">
         <span className="text-gray-500">{t('product.noImage')}</span>
       </div>
     )
@@ -51,7 +51,7 @@ export default function ProductGallery({ variant, alt }) {
 
   return (
     <div>
-      <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+      <div className="relative aspect-square bg-gray-100 rounded-3xl overflow-hidden flex items-center justify-center">
         {current.kind === 'image' && (
           <button
             type="button"
@@ -118,7 +118,7 @@ export default function ProductGallery({ variant, alt }) {
       </div>
 
       {items.length > 1 && (
-        <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
           {items.map((item, i) => (
             <button
               key={item.url + i}
@@ -129,7 +129,7 @@ export default function ProductGallery({ variant, alt }) {
                   ? t('productDetail.thumbnail', { n: i + 1 })
                   : t('productDetail.videoThumbnail', { n: i + 1 })
               }
-              className={`relative flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden bg-gray-900 ${
+              className={`relative flex-shrink-0 w-20 h-20 rounded-2xl border-2 overflow-hidden bg-gray-900 ${
                 i === index ? 'border-brand' : 'border-transparent'
               }`}
             >

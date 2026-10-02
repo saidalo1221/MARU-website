@@ -8,11 +8,11 @@ export function ProductGridSkeleton({ count = 8 }) {
   return (
     <div role="status" aria-live="polite">
       <span className="sr-only">{t('common.loading')}</span>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 animate-pulse" aria-hidden="true">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 md:gap-5 animate-pulse" aria-hidden="true">
         {Array.from({ length: count }, (_, i) => (
-          <div key={i} className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="aspect-square bg-gray-200" />
-            <div className="p-3 space-y-2">
+          <div key={i} className="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50">
+            <div className="m-2 aspect-square rounded-2xl bg-gray-200" />
+            <div className="space-y-2 px-4 pb-4 pt-2">
               <div className="h-4 bg-gray-200 rounded w-3/4" />
               <div className="h-3 bg-gray-200 rounded w-1/3" />
               <div className="h-4 bg-gray-200 rounded w-1/2" />
@@ -31,10 +31,10 @@ export function ProductDetailSkeleton() {
       <span className="sr-only">{t('common.loading')}</span>
       <div className="md:grid md:grid-cols-2 md:gap-8 animate-pulse" aria-hidden="true">
         <div>
-          <div className="aspect-square bg-gray-200 rounded-lg" />
+          <div className="aspect-square bg-gray-200 rounded-3xl" />
           <div className="flex gap-2 mt-2">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="w-16 h-16 bg-gray-200 rounded" />
+              <div key={i} className="w-20 h-20 bg-gray-200 rounded-2xl" />
             ))}
           </div>
         </div>
@@ -43,7 +43,7 @@ export function ProductDetailSkeleton() {
           <div className="h-4 bg-gray-200 rounded w-1/3" />
           <div className="h-8 bg-gray-200 rounded w-1/2" />
           <div className="h-20 bg-gray-200 rounded" />
-          <div className="h-11 bg-gray-200 rounded" />
+          <div className="h-11 bg-gray-200 rounded-full" />
         </div>
       </div>
     </div>
