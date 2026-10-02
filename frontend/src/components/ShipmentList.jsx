@@ -11,7 +11,7 @@ export default function ShipmentList({ shipments }) {
   return (
     <ul className="space-y-4">
       {shipments.map((s) => (
-        <li key={s.id} className="border border-gray-200 rounded-lg p-4 text-sm">
+        <li key={s.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm">
           <div className="flex justify-between mb-1">
             <span className="font-medium">{s.carrier}</span>
             <span className="font-medium">{t(`orderStatus.shipmentStatus.${s.status}`)}</span>

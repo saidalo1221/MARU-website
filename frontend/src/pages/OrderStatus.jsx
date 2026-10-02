@@ -106,18 +106,18 @@ export default function OrderStatus() {
   const payState = paymentState(order.status)
   const canPay = AWAITING_PAYMENT.has(order.status) || order.status === 'payment_failed'
   const days = estimate && estimate.max_days != null
-    ? (estimate.min_days != null && estimate.min_days !== estimate.max_days ? `${estimate.min_days}–${estimate.max_days}` : `${estimate.max_days}`)
+    ? (estimate.min_days != null && estimate.min_days !== estimate.max_days ? `${estimate.min_days}-${estimate.max_days}` : `${estimate.max_days}`)
     : null
-  const row = 'flex justify-between gap-4 text-sm mb-2'
+  const row = 'mb-3 flex justify-between gap-4 text-sm'
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="mx-auto max-w-2xl px-4 py-10 md:py-14">
       <Seo title={t('orderStatus.title')} noindex />
-      <h1 className="text-2xl font-bold mb-1">{t('orderStatus.title')}</h1>
-      <p className="text-gray-500 mb-4">{t('orderStatus.orderNumber', { number: order.order_number })}</p>
+      <h1 className="mb-1 text-3xl font-semibold tracking-tight md:text-4xl">{t('orderStatus.title')}</h1>
+      <p className="mb-6 text-gray-500">{t('orderStatus.orderNumber', { number: order.order_number })}</p>
 
       {!user && orderToken && (
-        <p className="mb-4 rounded border border-gray-200 px-3 py-2 text-sm">
+        <p className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
           {t('orderStatus.createAccount')}{' '}
           <Link to={`/register?email=${encodeURIComponent(order.email)}&next=/account/orders`} className="text-brand underline">{t('orderStatus.createAccountLink')}</Link>
         </p>
@@ -140,7 +140,7 @@ export default function OrderStatus() {
         </div>
       )}
 
-      <div className="border border-gray-200 rounded-lg p-4 mb-6">
+      <div className="mb-8 rounded-3xl border border-gray-200 bg-gray-50 p-6">
         <div className={row}>
           <span className="text-gray-500">{t('orderStatus.date')}</span>
           <span className="font-medium">{formatDate(order.created_at)}</span>
@@ -151,7 +151,7 @@ export default function OrderStatus() {
         </div>
         <div className={row}>
           <span className="text-gray-500">{t('orderStatus.paymentMethod')}</span>
-          <span className="font-medium">{order.payment_method || '—'}</span>
+          <span className="font-medium">{order.payment_method || '-'}</span>
         </div>
         <div className={row}>
           <span className="text-gray-500">{t('orderStatus.paymentState')}</span>
@@ -181,18 +181,18 @@ export default function OrderStatus() {
         </div>
       </div>
 
-      <h2 className="font-semibold mb-2">{t('orderStatus.items')}</h2>
-      <ul className="divide-y divide-gray-200 mb-6">
+      <h2 className="mb-3 text-xl font-semibold">{t('orderStatus.items')}</h2>
+      <ul className="mb-8 space-y-2">
         {order.items.map((item) => (
-          <li key={item.id} className="py-2 flex justify-between text-sm">
+          <li key={item.id} className="flex justify-between gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
             <span>{item.product_name_snapshot} × {item.quantity}</span>
-            <span>{item.currency} {Number(item.line_total).toFixed(2)}</span>
+            <span className="whitespace-nowrap font-medium">{item.currency} {Number(item.line_total).toFixed(2)}</span>
           </li>
         ))}
       </ul>
 
-      <h2 className="font-semibold mb-2">{t('orderStatus.shipments')}</h2>
-      <div className="mb-6">
+      <h2 className="mb-3 text-xl font-semibold">{t('orderStatus.shipments')}</h2>
+      <div className="mb-8">
         <ShipmentList shipments={order.shipments} />
       </div>
 
@@ -200,24 +200,24 @@ export default function OrderStatus() {
 
       {order.status_history?.length > 0 && (
         <div className="mb-6">
-          <h2 className="font-semibold mb-2">{t('orderStatus.history')}</h2>
+          <h2 className="mb-3 text-xl font-semibold">{t('orderStatus.history')}</h2>
           <ul className="text-xs text-gray-500 space-y-1">
             {order.status_history.map((h, i) => (
-              <li key={i}>{t(`orderStatus.statusLabels.${h.to_status}`)} — {formatDateTime(h.created_at)}</li>
+              <li key={i}>{t(`orderStatus.statusLabels.${h.to_status}`)} - {formatDateTime(h.created_at)}</li>
             ))}
           </ul>
         </div>
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Link to={`/track?order=${encodeURIComponent(order.order_number)}`} className="bg-brand text-white rounded px-4 py-2 text-sm font-medium">
+        <Link to={`/track?order=${encodeURIComponent(order.order_number)}`} className="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark">
           {t('orderStatus.trackOrder')}
         </Link>
-        <Link to="/shop" className="border border-gray-300 rounded px-4 py-2 text-sm">
+        <Link to="/shop" className="rounded-full border border-gray-300 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-brand-light">
           {t('cart.continueShopping')}
         </Link>
         {user && order.items.some((i) => i.sku_id) && (
-          <button onClick={handleReorder} disabled={reordering} className="border border-gray-300 rounded px-4 py-2 text-sm disabled:opacity-40">
+          <button onClick={handleReorder} disabled={reordering} className="rounded-full border border-gray-300 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-brand-light disabled:opacity-40">
             {reordering ? t('orderStatus.reordering') : t('orderStatus.reorder')}
           </button>
         )}
@@ -225,7 +225,7 @@ export default function OrderStatus() {
           <button
             onClick={handleCancel}
             disabled={cancelling}
-            className="border border-red-400 text-red-600 rounded px-4 py-2 text-sm disabled:opacity-40"
+            className="rounded-full border border-red-400 px-5 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-40"
           >
             {cancelling ? t('orderStatus.cancelling') : t('orderStatus.cancelOrder')}
           </button>

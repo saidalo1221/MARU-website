@@ -29,13 +29,13 @@ export default function OrderDocuments({ orderId, orderToken }) {
   if (docs === null) return null
   return (
     <section className="mb-6" aria-label={t('orderStatus.documents')}>
-      <h2 className="font-semibold mb-2">{t('orderStatus.documents')}</h2>
+      <h2 className="mb-3 text-xl font-semibold">{t('orderStatus.documents')}</h2>
       {docs.length === 0 ? (
         <p className="text-sm text-gray-500">{t('orderStatus.documentsNone')}</p>
       ) : (
-        <ul className="divide-y divide-gray-100 border border-gray-200 rounded-lg text-sm">
+        <ul className="space-y-2 text-sm">
           {docs.map((d) => (
-            <li key={d.id} className="flex items-center justify-between gap-3 px-3 py-2">
+            <li key={d.id} className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
               <span className="min-w-0 truncate">
                 <span className="font-medium">{t(`orderStatus.docType_${d.doc_type}`)}</span>
                 <span className="text-gray-500"> · {d.filename} · {formatDate(d.created_at)}</span>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { useLocale } from '../../context/LocaleContext'
 import { useCart } from '../../context/CartContext'
@@ -49,17 +50,19 @@ export default function QuickViewModal({ product, onClose }) {
     }
   }
 
-  return (
+  // Rendered under <body>: inside a product card (which lifts on hover with a transform) a fixed-position
+  // popup would be sized and clipped by the card instead of covering the page.
+  return createPortal(
     <div
       ref={dialogRef}
-      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={product.name}
     >
       <div
-        className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative"
+        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-page p-6 shadow-xl md:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -67,7 +70,7 @@ export default function QuickViewModal({ product, onClose }) {
           type="button"
           onClick={onClose}
           aria-label={t('product.quickViewClose')}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-600 text-xl leading-none"
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-lg leading-none text-gray-600 transition-colors hover:bg-gray-200"
         >
           ✕
         </button>
@@ -77,9 +80,9 @@ export default function QuickViewModal({ product, onClose }) {
 
           <div>
             <ProductBadges badges={product.badges} className="mb-2" />
-            <h2 className="text-xl font-bold">{product.name}</h2>
-            <p className="text-2xl font-semibold mt-2">
-              {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
+            <h2 className="pr-10 text-2xl font-semibold tracking-tight">{product.name}</h2>
+            <p className="mt-3 text-3xl font-semibold">
+              {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '-'}
             </p>
             <p className={`text-sm mt-1 ${inStock ? 'text-green-700' : 'text-red-600'}`}>
               {inStock ? t('productDetail.inStockCount', { n: sku.available_quantity }) : t('productDetail.outOfStock')}
@@ -105,7 +108,7 @@ export default function QuickViewModal({ product, onClose }) {
               <button
                 onClick={handleAddToCart}
                 disabled={!inStock}
-                className="flex-1 bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40"
+                className="flex-1 rounded-full bg-brand py-3 font-semibold text-white transition-colors hover:bg-brand-dark active:scale-[0.98] disabled:opacity-40"
               >
                 {t('productDetail.addToCart')}
               </button>
@@ -123,6 +126,7 @@ export default function QuickViewModal({ product, onClose }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

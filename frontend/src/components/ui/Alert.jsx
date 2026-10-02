@@ -11,7 +11,7 @@ export default function Alert({ variant = 'info', className = '', children }) {
   return (
     <div
       role={variant === 'error' ? 'alert' : 'status'}
-      className={`rounded border px-3 py-2 text-sm ${STYLES[variant] || STYLES.info} ${className}`}
+      className={`rounded-2xl border px-4 py-3 text-sm ${STYLES[variant] || STYLES.info} ${className}`}
     >
       {children}
     </div>
