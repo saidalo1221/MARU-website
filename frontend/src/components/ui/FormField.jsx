@@ -13,7 +13,7 @@ export default function FormField({ label, helper, error, success, className = '
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={`w-full rounded border px-3 py-2 text-sm text-gray-900 disabled:bg-gray-100 disabled:text-gray-500 ${border}`}
+        className={`w-full rounded-2xl border bg-white px-4 py-2.5 text-sm text-gray-900 disabled:bg-gray-100 disabled:text-gray-500 ${border}`}
         {...props}
       />
       {helper && <p id={`${id}-help`} className="mt-1 text-caption text-gray-500">{helper}</p>}

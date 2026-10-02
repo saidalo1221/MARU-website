@@ -29,7 +29,7 @@ export default function Button({
       type={type}
       disabled={inactive}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded font-medium transition-colors duration-fast ${VARIANTS[variant] || VARIANTS.primary} ${SIZES[size] || SIZES.md} ${inactive ? 'opacity-40 cursor-not-allowed' : ''} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-fast ${VARIANTS[variant] || VARIANTS.primary} ${SIZES[size] || SIZES.md} ${inactive ? 'opacity-40 cursor-not-allowed' : ''} ${className}`}
       {...props}
     >
       {loading && <span aria-hidden="true" className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}

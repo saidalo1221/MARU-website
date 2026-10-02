@@ -56,17 +56,17 @@ export default function AccountPrivacy() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <Seo title={t('privacy.title')} noindex />
       <AccountNav />
-      <h1 className="text-2xl font-bold mb-6">{t('privacy.title')}</h1>
+      <h1 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">{t('privacy.title')}</h1>
 
-      <section className="mb-8">
+      <section className="mb-6 rounded-3xl border border-gray-200 bg-gray-50 p-6">
         <h2 className="font-semibold mb-1">{t('privacy.exportTitle')}</h2>
         <p className="text-sm text-gray-500 mb-3">{t('privacy.exportText')}</p>
-        <button onClick={download} className="border border-brand text-brand rounded px-4 py-2 text-sm">{t('privacy.exportButton')}</button>
+        <button onClick={download} className="rounded-full border border-brand px-5 py-2 text-sm font-medium text-brand transition-colors hover:bg-brand-light">{t('privacy.exportButton')}</button>
         {exportError && <p role="alert" className="text-sm text-red-600 mt-2">{exportError}</p>}
       </section>
 
-      <section>
-        <h2 className="font-semibold mb-1 text-red-600">{t('privacy.eraseTitle')}</h2>
+      <section className="rounded-3xl border border-red-300 bg-red-50 p-6">
+        <h2 className="mb-1 font-semibold text-red-600">{t('privacy.eraseTitle')}</h2>
         <p className="text-sm text-gray-500 mb-3">{t('privacy.eraseText')}</p>
         <form onSubmit={erase} className="max-w-sm space-y-2">
           <PasswordInput
@@ -76,14 +76,14 @@ export default function AccountPrivacy() {
             aria-label={t('privacy.password')}
             required
             autoComplete="current-password"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm"
           />
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} className="mt-1" />
             <span>{t('privacy.understand')}</span>
           </label>
           {eraseError && <p role="alert" className="text-sm text-red-600">{eraseError}</p>}
-          <button type="submit" disabled={busy || !password || !understood} className="border border-red-400 text-red-600 rounded px-4 py-2 text-sm disabled:opacity-40">
+          <button type="submit" disabled={busy || !password || !understood} className="rounded-full border border-red-400 px-5 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-40">
             {t('privacy.eraseButton')}
           </button>
         </form>

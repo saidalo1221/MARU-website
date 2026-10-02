@@ -14,10 +14,10 @@ export default function LoyaltyCard() {
 
   if (!data || !data.enabled || !data.eligible) return null
   return (
-    <section className="border border-gray-200 rounded-lg p-4 mb-6" aria-labelledby="loyalty-title">
+    <section className="rounded-3xl border border-gray-200 bg-gray-50 p-6" aria-labelledby="loyalty-title">
       <div className="flex items-baseline justify-between mb-1">
-        <h2 id="loyalty-title" className="font-semibold">{t('loyaltyAccount.title')}</h2>
-        <p className="text-sm"><span className="text-gray-500">{t('loyaltyAccount.balance')}: </span><span className="text-xl font-semibold">{data.balance}</span></p>
+        <h2 id="loyalty-title" className="text-lg font-semibold">{t('loyaltyAccount.title')}</h2>
+        <p className="text-sm"><span className="text-gray-500">{t('loyaltyAccount.balance')}: </span><span className="text-3xl font-semibold">{data.balance}</span></p>
       </div>
       {data.tier && <p className="text-sm font-medium mb-1">{t('loyaltyAccount.tier', { name: data.tier.name, x: data.tier.earn_multiplier })}</p>}
       {data.next_tier && <p className="text-xs text-gray-500 mb-1">{t('loyaltyAccount.nextTier', { n: data.next_tier.points_needed, name: data.next_tier.name })}</p>}

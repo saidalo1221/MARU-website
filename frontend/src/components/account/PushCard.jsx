@@ -28,14 +28,14 @@ export default function PushCard() {
 
   if (!state || state === 'unavailable') return null
   return (
-    <section className="border border-gray-200 rounded-lg p-4 mb-6" aria-labelledby="push-title">
-      <h2 id="push-title" className="font-semibold mb-1">{t('pushNotifications.title')}</h2>
+    <section className="rounded-3xl border border-gray-200 bg-gray-50 p-6" aria-labelledby="push-title">
+      <h2 id="push-title" className="mb-1 text-lg font-semibold">{t('pushNotifications.title')}</h2>
       <p className="text-sm text-gray-500 mb-3">{t('pushNotifications.text')}</p>
       {state === 'unsupported' && <p className="text-sm text-gray-600">{t('pushNotifications.unsupported')}</p>}
       {state === 'denied' && <p className="text-sm text-gray-600">{t('pushNotifications.denied')}</p>}
       {(state === 'on' || state === 'off') && (
         <div className="flex items-center gap-3">
-          <button type="button" onClick={toggle} disabled={busy} className="border border-brand text-brand rounded px-4 py-2 text-sm disabled:opacity-40">
+          <button type="button" onClick={toggle} disabled={busy} className="rounded-full border border-brand px-5 py-2 text-sm font-medium text-brand transition-colors hover:bg-brand-light disabled:opacity-40">
             {state === 'on' ? t('pushNotifications.disable') : t('pushNotifications.enable')}
           </button>
           {state === 'on' && <span role="status" className="text-sm text-green-700">{t('pushNotifications.on')}</span>}

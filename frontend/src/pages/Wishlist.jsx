@@ -46,13 +46,13 @@ export default function Wishlist() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <Seo title={t('wishlist.title')} noindex />
       <AccountNav />
-      <h1 className="text-2xl font-bold mb-6">{t('wishlist.title')}</h1>
+      <h1 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">{t('wishlist.title')}</h1>
       {loading && <p>{t('wishlist.loading')}</p>}
       {!loading && items.length === 0 && (
-        <div className="text-gray-500">
+        <div className="rounded-3xl bg-brand-light px-6 py-14 text-center text-gray-700">
           <p>{t('wishlist.empty')}</p>
-          <p className="text-sm mt-1">{t('wishlist.emptyHint')}</p>
-          <Link to="/shop" className="inline-block mt-3 bg-brand text-white rounded px-4 py-2 text-sm font-medium">{t('dashboard.startShopping')}</Link>
+          <p className="mt-1 text-sm text-gray-500">{t('wishlist.emptyHint')}</p>
+          <Link to="/shop" className="mt-4 inline-block rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:opacity-40">{t('dashboard.startShopping')}</Link>
         </div>
       )}
       {status && (
@@ -60,9 +60,9 @@ export default function Wishlist() {
           {status.message}
         </p>
       )}
-      <ul className="divide-y divide-gray-200">
+      <ul className="space-y-3">
         {items.map((item) => (
-          <li key={item.sku_id} className="py-4 flex items-center justify-between gap-4">
+          <li key={item.sku_id} className="flex items-center justify-between gap-4 rounded-3xl border border-gray-200 bg-gray-50 p-5">
             <div>
               <Link to={`/products/${item.product_slug}`} className="font-medium text-sm hover:text-brand">
                 {item.product_name}
@@ -77,7 +77,7 @@ export default function Wishlist() {
               <button
                 onClick={() => handleAddToCart(item.sku_id)}
                 disabled={!item.in_stock}
-                className="border border-brand text-brand rounded px-3 py-1.5 text-sm disabled:opacity-40"
+                className="rounded-full border border-brand px-5 py-2 text-sm font-medium text-brand transition-colors hover:bg-brand-light disabled:opacity-40"
               >
                 {t('productDetail.addToCart')}
               </button>
