@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { translations } from '../i18n/translations'
+import { getContentOverrides } from '../api/siteContent'
 
 export const LOCALES = ['ru', 'uz', 'en']
 const LOCALE_KEY = 'maru_locale'
@@ -17,6 +18,14 @@ function interpolate(template, vars) {
 
 export function LocaleProvider({ children }) {
   const [locale, setLocaleState] = useState(() => localStorage.getItem(LOCALE_KEY) || 'ru')
+  // Text edited in Admin > Landing page; replaces the built-in text for the same key. Failure just means built-in text.
+  const [overrides, setOverrides] = useState({})
+
+  useEffect(() => {
+    let active = true
+    getContentOverrides(locale).then((data) => active && setOverrides(data || {})).catch(() => active && setOverrides({}))
+    return () => { active = false }
+  }, [locale])
 
   // Keeps <html lang> in step with the UI language so screen readers pick the
   // right voice/pronunciation (WCAG 3.1.1); index.html only carries the default.
@@ -36,10 +45,10 @@ export function LocaleProvider({ children }) {
   // the raw key, so a missing translation never renders blank.
   const t = useCallback(
     (key, vars) => {
-      const value = resolve(translations[locale], key) ?? resolve(translations.en, key) ?? key
+      const value = overrides[key] ?? resolve(translations[locale], key) ?? resolve(translations.en, key) ?? key
       return interpolate(value, vars)
     },
-    [locale]
+    [locale, overrides]
   )
 
   return (

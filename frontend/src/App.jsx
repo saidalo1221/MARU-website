@@ -55,6 +55,9 @@ import AdminBlogCategories from './pages/admin/AdminBlogCategories'
 import AdminSiteSettings from './pages/admin/AdminSiteSettings'
 import AdminAboutSections from './pages/admin/AdminAboutSections'
 import AdminPageSections from './pages/admin/AdminPageSections'
+import AccountLayout from './components/account/AccountLayout'
+import AdminLandingPage from './pages/admin/AdminLandingPage'
+import AdminSeo from './pages/admin/AdminSeo'
 import AdminAdmins from './pages/admin/AdminAdmins'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductDetail from './pages/admin/AdminProductDetail'
@@ -108,12 +111,14 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/shop/:slug" element={<CategoryPage />} />
-          <Route path="/account" element={<AccountDashboard />} />
-          <Route path="/account/profile" element={<AccountProfile />} />
-          <Route path="/account/orders" element={<OrdersHistory />} />
-          <Route path="/account/wishlist" element={<Wishlist />} />
-          <Route path="/account/addresses" element={<Addresses />} />
-          <Route path="/account/privacy" element={<AccountPrivacy />} />
+          <Route path="/account" element={<AccountLayout />}>
+            <Route index element={<AccountDashboard />} />
+            <Route path="profile" element={<AccountProfile />} />
+            <Route path="orders" element={<OrdersHistory />} />
+            <Route path="wishlist" element={<Wishlist />} />
+            <Route path="addresses" element={<Addresses />} />
+            <Route path="privacy" element={<AccountPrivacy />} />
+          </Route>
           <Route path="/quote" element={<QuoteRequest />} />
           <Route path="/b2b" element={<B2B />} />
           <Route path="/wholesale" element={<Wholesale />} />
@@ -147,6 +152,8 @@ export default function App() {
             <Route path="site-settings" element={<AdminSiteSettings />} />
             <Route path="about-sections" element={<AdminAboutSections />} />
             <Route path="page-sections" element={<AdminPageSections />} />
+            <Route path="landing-page" element={<AdminLandingPage />} />
+            <Route path="seo" element={<AdminSeo />} />
             <Route path="admins" element={<AdminAdmins />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/:productId" element={<AdminProductDetail />} />

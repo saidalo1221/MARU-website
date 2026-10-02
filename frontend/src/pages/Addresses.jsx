@@ -5,7 +5,6 @@ import { useLocale } from '../context/LocaleContext'
 import { listShippingCountries } from '../api/shipping'
 import { createAddress, deleteAddress, listAddresses, updateAddress } from '../api/addresses'
 import { errorMessage } from '../api/client'
-import AccountNav from '../components/account/AccountNav'
 import MapPicker from '../components/MapPicker'
 import Seo from '../components/Seo'
 
@@ -91,9 +90,8 @@ export default function Addresses() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-2xl">
       <Seo title={t('addresses.title')} noindex />
-      <AccountNav />
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{t('addresses.title')}</h1>
         {!formOpen && (

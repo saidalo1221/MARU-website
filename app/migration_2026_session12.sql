@@ -336,3 +336,27 @@ CREATE TABLE newsletter_campaigns (
 	PRIMARY KEY (id), 
 	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
+
+-- Admin-editable storefront text and per-page SEO tags (Admin > Landing page, Admin > SEO).
+CREATE TABLE content_overrides (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	text_key VARCHAR(120) NOT NULL,
+	locale VARCHAR(5) NOT NULL,
+	value TEXT NOT NULL,
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_content_overrides_key_locale UNIQUE (text_key, locale)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE seo_meta (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	path VARCHAR(255) NOT NULL,
+	locale VARCHAR(5) NOT NULL,
+	title VARCHAR(255),
+	description VARCHAR(500),
+	image_url VARCHAR(500),
+	noindex BOOL NOT NULL DEFAULT 0,
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_seo_meta_path_locale UNIQUE (path, locale)
+)CHARSET=utf8mb4 ENGINE=InnoDB;

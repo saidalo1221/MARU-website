@@ -48,6 +48,7 @@ from app.models.promo_code import PromoRedemption
 from app.models.webhook_endpoint import WebhookEndpoint
 from app.models.webhook_event import WebhookEvent
 from app.models.analytics_event import AnalyticsEvent
+from app.models.site_content import ContentOverride, SeoMeta
 from app.models.blog_category import BlogCategory
 from app.models.blog_post import BlogPost
 from app.models.blog_post_translation import BlogPostTranslation
@@ -139,4 +140,6 @@ __all__ = [
     "PageSection",
     "PAGE_KEYS",
     "PageSectionTranslation",
+    "ContentOverride",
+    "SeoMeta",
 ]

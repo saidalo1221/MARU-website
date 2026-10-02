@@ -71,6 +71,7 @@ from app.routers import (
     quotes,
     reviews,
     shipping,
+    site_content,
     site_settings,
     stock_alerts,
     wishlist,
@@ -206,6 +207,8 @@ api_v1.include_router(reviews.router)
 api_v1.include_router(reviews.featured_router)
 api_v1.include_router(shipping.router)
 api_v1.include_router(site_settings.router)
+api_v1.include_router(site_content.public)
+api_v1.include_router(site_content.admin)
 api_v1.include_router(stock_alerts.router)
 api_v1.include_router(wishlist.router)
 

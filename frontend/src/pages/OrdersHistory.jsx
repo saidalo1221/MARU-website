@@ -5,7 +5,6 @@ import { useLocale } from '../context/LocaleContext'
 import { listMyOrders } from '../api/orders'
 import { useCart } from '../context/CartContext'
 import { reorder } from '../lib/reorder'
-import AccountNav from '../components/account/AccountNav'
 import Seo from '../components/Seo'
 import Pagination from '../components/ui/Pagination'
 import { PAGE_SIZE } from '../api/client'
@@ -50,9 +49,8 @@ export default function OrdersHistory() {
   if (!user) return <Navigate to="/login" replace />
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl">
       <Seo title={t('ordersHistory.title')} noindex />
-      <AccountNav />
       <h1 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">{t('ordersHistory.title')}</h1>
       {loading && <p>{t('ordersHistory.loading')}</p>}
       {!loading && orders.length === 0 && (

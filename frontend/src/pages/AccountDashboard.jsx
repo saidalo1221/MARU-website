@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { listAddresses } from '../api/addresses'
 import { listMyOrders } from '../api/orders'
 import { getWishlist } from '../api/wishlist'
-import AccountNav, { accountPanel, statusPill } from '../components/account/AccountNav'
+import { accountPanel, statusPill } from '../components/account/AccountNav'
 import LoyaltyCard from '../components/account/LoyaltyCard'
 import PushCard from '../components/account/PushCard'
 import Seo from '../components/Seo'
@@ -40,9 +40,8 @@ export default function AccountDashboard() {
   ]
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
+    <div className="max-w-5xl">
       <Seo title={t('dashboard.title')} noindex />
-      <AccountNav />
 
       <section className="mb-6 flex flex-wrap items-end justify-between gap-6 rounded-3xl bg-ink p-6 text-white md:p-10">
         <div>

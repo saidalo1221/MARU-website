@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
 import { eraseMyAccount, exportMyData } from '../api/privacy'
-import AccountNav from '../components/account/AccountNav'
 import PasswordInput from '../components/PasswordInput'
 import Seo from '../components/Seo'
 
@@ -53,9 +52,8 @@ export default function AccountPrivacy() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl">
       <Seo title={t('privacy.title')} noindex />
-      <AccountNav />
       <h1 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">{t('privacy.title')}</h1>
 
       <section className="mb-6 rounded-3xl border border-gray-200 bg-gray-50 p-6">

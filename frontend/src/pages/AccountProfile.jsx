@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { changePassword, updateProfile } from '../api/auth'
 import { errorMessage } from '../api/client'
-import AccountNav from '../components/account/AccountNav'
 import PasswordInput from '../components/PasswordInput'
 import Seo from '../components/Seo'
 import Button from '../components/ui/Button'
@@ -72,9 +71,8 @@ export default function AccountProfile() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl">
       <Seo title={t('profile.title')} noindex />
-      <AccountNav />
       <h1 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">{t('profile.title')}</h1>
 
       <form onSubmit={save} className="mb-8 grid gap-4 rounded-3xl border border-gray-200 bg-gray-50 p-6 sm:grid-cols-2">
