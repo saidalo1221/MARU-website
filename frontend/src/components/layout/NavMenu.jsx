@@ -44,14 +44,14 @@ export default function NavMenu({ label, groups, align = 'left' }) {
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 py-1"
+        className="flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1.5 transition-colors hover:bg-gray-100"
       >
         {label}
         <span aria-hidden="true" className="text-[10px]">▾</span>
       </button>
       {open && (
         <div
-          className={`absolute top-full z-50 min-w-[13rem] rounded-lg border border-gray-200 bg-white py-2 shadow-lg ${align === 'right' ? 'right-0' : 'left-0'}`}
+          className={`absolute top-full z-50 mt-3 min-w-[13rem] rounded-2xl border border-gray-200 bg-white py-2 shadow-lg ${align === 'right' ? 'right-0' : 'left-0'}`}
         >
           {groups.map((group, gi) => (
             <div key={gi} className={gi > 0 ? 'mt-1 border-t border-gray-100 pt-1' : ''}>

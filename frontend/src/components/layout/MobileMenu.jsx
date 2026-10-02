@@ -6,7 +6,7 @@ import { VOLUMES_ML, aboutGroups, businessGroups, supportGroups } from '../../li
 import LanguageSwitcher from '../LanguageSwitcher'
 import CountrySwitcher from '../CountrySwitcher'
 import CurrencySwitcher from '../CurrencySwitcher'
-import DarkModeToggle from '../DarkModeToggle'
+import ThemeSwitcher from '../ThemeSwitcher'
 import useDialogFocus from '../../lib/useDialogFocus'
 
 export default function MobileMenu({ open, onClose }) {
@@ -83,7 +83,7 @@ export default function MobileMenu({ open, onClose }) {
 
         {/* Settings must not close the menu on every change. */}
         <div className="flex flex-wrap items-center gap-3 py-4" onClick={(e) => e.stopPropagation()}>
-          <DarkModeToggle />
+          <ThemeSwitcher />
           <LanguageSwitcher />
           <CurrencySwitcher />
           <CountrySwitcher />

@@ -49,7 +49,7 @@ export default function CountrySwitcher({ className = '' }) {
     <select
       value={country}
       onChange={choose}
-      className={`bg-transparent text-sm border border-gray-300 rounded px-2 py-1 ${className}`}
+      className={`bg-transparent text-sm border border-gray-300 rounded-full px-3 py-1 ${className}`}
       aria-label={t('header.country')}
     >
       <option value="">{t('header.anyCountry')}</option>

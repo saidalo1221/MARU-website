@@ -2,34 +2,59 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 
 const ThemeContext = createContext(null)
 const STORAGE_KEY = 'maru_theme'
+const PREFERENCES = ['system', 'light', 'dark']
 
-function getInitialTheme() {
+function getInitialPreference() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'light' || stored === 'dark') return stored
+    if (PREFERENCES.includes(stored)) return stored
   } catch {
-    // localStorage unavailable (private mode etc.) — fall through to system preference.
+    // localStorage unavailable (private mode etc.): follow the system.
   }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return 'system'
 }
 
+function systemPrefersDark() {
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+}
+
+// `preference` is what the visitor picked (system | light | dark); `theme` is what is actually shown
+// (light | dark). With "system" the theme follows the operating system, also while the page is open.
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(getInitialTheme)
+  const [preference, setPreference] = useState(getInitialPreference)
+  const [systemDark, setSystemDark] = useState(systemPrefersDark)
+
+  useEffect(() => {
+    const query = window.matchMedia?.('(prefers-color-scheme: dark)')
+    if (!query) return undefined
+    const onChange = (e) => setSystemDark(e.matches)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [])
+
+  const theme = preference === 'system' ? (systemDark ? 'dark' : 'light') : preference
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
-    try {
-      localStorage.setItem(STORAGE_KEY, theme)
-    } catch {
-      // ignore — worst case the choice doesn't persist across visits
-    }
   }, [theme])
 
-  const toggleTheme = useCallback(() => {
-    setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
-  }, [])
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, preference)
+    } catch {
+      // ignore: worst case the choice doesn't persist across visits
+    }
+  }, [preference])
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
+  const toggleTheme = useCallback(() => {
+    setPreference(theme === 'dark' ? 'light' : 'dark')
+  }, [theme])
+
+  return (
+    <ThemeContext.Provider value={{ theme, preference, setPreference, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
 }
 
 export function useTheme() {
