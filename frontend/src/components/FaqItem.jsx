@@ -5,17 +5,17 @@ import { useState } from 'react'
 export default function FaqItem({ question, answer }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-gray-200 py-3">
+    <div className="mb-3 rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full justify-between items-center text-left text-sm font-medium"
+        className="flex w-full items-center justify-between gap-4 text-left text-sm font-medium"
         aria-expanded={open}
       >
         {question}
-        <span className="text-gray-500" aria-hidden="true">{open ? '−' : '+'}</span>
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-light text-brand" aria-hidden="true">{open ? '−' : '+'}</span>
       </button>
-      {open && <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">{answer}</p>}
+      {open && <p className="text-sm text-gray-600 mt-3 whitespace-pre-wrap">{answer}</p>}
     </div>
   )
 }

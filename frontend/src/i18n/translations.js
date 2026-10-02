@@ -38,9 +38,10 @@ export const translations = {
     search: { placeholder: 'Search containers, SKU, volume...', button: 'Search', ariaLabel: 'Search products', category: 'Category', seeAll: 'See all results for "{query}"', suggestions: 'Search suggestions' },
     language: { ariaLabel: 'Language' },
     currency: { ariaLabel: 'Currency', notAvailable: 'That currency is not available yet' },
-    theme: { switchToLight: 'Switch to light mode', switchToDark: 'Switch to dark mode' },
+    theme: { switchToLight: 'Switch to light mode', switchToDark: 'Switch to dark mode', label: 'Theme', system: 'System', light: 'Light', dark: 'Dark' },
     home: {
       ctaBusiness: 'For Business',
+      heroTag: 'Made in-house · Wholesale and retail',
       sizesTitle: 'Choose your size',
       bestSellers: 'Best sellers',
       whyTitle: 'Why MARU',
@@ -269,6 +270,7 @@ export const translations = {
     login: {
       identifier: 'Email or phone',
       title: 'Login',
+      subtitle: 'Sign in to see your orders, saved addresses and wishlist.',
       password: 'Password',
       submitting: 'Logging in...',
       submit: 'Login',
@@ -1588,9 +1590,10 @@ export const translations = {
     search: { placeholder: 'Поиск контейнеров, SKU, объём...', button: 'Найти', ariaLabel: 'Поиск товаров', category: 'Категория', seeAll: 'Все результаты по запросу «{query}»', suggestions: 'Подсказки поиска' },
     language: { ariaLabel: 'Язык' },
     currency: { ariaLabel: 'Валюта', notAvailable: 'Эта валюта пока недоступна' },
-    theme: { switchToLight: 'Включить светлую тему', switchToDark: 'Включить тёмную тему' },
+    theme: { switchToLight: 'Включить светлую тему', switchToDark: 'Включить тёмную тему', label: 'Тема', system: 'Как в системе', light: 'Светлая', dark: 'Тёмная' },
     home: {
       ctaBusiness: 'Для бизнеса',
+      heroTag: 'Собственное производство · опт и розница',
       sizesTitle: 'Выберите объём',
       bestSellers: 'Хиты продаж',
       whyTitle: 'Почему MARU',
@@ -1819,6 +1822,7 @@ export const translations = {
     login: {
       identifier: 'Email или телефон',
       title: 'Вход',
+      subtitle: 'Войдите, чтобы видеть заказы, адреса и избранное.',
       password: 'Пароль',
       submitting: 'Выполняется вход...',
       submit: 'Войти',
@@ -3138,9 +3142,10 @@ export const translations = {
     search: { placeholder: 'Idish, SKU yoki hajm boʻyicha qidiring...', button: 'Qidirish', ariaLabel: 'Mahsulotlarni qidirish', category: 'Toifa', seeAll: '"{query}" bo\'yicha barcha natijalar', suggestions: 'Qidiruv takliflari' },
     language: { ariaLabel: 'Til' },
     currency: { ariaLabel: 'Valyuta', notAvailable: 'Bu valyuta hozircha mavjud emas' },
-    theme: { switchToLight: "Yorug' rejimga o'tish", switchToDark: "Qorong'u rejimga o'tish" },
+    theme: { switchToLight: "Yorug' rejimga o'tish", switchToDark: "Qorong'u rejimga o'tish", label: 'Mavzu', system: 'Tizim', light: 'Yorug\'', dark: 'Qorong\'u' },
     home: {
       ctaBusiness: 'Biznes uchun',
+      heroTag: "O'z ishlab chiqarishimiz · ulgurji va chakana",
       sizesTitle: 'Hajmni tanlang',
       bestSellers: 'Ko\'p sotilganlar',
       whyTitle: 'Nega MARU',
@@ -3369,6 +3374,7 @@ export const translations = {
     login: {
       identifier: 'Email yoki telefon',
       title: 'Kirish',
+      subtitle: "Buyurtmalar, manzillar va sevimlilarni ko'rish uchun kiring.",
       password: 'Parol',
       submitting: 'Kirilmoqda...',
       submit: 'Kirish',

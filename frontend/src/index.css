@@ -108,3 +108,37 @@ html {
 
 /* Leaflet attribution links (#0078a8 on the translucent white bar) miss 4.5:1. */
 .leaflet-container .leaflet-control-attribution a { color: #00557a; }
+
+/* Home hero (components/home/MarqueeHero.jsx): fade-up on load, endless photo strip.
+ * Both are switched off by the global prefers-reduced-motion rule in tokens.css. */
+@keyframes maru-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.maru-fade-up {
+  opacity: 0;
+  animation: maru-fade-up 0.6s var(--ease-standard) forwards;
+  animation-delay: var(--maru-delay, 0ms);
+}
+@keyframes maru-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.maru-marquee {
+  animation: maru-marquee 60s linear infinite;
+}
+
+.dark .bg-white\/85,
+.dark .bg-white\/70,
+.dark .bg-white\/60 { background-color: rgb(30 41 59 / 0.7); }
+
+/* Scroll reveal for the home sections (components/home/Reveal.jsx). */
+.maru-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s var(--ease-standard), transform 0.6s var(--ease-standard);
+}
+.maru-reveal.maru-in {
+  opacity: 1;
+  transform: none;
+}
