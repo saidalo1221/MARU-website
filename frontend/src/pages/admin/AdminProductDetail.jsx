@@ -200,9 +200,9 @@ function SkuBlock({ sku, warehouses, onChanged }) {
 
 function AdminMediaThumb({ url }) {
   const media = classifyMedia(url)
-  if (media.kind === 'image') return <img src={url} alt="" className="w-16 h-16 object-cover" />
+  if (media.kind === 'image') return <img src={url} alt="" className="w-24 h-24 object-cover" />
   return (
-    <div className="relative w-16 h-16 bg-gray-900">
+    <div className="relative w-24 h-24 bg-gray-900">
       {media.kind === 'youtube' && <img src={youtubeThumb(media.youtubeId)} alt="" className="w-full h-full object-cover" />}
       <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-white bg-black/30">&#9654;</span>
     </div>
@@ -229,21 +229,25 @@ function VariantImagesManager({ variant, onChanged }) {
     }
   }
 
+  // Several files can be chosen at once; they are uploaded one after another so the order is kept.
   const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const input = e.target
+    const files = Array.from(input.files || [])
+    if (files.length === 0) return
     setError(null)
     setUploading(true)
     try {
-      const upload = file.type.startsWith('video/') ? adminUploadVideo : adminUploadImage
-      const { url } = await upload(file)
-      await adminAddVariantImage(variant.id, url)
-      await onChanged()
+      for (const file of files) {
+        const upload = file.type.startsWith('video/') ? adminUploadVideo : adminUploadImage
+        const { url } = await upload(file)
+        await adminAddVariantImage(variant.id, url)
+      }
     } catch (err) {
       setError(errorMessage(err, t('admin.productDetail.imageAddFailed')))
     } finally {
+      await onChanged()
       setUploading(false)
-      e.target.value = ''
+      input.value = ''
     }
   }
 
@@ -277,14 +281,11 @@ function VariantImagesManager({ variant, onChanged }) {
       {images.length > 0 && (
         <div className="flex gap-2 flex-wrap mb-2">
           {images.map((img, i) => (
-            <div key={img.id} className="relative border border-gray-200 rounded overflow-hidden">
+            <div key={img.id} className="w-24 border border-gray-200 rounded overflow-hidden">
               <AdminMediaThumb url={img.image_url} />
-              <div className="flex justify-between bg-white/90 text-[10px] px-0.5">
+              <div className="flex justify-between bg-white/90 text-xs px-1 py-0.5">
                 <button type="button" onClick={() => move(img, -1)} disabled={i === 0} className="disabled:opacity-20">
                   {t('admin.productDetail.moveLeft')}
-                </button>
-                <button type="button" onClick={() => remove(img)} className="text-red-600">
-                  {t('admin.productDetail.deleteImage')}
                 </button>
                 <button
                   type="button"
@@ -295,6 +296,9 @@ function VariantImagesManager({ variant, onChanged }) {
                   {t('admin.productDetail.moveRight')}
                 </button>
               </div>
+              <button type="button" onClick={() => remove(img)} className="w-full border-t border-gray-200 py-1 text-xs text-red-600 hover:bg-red-50">
+                {t('admin.productDetail.deleteImage')}
+              </button>
             </div>
           ))}
         </div>
@@ -307,7 +311,7 @@ function VariantImagesManager({ variant, onChanged }) {
           className={inputCls}
         />
         <button type="submit" className="text-sm text-brand">{t('admin.productDetail.addImageUrl')}</button>
-        <input type="file" aria-label={t('admin.productDetail.images')} accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
+        <input type="file" multiple aria-label={t('admin.productDetail.images')} accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
         {uploading && <span className="text-xs text-gray-500">{t('admin.productDetail.uploading')}</span>}
       </form>
       <p className="text-[11px] text-gray-500 mt-1">{t('admin.productDetail.mediaHint')}</p>
@@ -347,6 +351,17 @@ function VariantBlock({ variant, warehouses, onChanged }) {
     } finally {
       setUploading(false)
       e.target.value = ''
+    }
+  }
+
+  const removeCover = async () => {
+    setUploadError(null)
+    try {
+      await adminUpdateVariant(variant.id, { photo_url: null })
+      setForm((f) => ({ ...f, photo_url: '' }))
+      await onChanged()
+    } catch (err) {
+      setUploadError(errorMessage(err, t('admin.productDetail.imageDeleteFailed')))
     }
   }
 
@@ -395,6 +410,11 @@ function VariantBlock({ variant, warehouses, onChanged }) {
               <input type="file" aria-label={t('admin.productDetail.images')} accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
               {uploading && <span className="text-xs text-gray-500">{t('admin.productDetail.uploading')}</span>}
               {form.photo_url && <img src={form.photo_url} alt="" className="h-10 w-10 object-cover rounded border border-gray-200" />}
+              {form.photo_url && (
+                <button type="button" onClick={removeCover} className="text-xs text-red-600 hover:underline">
+                  {t('admin.productDetail.deleteImage')}
+                </button>
+              )}
             </div>
             {uploadError && <p role="alert" className="text-red-600 text-xs col-span-2">{uploadError}</p>}
             <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}</label>
