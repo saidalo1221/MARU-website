@@ -66,6 +66,8 @@ export const translations = {
       b2bCta: 'Buy Wholesale',
       manufacturingTitle: 'Made by MARU',
       manufacturingText: 'See how our containers are made and checked.',
+      statSizes: 'Sizes',
+      statRange: 'Volume range',
       learnMore: 'Learn more',
       reviewsTitle: 'What customers say',
       faqTitle: 'Frequently asked questions',
@@ -268,6 +270,7 @@ export const translations = {
       processing: 'Processing...',
     },
     login: {
+      networkError: 'Cannot reach the server. Check your connection and try again.',
       identifier: 'Email or phone',
       title: 'Login',
       subtitle: 'Sign in to see your orders, saved addresses and wishlist.',
@@ -286,6 +289,7 @@ export const translations = {
     },
     register: {
       title: 'Create an account',
+      subtitle: 'Create an account for your orders, saved addresses and wishlist.',
       submitting: 'Creating account...',
       submit: 'Create Account',
       haveAccount: 'Already have an account?',
@@ -434,6 +438,7 @@ export const translations = {
     },
     resetPassword: {
       title: 'Set a new password',
+      subtitle: 'Choose a new password of at least 8 characters.',
       newPassword: 'New password',
       submitting: 'Saving...',
       submit: 'Save Password',
@@ -1411,6 +1416,8 @@ export const translations = {
     },
     faq: {
       title: 'Frequently Asked Questions',
+      subtitle: 'Answers about ordering, delivery, payment and wholesale.',
+      moreHelp: 'Cannot find your answer?',
       empty: 'No questions yet — check back soon.',
       category: {
         general: 'General',
@@ -1618,6 +1625,8 @@ export const translations = {
       b2bCta: 'Купить оптом',
       manufacturingTitle: 'Сделано в MARU',
       manufacturingText: 'Узнайте, как делают и проверяют наши контейнеры.',
+      statSizes: 'Размеров',
+      statRange: 'Диапазон объёмов',
       learnMore: 'Подробнее',
       reviewsTitle: 'Что говорят клиенты',
       faqTitle: 'Частые вопросы',
@@ -1820,6 +1829,7 @@ export const translations = {
       processing: 'Обработка...',
     },
     login: {
+      networkError: 'Не удаётся связаться с сервером. Проверьте соединение и попробуйте снова.',
       identifier: 'Email или телефон',
       title: 'Вход',
       subtitle: 'Войдите, чтобы видеть заказы, адреса и избранное.',
@@ -1838,6 +1848,7 @@ export const translations = {
     },
     register: {
       title: 'Создать аккаунт',
+      subtitle: 'Создайте аккаунт, чтобы видеть заказы, адреса и избранное.',
       submitting: 'Создание аккаунта...',
       submit: 'Создать аккаунт',
       haveAccount: 'Уже есть аккаунт?',
@@ -1986,6 +1997,7 @@ export const translations = {
     },
     resetPassword: {
       title: 'Новый пароль',
+      subtitle: 'Придумайте новый пароль не короче 8 символов.',
       newPassword: 'Новый пароль',
       submitting: 'Сохранение...',
       submit: 'Сохранить пароль',
@@ -2963,6 +2975,8 @@ export const translations = {
     },
     faq: {
       title: 'Часто задаваемые вопросы',
+      subtitle: 'Ответы о заказе, доставке, оплате и оптовых закупках.',
+      moreHelp: 'Не нашли ответ?',
       empty: 'Пока нет вопросов — загляните позже.',
       category: {
         general: 'Общие вопросы',
@@ -3170,6 +3184,8 @@ export const translations = {
       b2bCta: 'Ulgurji xarid qilish',
       manufacturingTitle: 'MARU tomonidan ishlab chiqarilgan',
       manufacturingText: 'Idishlarimiz qanday tayyorlanishi va tekshirilishini ko\'ring.',
+      statSizes: "Hajmlar",
+      statRange: "Hajm oralig'i",
       learnMore: 'Batafsil',
       reviewsTitle: 'Mijozlar fikri',
       faqTitle: 'Ko\'p beriladigan savollar',
@@ -3372,6 +3388,7 @@ export const translations = {
       processing: 'Amalga oshirilmoqda...',
     },
     login: {
+      networkError: "Serverga ulanib bo'lmadi. Ulanishni tekshirib, qayta urinib ko'ring.",
       identifier: 'Email yoki telefon',
       title: 'Kirish',
       subtitle: "Buyurtmalar, manzillar va sevimlilarni ko'rish uchun kiring.",
@@ -3390,6 +3407,7 @@ export const translations = {
     },
     register: {
       title: 'Akkount yaratish',
+      subtitle: "Buyurtmalar, manzillar va sevimlilar uchun akkount yarating.",
       submitting: 'Akkount yaratilmoqda...',
       submit: 'Akkount yaratish',
       haveAccount: 'Akkountingiz bormi?',
@@ -3538,6 +3556,7 @@ export const translations = {
     },
     resetPassword: {
       title: 'Yangi parol',
+      subtitle: "Kamida 8 ta belgidan iborat yangi parol tanlang.",
       newPassword: 'Yangi parol',
       submitting: 'Saqlanmoqda...',
       submit: 'Parolni saqlash',
@@ -4515,6 +4534,8 @@ export const translations = {
     },
     faq: {
       title: "Tez-tez so'raladigan savollar",
+      subtitle: "Buyurtma, yetkazib berish, to'lov va ulgurji xaridlar haqida javoblar.",
+      moreHelp: "Javobni topa olmadingizmi?",
       empty: "Hozircha savollar yo'q — birozdan so'ng qayta tekshiring.",
       category: {
         general: 'Umumiy savollar',
