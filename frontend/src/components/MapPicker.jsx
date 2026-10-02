@@ -59,10 +59,12 @@ export default function MapPicker({ latitude, longitude, onChange, onReverseGeoc
 
   return (
     <div>
-      <div style={{ height }} className="rounded-lg overflow-hidden border border-gray-300">
+      <div style={{ height }} className="relative z-0 overflow-hidden rounded-3xl border border-gray-300">
         <MapContainer
           center={position || DEFAULT_CENTER}
           zoom={position ? 15 : 11}
+          // The mouse wheel scrolls the page; zoom with the + / - buttons, a double click or a pinch.
+          scrollWheelZoom={false}
           style={{ height: '100%', width: '100%' }}
         >
           <TileLayer

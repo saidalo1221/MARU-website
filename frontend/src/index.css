@@ -154,3 +154,11 @@ h1, h2, h3 {
   opacity: 1;
   transform: none;
 }
+
+/* Leaflet gives its panes and controls z-index values up to 1000. Without a stacking context on the
+ * container they paint over the sticky header when the page scrolls, so the map is isolated. */
+.leaflet-container {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
