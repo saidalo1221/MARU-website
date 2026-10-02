@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
@@ -61,7 +62,7 @@ export default function ProductCard({ product }) {
   }
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 transition duration-base hover:-translate-y-1 hover:shadow-token">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 transition duration-base hover:-translate-y-1 hover:shadow-token">
       <ProductBadges badges={product.badges} className="absolute left-5 right-16 top-5 z-10" />
       {sku && (
         <button
@@ -112,7 +113,18 @@ export default function ProductCard({ product }) {
           disabled={adding}
           className="mx-3 block rounded-full bg-brand py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark active:scale-[0.98] disabled:opacity-50"
         >
-          {added ? t('product.added') : t('productDetail.addToCart')}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={added ? 'added' : 'add'}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="inline-block"
+            >
+              {added ? `\u2713 ${t('product.added')}` : t('productDetail.addToCart')}
+            </motion.span>
+          </AnimatePresence>
         </button>
       )}
       <button

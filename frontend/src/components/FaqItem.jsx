@@ -15,7 +15,10 @@ export default function FaqItem({ question, answer }) {
         aria-controls={panelId}
       >
         {question}
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-light text-brand" aria-hidden="true">{open ? '−' : '+'}</span>
+        <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-light text-brand" aria-hidden="true">
+          <span className="absolute h-0.5 w-3 rounded bg-current" />
+          <span className={`absolute h-0.5 w-3 rounded bg-current transition-transform duration-base ${open ? 'rotate-0' : 'rotate-90'}`} />
+        </span>
       </button>
       <div
         id={panelId}

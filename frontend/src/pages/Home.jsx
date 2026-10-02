@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 import { listPageSections } from '../api/pageSections'
 import { listProducts } from '../api/products'
 import { listFeaturedReviews } from '../api/reviews'
@@ -10,19 +11,29 @@ import { VOLUMES_ML } from '../lib/navLinks'
 import ProductCard from '../components/product/ProductCard'
 import MarqueeHero from '../components/home/MarqueeHero'
 import Reveal from '../components/home/Reveal'
+import CountUp from '../components/motion/CountUp'
+import Magnetic from '../components/motion/Magnetic'
+import ScrollProgress from '../components/motion/ScrollProgress'
+import Spotlight from '../components/motion/Spotlight'
+import TiltCard from '../components/motion/TiltCard'
 import Seo from '../components/Seo'
 
 const BENEFITS = ['benefitMaterial', 'benefitOwn', 'benefitRange', 'benefitQuality', 'benefitB2b', 'benefitExport']
 const PACKS = [3, 5, 7]
 
+// Staggered entrance shared by the tile groups: each item springs up once, in order (hierarchy: reading order).
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
+const rise = { hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 140, damping: 20 } } }
+const slideIn = { hidden: { opacity: 0, x: -24 }, show: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 140, damping: 20 } } }
+
 // Bento layout for the six benefits (lg: 4 columns, two even rows: A A B C / D E E F). No tile is taller
 // than its text needs, so there is no empty space inside a tile.
 const BENTO = [
-  { cell: 'bg-brand text-white lg:col-span-2 flex flex-col justify-center', text: 'text-white/90', big: true },
+  { cell: 'bg-brand text-white flex flex-col justify-center', span: 'lg:col-span-2', text: 'text-white/90', big: true },
   { cell: 'bg-brand-light', text: 'text-gray-600' },
   { cell: 'bg-gray-50 border border-gray-200', text: 'text-gray-600' },
   { cell: 'bg-gray-50 border border-gray-200', text: 'text-gray-600' },
-  { cell: 'bg-gray-50 border border-gray-200 lg:col-span-2', text: 'text-gray-600', photo: true },
+  { cell: 'bg-gray-50 border border-gray-200', span: 'lg:col-span-2', text: 'text-gray-600', photo: true },
   { cell: 'bg-brand-light', text: 'text-gray-600' },
 ]
 
@@ -44,6 +55,7 @@ function Section({ id, title, children, action }) {
 export default function Home() {
   const { t, locale } = useLocale()
   const { cart } = useCart()
+  const reduce = useReducedMotion()
   const currency = cart?.currency
   const location = useLocation()
   const [popular, setPopular] = useState([])
@@ -74,6 +86,7 @@ export default function Home() {
 
   return (
     <div>
+      <ScrollProgress />
       <Seo
         jsonLd={{
           '@context': 'https://schema.org',
@@ -95,9 +108,15 @@ export default function Home() {
 
       {/* 8.3 Product categories: tile height follows the volume, so the row reads as a size scale */}
       <Section id="sizes" title={t('home.sizesTitle')}>
-        <ul className="grid grid-cols-5 items-end gap-2 sm:gap-4">
+        <motion.ul
+          className="grid grid-cols-5 items-end gap-2 sm:gap-4"
+          variants={stagger}
+          initial={reduce ? false : 'hidden'}
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+        >
           {VOLUMES_ML.map((ml) => (
-            <li key={ml}>
+            <motion.li key={ml} variants={rise}>
               <Link
                 to={`/shop?capacity=${ml}`}
                 style={{ height: `${5 + (ml / 1900) * 7}rem` }}
@@ -106,9 +125,9 @@ export default function Home() {
                 <span className="text-lg font-semibold text-brand group-hover:text-white md:text-3xl">{ml}</span>
                 <span className="text-xs text-gray-500 group-hover:text-white/80 md:text-sm">ml</span>
               </Link>
-            </li>
+            </motion.li>
           ))}
-        </ul>
+        </motion.ul>
       </Section>
 
       {/* 8.4 Best sellers */}
@@ -123,19 +142,33 @@ export default function Home() {
           }
         >
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
+            {bestSellers.map((p) => (
+              <TiltCard key={p.id} className="h-full">
+                <ProductCard product={p} />
+              </TiltCard>
+            ))}
           </div>
         </Section>
       )}
 
       {/* 8.5 Why MARU: six benefits in a bento (lg: 4 columns, A A B C / D E E F) */}
       <Section id="why" title={t('home.whyTitle')}>
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.ul
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          variants={stagger}
+          initial={reduce ? false : 'hidden'}
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+        >
           {BENEFITS.map((key, i) => {
             const style = BENTO[i]
             const withPhoto = style.photo && photo
             return (
-              <li key={key} className={`relative overflow-hidden rounded-3xl p-6 md:p-8 ${style.cell} ${withPhoto ? 'min-h-[11rem]' : ''}`}>
+              <motion.li key={key} variants={rise} className={style.span || ''}>
+                <Spotlight
+                  className={`h-full rounded-3xl p-6 md:p-8 ${style.cell} ${withPhoto ? 'min-h-[11rem]' : ''}`}
+                  color={style.big ? 'rgb(255 255 255 / 0.22)' : 'rgb(200 60 30 / 0.10)'}
+                >
                 {withPhoto && (
                   <img src={photo} alt="" loading="lazy" className="absolute -right-6 -bottom-6 h-44 w-44 rounded-2xl bg-white object-contain p-3 opacity-90 shadow-md md:h-52 md:w-52" />
                 )}
@@ -143,29 +176,39 @@ export default function Home() {
                   <h3 className={`font-semibold ${style.big ? 'mb-2 text-2xl md:text-3xl' : 'mb-1 text-lg'}`}>{t(`home.${key}`)}</h3>
                   <p className={`${style.big ? 'text-base' : 'text-sm'} ${style.text}`}>{t(`home.${key}Text`)}</p>
                 </div>
-              </li>
+                </Spotlight>
+              </motion.li>
             )
           })}
-        </ul>
+        </motion.ul>
       </Section>
 
       {/* 8.6 Sets */}
       <Section id="sets" title={t('home.setsTitle')}>
         <div className="grid items-center gap-8 rounded-3xl bg-brand-light p-6 md:grid-cols-2 md:p-12">
           <p className="max-w-md text-lg text-gray-600">{t('home.setsText')}</p>
-          <ul className="grid gap-3">
+          <motion.ul
+            className="grid gap-3"
+            variants={stagger}
+            initial={reduce ? false : 'hidden'}
+            whileInView="show"
+            viewport={{ once: true, amount: 0.4 }}
+          >
             {PACKS.map((n) => (
-              <li key={n}>
+              <motion.li key={n} variants={slideIn}>
                 <Link
                   to="/shop"
-                  className="flex items-center justify-between gap-4 rounded-2xl bg-white/95 px-6 py-4 transition duration-base hover:-translate-y-0.5 hover:shadow-token"
+                  className="group flex items-center justify-between gap-4 rounded-2xl bg-white/95 px-6 py-4 transition duration-base hover:-translate-y-0.5 hover:shadow-token"
                 >
                   <span className="text-xl font-semibold text-ink">{t('home.pack', { n })}</span>
-                  <span className="text-sm text-ink/70">{t('home.packText', { n })}</span>
+                  <span className="flex items-center gap-3 text-sm text-ink/70">
+                    {t('home.packText', { n })}
+                    <span aria-hidden="true" className="inline-block text-brand transition-transform duration-base group-hover:translate-x-1.5">&rarr;</span>
+                  </span>
                 </Link>
-              </li>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
         </div>
       </Section>
 
@@ -177,9 +220,11 @@ export default function Home() {
               <h2 className="mb-2 text-3xl font-semibold tracking-tight md:text-4xl">{t('home.b2bTitle')}</h2>
               <p className="text-white/85">{t('home.b2bText')}</p>
             </div>
-            <Link to="/wholesale" className="inline-block whitespace-nowrap rounded-full bg-white/95 px-8 py-3 font-semibold text-ink transition hover:scale-105 active:scale-95">
-              {t('home.b2bCta')}
-            </Link>
+            <Magnetic>
+              <Link to="/wholesale" className="inline-block whitespace-nowrap rounded-full bg-white/95 px-8 py-3 font-semibold text-ink transition hover:scale-105 active:scale-95">
+                {t('home.b2bCta')}
+              </Link>
+            </Magnetic>
           </div>
         </Reveal>
       </section>
@@ -201,11 +246,11 @@ export default function Home() {
 
               <dl className="mb-8 grid grid-cols-2 gap-4">
                 <div className="rounded-2xl bg-white/10 p-5">
-                  <dd className="text-4xl font-semibold">{VOLUMES_ML.length}</dd>
+                  <dd className="text-4xl font-semibold"><CountUp to={VOLUMES_ML.length} /></dd>
                   <dt className="mt-1 text-sm text-white/70">{t('home.statSizes')}</dt>
                 </div>
                 <div className="rounded-2xl bg-white/10 p-5">
-                  <dd className="text-3xl font-semibold md:text-4xl">{VOLUMES_ML[0]}-{VOLUMES_ML[VOLUMES_ML.length - 1]}<span className="ml-1 text-base font-normal text-white/70">ml</span></dd>
+                  <dd className="text-3xl font-semibold md:text-4xl"><CountUp to={VOLUMES_ML[0]} />-<CountUp to={VOLUMES_ML[VOLUMES_ML.length - 1]} /><span className="ml-1 text-base font-normal text-white/70">ml</span></dd>
                   <dt className="mt-1 text-sm text-white/70">{t('home.statRange')}</dt>
                 </div>
               </dl>

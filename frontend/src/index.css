@@ -139,6 +139,9 @@ h1, h2, h3 {
 .maru-marquee {
   animation: maru-marquee 60s linear infinite;
 }
+.maru-marquee-wrap:hover .maru-marquee {
+  animation-play-state: paused;
+}
 
 .dark .bg-white\/85,
 .dark .bg-white\/70,

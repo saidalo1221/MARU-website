@@ -22,11 +22,12 @@ export default function MarqueeHero({ tagline, title, description, primaryCta, s
         >
           {tagline}
         </p>
-        <h1
-          className="maru-fade-up text-4xl md:text-6xl font-bold tracking-tight text-gray-900"
-          style={{ '--maru-delay': '100ms' }}
-        >
-          {title}
+        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900">
+          {String(title).split(' ').map((word, i) => (
+            <span key={i}>
+              <span className="maru-fade-up inline-block" style={{ '--maru-delay': `${100 + i * 70}ms` }}>{word}</span>{' '}
+            </span>
+          ))}
         </h1>
         <p
           className="maru-fade-up mt-6 max-w-xl text-lg text-gray-600"
@@ -56,7 +57,7 @@ export default function MarqueeHero({ tagline, title, description, primaryCta, s
       {base.length > 0 && (
         <div
           aria-hidden="true"
-          className="absolute bottom-0 left-0 w-full h-52 md:h-72 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
+          className="maru-marquee-wrap absolute bottom-0 left-0 w-full h-52 md:h-72 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
         >
           <div className="maru-marquee flex w-max gap-4">
             {track.map((img, i) => (
