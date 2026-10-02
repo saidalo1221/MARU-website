@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
-import { errorMessage } from '../api/client'
+import { ApiError, errorMessage } from '../api/client'
 import PasswordInput from '../components/PasswordInput'
 import AuthSplit, { authButtonClass, authInputClass } from '../components/auth/AuthSplit'
 import Seo from '../components/Seo'
@@ -32,7 +32,7 @@ export default function Login() {
         navigate(next)
       }
     } catch (err) {
-      setError(errorMessage(err, t('login.failed')))
+      setError(err instanceof ApiError ? errorMessage(err, t('login.failed')) : t('login.networkError'))
     } finally {
       setSubmitting(false)
     }

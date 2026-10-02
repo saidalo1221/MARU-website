@@ -4,6 +4,7 @@ import { resetPassword } from '../api/auth'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
 import PasswordInput from '../components/PasswordInput'
+import AuthSplit, { authButtonClass, authInputClass } from '../components/auth/AuthSplit'
 import Seo from '../components/Seo'
 
 export default function ResetPassword() {
@@ -18,22 +19,22 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="max-w-sm mx-auto px-4 py-12 text-center">
-        <p role="alert" className="text-red-600 text-sm mb-4">{t('resetPassword.missingToken')}</p>
-        <Link to="/forgot-password" className="text-brand text-sm">{t('resetPassword.requestNew')}</Link>
-      </div>
+      <AuthSplit title={t('resetPassword.title')}>
+        <Seo title={t('resetPassword.title')} noindex />
+        <p role="alert" className="mb-5 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">{t('resetPassword.missingToken')}</p>
+        <Link to="/forgot-password" className={`${authButtonClass} block text-center`}>{t('resetPassword.requestNew')}</Link>
+      </AuthSplit>
     )
   }
 
   if (done) {
     return (
-      <div className="max-w-sm mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">{t('resetPassword.title')}</h1>
-        <p className="text-sm text-gray-600 mb-4">{t('resetPassword.success')}</p>
-        <button onClick={() => navigate('/login')} className="bg-brand text-white px-6 py-2.5 rounded font-medium">
+      <AuthSplit title={t('resetPassword.title')} description={t('resetPassword.success')}>
+        <Seo title={t('resetPassword.title')} noindex />
+        <button onClick={() => navigate('/login')} className={authButtonClass}>
           {t('login.title')}
         </button>
-      </div>
+      </AuthSplit>
     )
   }
 
@@ -52,27 +53,23 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="max-w-sm mx-auto px-4 py-12">
+    <AuthSplit title={t('resetPassword.title')} description={t('resetPassword.subtitle')}>
       <Seo title={t('resetPassword.title')} noindex />
-      <h1 className="text-2xl font-bold mb-6">{t('resetPassword.title')}</h1>
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <PasswordInput
           required
           minLength={8}
+          autoComplete="new-password"
           placeholder={t('resetPassword.newPassword')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+          className={authInputClass}
         />
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40"
-        >
+        <button type="submit" disabled={submitting} className={authButtonClass}>
           {submitting ? t('resetPassword.submitting') : t('resetPassword.submit')}
         </button>
       </form>
-    </div>
+    </AuthSplit>
   )
 }

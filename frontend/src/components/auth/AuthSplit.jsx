@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react'
 import { listProducts } from '../../api/products'
 import { useLocale } from '../../context/LocaleContext'
+import { VOLUMES_ML } from '../../lib/navLinks'
 
 const BENEFITS = ['benefitOwn', 'benefitMaterial', 'benefitQuality']
 
+// Brand gradient for the side panel: vermilion glow in the top corner fading through deep red into ink.
+// Colours come from the tokens, so a palette change restyles it too.
+const PANEL_BG = [
+  'radial-gradient(90% 60% at 100% 0%, rgb(var(--color-brand) / 0.9) 0%, transparent 70%)',
+  'linear-gradient(165deg, rgb(var(--color-brand)) 0%, rgb(var(--color-brand-dark)) 52%, rgb(var(--color-ink)) 100%)',
+].join(', ')
+
 // Two-column layout for sign-in screens (layout from the 21st.dev sign-in component in design.md):
-// form on the left, product photo with MARU's real selling points on the right (hidden on phones).
-// The sample testimonials of the original are left out on purpose: no invented customers.
+// form on the left, a brand gradient panel on the right with the wordmark, a product photo and MARU's real
+// selling points (hidden on phones). The sample testimonials of the original are left out on purpose.
 export default function AuthSplit({ title, description, children }) {
   const { t, locale } = useLocale()
   const [image, setImage] = useState(null)
@@ -34,19 +42,53 @@ export default function AuthSplit({ title, description, children }) {
         </div>
       </section>
 
-      <aside className="hidden md:flex flex-1 relative overflow-hidden rounded-3xl bg-brand-light items-end justify-center p-6" aria-hidden="true">
-        {image && (
-          <img src={image} alt="" className="absolute inset-0 h-full w-full object-contain p-16 pb-48" />
-        )}
-        <div className="relative flex w-full flex-col gap-3">
+      <aside
+        className="relative hidden flex-1 flex-col justify-between overflow-hidden rounded-3xl p-8 text-white md:flex"
+        style={{ background: PANEL_BG }}
+        aria-hidden="true"
+      >
+        {/* soft light shapes for depth */}
+        <span className="pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+        <span className="pointer-events-none absolute -right-16 bottom-10 h-64 w-64 rounded-full bg-black/20 blur-3xl" />
+
+        <div className="relative flex items-start justify-between gap-6">
+          <div>
+            <p className="text-3xl font-bold tracking-tight">MARU</p>
+            <p className="mt-1 max-w-[16rem] text-sm text-white/80">{t('footer.tagline')}</p>
+          </div>
+          {image && (
+            <div className="-mr-2 w-40 rotate-3 rounded-3xl bg-white p-3 shadow-xl">
+              <img src={image} alt="" className="aspect-square w-full rounded-2xl object-contain" />
+            </div>
+          )}
+        </div>
+
+        {/* the size scale, as on the home page: tiles grow with the volume */}
+        <div className="relative my-8">
+          <p className="mb-4 text-lg font-semibold">{t('home.sizesTitle')}</p>
+          <ul className="flex items-end gap-2">
+            {VOLUMES_ML.map((ml) => (
+              <li
+                key={ml}
+                style={{ height: `${4 + (ml / 1900) * 7}rem` }}
+                className="flex flex-1 flex-col items-center justify-end rounded-2xl border border-white/25 bg-white/15 pb-3 backdrop-blur"
+              >
+                <span className="text-lg font-semibold">{ml}</span>
+                <span className="text-xs text-white/75">ml</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="relative flex flex-col gap-3">
           {BENEFITS.map((key, i) => (
             <div
               key={key}
-              className="maru-fade-up rounded-2xl border border-white/40 bg-white/70 p-4 text-sm leading-snug backdrop-blur"
+              className="maru-fade-up rounded-2xl border border-white/20 bg-white/10 p-4 text-sm leading-snug backdrop-blur"
               style={{ '--maru-delay': `${400 + i * 150}ms` }}
             >
-              <p className="font-medium text-gray-900">{t(`home.${key}`)}</p>
-              <p className="text-gray-600">{t(`home.${key}Text`)}</p>
+              <p className="font-medium">{t(`home.${key}`)}</p>
+              <p className="text-white/80">{t(`home.${key}Text`)}</p>
             </div>
           ))}
         </div>
@@ -57,6 +99,6 @@ export default function AuthSplit({ title, description, children }) {
 
 // Shared look for the form controls on these screens.
 export const authInputClass =
-  'w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm transition-colors focus:border-brand focus:bg-brand-light focus:outline-none'
+  'w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 text-sm transition-colors focus:border-brand focus:outline-none'
 export const authButtonClass =
-  'w-full rounded-2xl bg-brand py-3.5 font-medium text-white transition-colors hover:bg-brand-dark disabled:opacity-40'
+  'w-full rounded-full bg-brand py-3.5 font-semibold text-white transition-colors hover:bg-brand-dark disabled:opacity-40'
