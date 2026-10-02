@@ -216,11 +216,21 @@ function VariantImagesManager({ variant, onChanged }) {
   const [uploading, setUploading] = useState(false)
   const images = variant.images || []
 
+  // The shop shows the gallery instead of the single cover photo as soon as the gallery has an item.
+  // So a variant that only has a cover photo gets it moved into the gallery first; otherwise it would vanish.
+  const keepCover = async () => {
+    if (images.length === 0 && variant.photo_url) {
+      await adminAddVariantImage(variant.id, variant.photo_url)
+      await adminUpdateVariant(variant.id, { photo_url: null })
+    }
+  }
+
   const addByUrl = async (e) => {
     e.preventDefault()
     if (!urlInput.trim()) return
     setError(null)
     try {
+      await keepCover()
       await adminAddVariantImage(variant.id, urlInput.trim())
       setUrlInput('')
       await onChanged()
@@ -237,6 +247,7 @@ function VariantImagesManager({ variant, onChanged }) {
     setError(null)
     setUploading(true)
     try {
+      await keepCover()
       for (const file of files) {
         const upload = file.type.startsWith('video/') ? adminUploadVideo : adminUploadImage
         const { url } = await upload(file)
@@ -329,30 +340,18 @@ function VariantBlock({ variant, warehouses, onChanged }) {
   const [skuForm, setSkuForm] = useState({ sku_code: '', retail_price: '', currency: 'USD' })
   const [skuError, setSkuError] = useState(null)
   const [skuOpen, setSkuOpen] = useState(false)
-  const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState(null)
+
+  // The cover photo can change outside this form (moved into the gallery, deleted); keep the form in step.
+  useEffect(() => {
+    setForm((f) => ({ ...f, photo_url: variant.photo_url || '' }))
+  }, [variant.photo_url])
 
   const update = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
     setForm((f) => ({ ...f, [field]: value }))
   }
   const updateSku = (field) => (e) => setSkuForm((f) => ({ ...f, [field]: e.target.value }))
-
-  const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploadError(null)
-    setUploading(true)
-    try {
-      const { url } = await adminUploadImage(file)
-      setForm((f) => ({ ...f, photo_url: url }))
-    } catch (err) {
-      setUploadError(errorMessage(err, t('admin.productDetail.uploadFailed')))
-    } finally {
-      setUploading(false)
-      e.target.value = ''
-    }
-  }
 
   const removeCover = async () => {
     setUploadError(null)
@@ -407,8 +406,6 @@ function VariantBlock({ variant, warehouses, onChanged }) {
             <input placeholder={t('admin.productDetail.colorHex')} aria-label={t('admin.productDetail.colorHex')} value={form.color_hex} onChange={update('color_hex')} className={inputCls} />
             <input placeholder={t('admin.productDetail.photoUrl')} aria-label={t('admin.productDetail.photoUrl')} value={form.photo_url} onChange={update('photo_url')} className={inputCls} />
             <div className="flex items-center gap-2">
-              <input type="file" aria-label={t('admin.productDetail.images')} accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} disabled={uploading} className="text-xs" />
-              {uploading && <span className="text-xs text-gray-500">{t('admin.productDetail.uploading')}</span>}
               {form.photo_url && <img src={form.photo_url} alt="" className="h-10 w-10 object-cover rounded border border-gray-200" />}
               {form.photo_url && (
                 <button type="button" onClick={removeCover} className="text-xs text-red-600 hover:underline">
