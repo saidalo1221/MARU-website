@@ -667,6 +667,8 @@ export const translations = {
         loadFailed: 'Failed to load orders',
       },
       orderDetail: {
+        shipTo: 'Delivery address',
+        openMap: 'Open in Google Maps',
         documentGenerate: 'Generate a document from this order',
         documentGenerateFailed: 'Could not generate the document.',
         documentGenerateHint: 'Created automatically: confirmation when placed, proforma for company orders, invoice when paid, packing list when packed.',
@@ -2226,6 +2228,8 @@ export const translations = {
         loadFailed: 'Не удалось загрузить заказы',
       },
       orderDetail: {
+        shipTo: 'Адрес доставки',
+        openMap: 'Открыть в Google Картах',
         documentGenerate: 'Сформировать документ по заказу',
         documentGenerateFailed: 'Не удалось сформировать документ.',
         documentGenerateHint: 'Создаются автоматически: подтверждение при оформлении, проформа для заказов юрлиц, счёт при оплате, упаковочный лист при упаковке.',
@@ -3785,6 +3789,8 @@ export const translations = {
         loadFailed: "Buyurtmalarni yuklab bo'lmadi",
       },
       orderDetail: {
+        shipTo: 'Yetkazib berish manzili',
+        openMap: "Google Xaritada ochish",
         documentGenerate: 'Buyurtma bo\'yicha hujjat yaratish',
         documentGenerateFailed: 'Hujjatni yaratib bo\'lmadi.',
         documentGenerateHint: 'Avtomatik yaratiladi: buyurtma berilganda tasdiq, yuridik shaxslar uchun proforma, to\'langanda hisob-faktura, qadoqlanganda qadoqlash varaqasi.',
