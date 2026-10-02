@@ -62,7 +62,7 @@ export default function ProductCard({ product }) {
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 transition duration-base hover:-translate-y-1 hover:shadow-token">
-      <ProductBadges badges={product.badges} className="absolute top-5 left-5 z-10" />
+      <ProductBadges badges={product.badges} className="absolute left-5 right-16 top-5 z-10" />
       {sku && (
         <button
           type="button"
