@@ -23,12 +23,12 @@ export default function NewsletterForm() {
     }
   }
 
-  if (state === 'done') return <p role="status" className="mt-3 text-green-700">{t('newsletter.checkEmail')}</p>
+  if (state === 'done') return <p role="status" className="mt-4 text-white">{t('newsletter.checkEmail')}</p>
 
   return (
-    <form onSubmit={submit} className="mt-3">
-      <label htmlFor="newsletter-email" className="font-semibold text-gray-900 block mb-1">{t('newsletter.title')}</label>
-      <div className="flex flex-wrap gap-1">
+    <form onSubmit={submit} className="mt-6">
+      <label htmlFor="newsletter-email" className="mb-2 block font-semibold text-white">{t('newsletter.title')}</label>
+      <div className="flex flex-wrap gap-2">
         <input
           id="newsletter-email"
           type="email"
@@ -36,13 +36,13 @@ export default function NewsletterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('newsletter.placeholder')}
-          className="min-w-[8rem] flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm"
+          className="min-w-[8rem] flex-1 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm text-white placeholder:text-white/60"
         />
-        <button type="submit" disabled={state === 'sending'} className="bg-brand text-white rounded px-3 py-1.5 text-sm disabled:opacity-40">
+        <button type="submit" disabled={state === 'sending'} className="rounded-full bg-white/95 px-5 py-2 text-sm font-semibold text-ink transition hover:bg-white disabled:opacity-40">
           {t('newsletter.subscribe')}
         </button>
       </div>
-      {state === 'error' && <p role="alert" className="text-xs text-red-600 mt-1">{error}</p>}
+      {state === 'error' && <p role="alert" className="mt-1 text-xs text-red-300">{error}</p>}
     </form>
   )
 }

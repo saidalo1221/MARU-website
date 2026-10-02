@@ -16,11 +16,15 @@ const SOCIAL = [
 export default function Footer() {
   const { t, locale } = useLocale()
   const [social, setSocial] = useState([])
+  const [contact, setContact] = useState({})
   const [payments, setPayments] = useState([])
 
   useEffect(() => {
     getSiteSettings(locale)
-      .then((s) => setSocial(SOCIAL.filter(([key]) => s[key]).map(([key, label]) => [label, s[key]])))
+      .then((s) => {
+        setSocial(SOCIAL.filter(([key]) => s[key]).map(([key, label]) => [label, s[key]]))
+        setContact({ phone: s.phone, email: s.email })
+      })
       .catch(() => {})
   }, [locale])
 
@@ -73,47 +77,53 @@ export default function Footer() {
     },
   ]
 
+  const linkCls = 'transition-colors hover:text-white hover:underline'
+
+  // Deep forest block that closes the page; flat edge, text in warm off-white.
   return (
-    <footer className="border-t border-gray-200 mt-12 py-10 px-4 text-sm text-gray-600">
-      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8">
-        <div className="col-span-2 md:col-span-1">
-          <p className="font-bold text-brand mb-1">MARU</p>
-          <p>{t('footer.tagline')}</p>
+    <footer className="mt-20 bg-ink px-4 py-14 text-sm text-white/80">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-8 gap-y-10 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
+        <div className="col-span-2 lg:col-span-1">
+          <p className="mb-2 text-2xl font-bold text-white">MARU</p>
+          <p className="max-w-xs">{t('footer.tagline')}</p>
+          {(contact.phone || contact.email) && (
+            <ul className="mt-4 space-y-1">
+              {contact.phone && <li><a href={`tel:${contact.phone.replace(/[^+\d]/g, '')}`} className={linkCls}>{contact.phone}</a></li>}
+              {contact.email && <li><a href={`mailto:${contact.email}`} className={linkCls}>{contact.email}</a></li>}
+            </ul>
+          )}
           <NewsletterForm />
         </div>
         {columns.map((col) => (
           <nav key={col.titleKey} aria-label={t(col.titleKey)}>
-            <p className="font-semibold text-gray-900 mb-2">{t(col.titleKey)}</p>
-            <ul className="space-y-1.5">
+            <p className="mb-3 font-semibold text-white">{t(col.titleKey)}</p>
+            <ul className="space-y-2">
               {col.links.map(([to, key]) => (
-                <li key={key}><Link to={to}>{t(key)}</Link></li>
+                <li key={key}><Link to={to} className={linkCls}>{t(key)}</Link></li>
               ))}
             </ul>
           </nav>
         ))}
       </div>
 
-      <div className="max-w-7xl mx-auto mt-8 border-t border-gray-200 pt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 text-xs text-gray-500">
-        <p>
-          &copy; {new Date().getFullYear()} MARU
-          {' · '}
-          <Link to="/privacy" className="underline">{t('footer.privacy')}</Link>
-          {' · '}
-          <Link to="/terms" className="underline">{t('footer.terms')}</Link>
-          {' · '}
-          <button type="button" onClick={openConsentSettings} className="underline">{t('consent.settings')}</button>
+      <div className="mx-auto mt-12 flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-4 border-t border-white/15 pt-6 text-xs text-white/70">
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <span>&copy; {new Date().getFullYear()} MARU</span>
+          <Link to="/privacy" className={linkCls}>{t('footer.privacy')}</Link>
+          <Link to="/terms" className={linkCls}>{t('footer.terms')}</Link>
+          <button type="button" onClick={openConsentSettings} className={linkCls}>{t('consent.settings')}</button>
         </p>
         {payments.length > 0 && (
           <ul aria-label={t('footer.paymentMethods')} className="flex flex-wrap gap-2">
             {payments.map((name) => (
-              <li key={name} className="border border-gray-300 rounded px-2 py-0.5">{name}</li>
+              <li key={name} className="rounded-full border border-white/25 px-3 py-1">{name}</li>
             ))}
           </ul>
         )}
         {social.length > 0 && (
-          <ul aria-label={t('footer.follow')} className="flex flex-wrap gap-3">
+          <ul aria-label={t('footer.follow')} className="flex flex-wrap gap-4">
             {social.map(([label, url]) => (
-              <li key={label}><a href={url} target="_blank" rel="noopener noreferrer" className="underline">{label}</a></li>
+              <li key={label}><a href={url} target="_blank" rel="noopener noreferrer" className={linkCls}>{label}</a></li>
             ))}
           </ul>
         )}
