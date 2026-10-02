@@ -1,4 +1,4 @@
-# MARU - start here (updated 2026-10-01, end of the build session)
+# MARU - start here (updated 2026-10-02, after admin newsletter campaigns)
 
 Read this file first, then `CLAUDE.md` (house rules). Everything here was checked against the code, the test suite and the
 browser; nothing is copied from older notes. If you are a new session: the build is feature-complete except for items that need
@@ -9,7 +9,7 @@ accounts or documents from the owner (section 4). Do not rebuild anything listed
 |---|---|
 | `START_HERE.md` (this) | Current state, owner decisions, what is left, how to work in this repo. |
 | `PRD.md` | The four specs (ТЗ №1-4). The block at the top is the build status: `[x]` built and tested, `[!]` blocked with the reason. |
-| `NOTES.md` | Every assumption made while building, numbered, newest last. Read items 37+ for the last sessions. |
+| `NOTES.md` | Every assumption made while building, numbered, newest last. Read items 37+ for the last sessions (68 = newsletter campaigns). |
 | `INTEGRATIONS.md` | Adapters, inbound/outbound webhooks, documents, web push, remarketing and consent, markets, loyalty. |
 | `OPS_RUNBOOK.md` | Cron jobs / worker, backups and restore, recovery targets, release flow. |
 | `MARIADB_PREFLIGHT.md` | First-deploy checklist. `WHATSAPP_TEMPLATES.md`: message templates to submit to Meta. |
@@ -44,8 +44,8 @@ accounts or documents from the owner (section 4). Do not rebuild anything listed
 **Still open (owner must decide / supply)** - see section 4.
 
 ## 3. State of the code
-- Branch `feat/client-analytics-events`. Commit and push only when the owner asks (they have asked each time so far).
-- Tests: `python -m pytest -q` (about 400 tests, ~2.5 min; run single files while iterating). Frontend: `cd frontend && npm run build`, and
+- Branch `feat/client-analytics-events`, HEAD `09e8558` (the commits after `1c70837` are not pushed yet). Commit and push only when the owner asks (they have asked each time so far).
+- Tests: `python -m pytest -q` (405 tests, ~2.5 min; run single files while iterating). Frontend: `cd frontend && npm run build`, and
   `for f in tests/*.mjs; do node $f; done` (includes an i18n key check). Lint: `python -m ruff check app tests scripts --select E9,F63,F7,F82`.
 - Backend FastAPI + SQLAlchemy 2; dev DB is SQLite (`dev.db`, gitignored); target is MariaDB 10.5 on Python 3.9. Frontend React + Vite + Tailwind,
   i18n ru/uz/en in `frontend/src/i18n/translations.js` (every string needs all three).
@@ -64,6 +64,9 @@ accounts or documents from the owner (section 4). Do not rebuild anything listed
 - **Payments:** Payme, Click, Stripe, PayPal are built from public docs but untested; need sandbox keys. Saved cards need a provider vault (not built).
 - **Google Ads conversion tag:** needs conversion id + label. **Figma:** needs a designer (the next planned step is implementing a design the owner brings from Claude Design).
 
+**Small known gaps:** `frontend/tests/error-message.test.mjs` fails (module `src/lib/consent` imported without extension; fails on a clean tree too). Newsletter mail is plain text, no scheduling, no "email this customer" button on the order page.
+A running backend must be restarted (and a dev database needs the new `newsletter_campaigns` table) to see the campaign routes; a stale server answers 404.
+
 **Never run anywhere:** MariaDB migrations; the worker/systemd unit; the nginx rules in `deploy/nginx.conf.example` (bot prerender, `/sw.js` no-cache);
 CI on GitHub; Python 3.9; web push in a real browser; any real payment.
 
@@ -80,6 +83,9 @@ the business enters SKU costs, ad spend, markets, loyalty settings.
 - Always run the frontend build after editing JSX (a missing `{}` once slipped through until the build).
 - Never put credentials in git, NOTES, or chat summaries; `.env` is git-ignored. Do not push unless asked.
 
-## 6. If the owner brings a design
+## 6. If the owner brings a design (or asks for a redesign)
+Status: nothing restyled yet. The look is a placeholder (system fonts, temporary green in `tokens.css`; the PRD forbids inventing brand colours before a brand book). Home page layout is uniform sections.
+The owner has not yet said whether to redesign now or wait for the Claude Design file. The design skill applies to home/wholesale/about/category pages, not admin or checkout.
+
 Implement tokens first (`frontend/src/styles/tokens.css`, `tailwind.config.js`), then shared components (`components/ui/*`, header/footer), then pages by
 priority, checking each at 375 px and desktop, in dark mode, and in all three languages; keep tests, build and the accessibility checks green.
