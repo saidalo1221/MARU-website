@@ -162,3 +162,15 @@ h1, h2, h3 {
   z-index: 0;
   isolation: isolate;
 }
+
+/* A <legend> normally sits on top of its fieldset's border. Inside the soft checkout panels it is a plain
+ * heading (same approach as Bootstrap's reboot). */
+fieldset.rounded-3xl > legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 0.75rem;
+}
+fieldset.rounded-3xl > legend + * {
+  clear: both;
+}

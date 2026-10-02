@@ -21,7 +21,7 @@ function EstimatedDelivery() {
   }, [country])
   if (!estimate || estimate.max_days == null) return null
   const days = estimate.min_days != null && estimate.min_days !== estimate.max_days
-    ? `${estimate.min_days}–${estimate.max_days}`
+    ? `${estimate.min_days}-${estimate.max_days}`
     : `${estimate.max_days}`
   return (
     <div className="flex justify-between">
@@ -47,13 +47,13 @@ function SavedForLater({ cart, removeItem, moveToCart }) {
 
   return (
     <section className="mt-8" aria-labelledby="saved-for-later-heading">
-      <h2 id="saved-for-later-heading" className="font-semibold mb-2">
+      <h2 id="saved-for-later-heading" className="mb-3 text-lg font-semibold">
         {t('cart.savedTitle', { n: cart.saved_items.length })}
       </h2>
       {error && <p role="alert" className="text-sm text-red-600 mb-2">{error}</p>}
-      <div className="divide-y divide-gray-200 border-t border-gray-200">
+      <div className="space-y-2">
         {cart.saved_items.map((item) => (
-          <div key={item.id} className="py-3 flex items-center gap-4 text-sm">
+          <div key={item.id} className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
             <div className="flex-1">
               <p className="font-medium">{item.product_name || item.sku_code}</p>
               <p className="text-xs text-gray-500">{[item.variant_name, item.sku_code].filter(Boolean).join(' · ')}</p>
@@ -114,16 +114,18 @@ export default function Cart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartItemCount > 0])
 
-  if (loading && !cart) return <p className="max-w-4xl mx-auto px-4 py-8">{t('cart.loading')}</p>
+  if (loading && !cart) return <p className="mx-auto max-w-5xl px-4 py-10 text-gray-500">{t('cart.loading')}</p>
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-lg mb-2">{t('cart.empty')}</h1>
-        <p className="text-sm text-gray-500 mb-6">{t('cart.emptySubtitle')}</p>
-        <Link to="/shop" className="bg-brand text-white px-6 py-3 rounded font-medium">
-          {t('cart.continueShopping')}
-        </Link>
+      <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
+        <div className="rounded-3xl bg-brand-light px-6 py-14 text-center">
+          <h1 className="mb-2 text-3xl font-semibold tracking-tight">{t('cart.empty')}</h1>
+          <p className="mb-6 text-gray-600">{t('cart.emptySubtitle')}</p>
+          <Link to="/shop" className="inline-block rounded-full bg-brand px-8 py-3 font-semibold text-white transition-colors hover:bg-brand-dark">
+            {t('cart.continueShopping')}
+          </Link>
+        </div>
         <div className="text-left">
           <SavedForLater cart={cart} removeItem={removeItem} moveToCart={moveToCart} />
         </div>
@@ -144,23 +146,23 @@ export default function Cart() {
   const unavailable = cart.unavailable_items > 0
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="mx-auto max-w-5xl px-4 py-8 md:py-12">
       <Seo title={t('cart.title')} noindex />
-      <h1 className="text-2xl font-bold mb-4">{t('cart.title')}</h1>
+      <h1 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">{t('cart.title')}</h1>
 
       <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
-        <div className="divide-y divide-gray-200">
+        <div className="space-y-3">
           {cart.items.map((item) => (
-            <div key={item.id} className="py-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div key={item.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-3xl border border-gray-200 bg-gray-50 p-4 md:p-5">
               <Link to={item.product_slug ? `/products/${item.product_slug}` : '/shop'} className="shrink-0" tabIndex={-1} aria-hidden="true">
                 {item.image_url ? (
-                  <img src={item.image_url} alt="" loading="lazy" decoding="async" className="h-16 w-16 rounded object-cover bg-gray-100" />
+                  <img src={item.image_url} alt="" loading="lazy" decoding="async" className="h-20 w-20 rounded-2xl bg-gray-100 object-cover" />
                 ) : (
-                  <span className="block h-16 w-16 rounded bg-gray-100" />
+                  <span className="block h-20 w-20 rounded-2xl bg-gray-100" />
                 )}
               </Link>
               <div className="flex-1 min-w-[9rem]">
-                <p className="font-medium text-sm">
+                <p className="font-semibold">
                   {item.product_slug ? <Link to={`/products/${item.product_slug}`} className="hover:underline">{item.product_name || item.sku_code}</Link> : item.sku_code}
                 </p>
                 <p className="text-xs text-gray-500">
@@ -187,7 +189,7 @@ export default function Cart() {
                 value={item.quantity}
                 onChange={(q) => updateItem(item.sku_id, q)}
               />
-              <p className="w-20 text-right font-medium">
+              <p className="min-w-[7rem] whitespace-nowrap text-right text-lg font-semibold">
                 {cart.currency} {Number(item.line_total).toFixed(2)}
               </p>
               <button onClick={() => saveForLater(item.sku_id)} className="text-brand text-sm">
@@ -205,7 +207,7 @@ export default function Cart() {
           <SavedForLater cart={cart} removeItem={removeItem} moveToCart={moveToCart} />
         </div>
 
-        <div className="mt-6 md:mt-0 border border-gray-200 rounded-lg p-4 h-fit">
+        <div className="mt-6 h-fit rounded-3xl border border-gray-200 bg-gray-50 p-6 md:sticky md:top-24 md:mt-0">
           <div className="flex gap-2 mb-4">
             <input
               type="text"
@@ -213,9 +215,9 @@ export default function Cart() {
               onChange={(e) => setPromoInput(e.target.value)}
               placeholder={t('cart.promoPlaceholder')}
               aria-label={t('cart.promoPlaceholder')}
-              className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm"
+              className="min-w-0 flex-1 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm"
             />
-            <button onClick={applyPromo} className="border border-brand text-brand rounded px-3 text-sm">
+            <button onClick={applyPromo} className="rounded-full border border-brand px-4 text-sm font-medium text-brand transition-colors hover:bg-brand-light">
               {t('catalog.apply')}
             </button>
           </div>
@@ -259,7 +261,7 @@ export default function Cart() {
                 {cart.packaging.complete ? '' : t('cart.packagingApprox')}
               </p>
             )}
-            <div className="flex justify-between font-semibold text-base border-t border-gray-200 pt-2 mt-2">
+            <div className="mt-3 flex justify-between border-t border-gray-200 pt-3 text-xl font-semibold">
               <dt>{t('cart.total')}</dt>
               <dd>{cart.currency} {Number(cart.total).toFixed(2)}</dd>
             </div>
@@ -269,7 +271,7 @@ export default function Cart() {
           <button
             onClick={() => navigate('/checkout')}
             disabled={belowMinimum || unavailable}
-            className="w-full bg-brand text-white rounded py-3 font-medium mt-4 disabled:opacity-40"
+            className="mt-5 w-full rounded-full bg-brand py-3.5 font-semibold text-white transition-colors hover:bg-brand-dark active:scale-[0.98] disabled:opacity-40"
           >
             {t('cart.checkoutButton')}
           </button>
@@ -277,8 +279,8 @@ export default function Cart() {
       </div>
 
       {recs && recs.products.length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold mb-3">
+        <section className="mt-14">
+          <h2 className="mb-5 text-2xl font-semibold tracking-tight">
             {recs.based_on_orders ? t('cart.boughtTogether') : t('cart.mayAlsoLike')}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
