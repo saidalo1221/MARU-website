@@ -15,14 +15,15 @@ import Seo from '../components/Seo'
 const BENEFITS = ['benefitMaterial', 'benefitOwn', 'benefitRange', 'benefitQuality', 'benefitB2b', 'benefitExport']
 const PACKS = [3, 5, 7]
 
-// Bento layout for the six benefits (lg: 4 columns, A A B C / A A D D / E E F F).
+// Bento layout for the six benefits (lg: 4 columns, two even rows: A A B C / D E E F). No tile is taller
+// than its text needs, so there is no empty space inside a tile.
 const BENTO = [
-  { cell: 'bg-brand text-white lg:col-span-2 lg:row-span-2 flex items-end min-h-[14rem]', text: 'text-white/85', big: true },
-  { cell: 'bg-gray-50', text: 'text-gray-600' },
-  { cell: 'bg-gray-50', text: 'text-gray-600' },
-  { cell: 'bg-brand-light lg:col-span-2', text: 'text-gray-600' },
-  { cell: 'bg-gray-50 lg:col-span-2 min-h-[11rem]', text: 'text-gray-600', photo: true },
-  { cell: 'bg-brand-light lg:col-span-2', text: 'text-gray-600' },
+  { cell: 'bg-brand text-white lg:col-span-2 flex flex-col justify-center', text: 'text-white/90', big: true },
+  { cell: 'bg-brand-light', text: 'text-gray-600' },
+  { cell: 'bg-gray-50 border border-gray-200', text: 'text-gray-600' },
+  { cell: 'bg-gray-50 border border-gray-200', text: 'text-gray-600' },
+  { cell: 'bg-gray-50 border border-gray-200 lg:col-span-2', text: 'text-gray-600', photo: true },
+  { cell: 'bg-brand-light', text: 'text-gray-600' },
 ]
 
 function Section({ id, title, children, action }) {
@@ -127,20 +128,20 @@ export default function Home() {
         </Section>
       )}
 
-      {/* 8.5 Why MARU: six benefits in a bento (lg: 4 columns, A A B C / A A D D / E E F F) */}
+      {/* 8.5 Why MARU: six benefits in a bento (lg: 4 columns, A A B C / D E E F) */}
       <Section id="why" title={t('home.whyTitle')}>
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {BENEFITS.map((key, i) => {
             const style = BENTO[i]
             const withPhoto = style.photo && photo
             return (
-              <li key={key} className={`relative overflow-hidden rounded-3xl p-6 md:p-8 ${style.cell}`}>
+              <li key={key} className={`relative overflow-hidden rounded-3xl p-6 md:p-8 ${style.cell} ${withPhoto ? 'min-h-[11rem]' : ''}`}>
                 {withPhoto && (
                   <img src={photo} alt="" loading="lazy" className="absolute -right-6 -bottom-6 h-44 w-44 rounded-2xl bg-white object-contain p-3 opacity-90 shadow-md md:h-52 md:w-52" />
                 )}
                 <div className={`relative ${withPhoto ? 'max-w-[55%]' : ''}`}>
-                  <h3 className={`font-semibold ${style.big ? 'mb-3 text-2xl md:text-3xl' : 'mb-1 text-lg'}`}>{t(`home.${key}`)}</h3>
-                  <p className={`text-sm ${style.text}`}>{t(`home.${key}Text`)}</p>
+                  <h3 className={`font-semibold ${style.big ? 'mb-2 text-2xl md:text-3xl' : 'mb-1 text-lg'}`}>{t(`home.${key}`)}</h3>
+                  <p className={`${style.big ? 'text-base' : 'text-sm'} ${style.text}`}>{t(`home.${key}Text`)}</p>
                 </div>
               </li>
             )
@@ -159,8 +160,8 @@ export default function Home() {
                   to="/shop"
                   className="flex items-center justify-between gap-4 rounded-2xl bg-white/95 px-6 py-4 transition duration-base hover:-translate-y-0.5 hover:shadow-token"
                 >
-                  <span className="text-xl font-semibold text-brand-dark">{t('home.pack', { n })}</span>
-                  <span className="text-sm text-brand-dark/70">{t('home.packText', { n })}</span>
+                  <span className="text-xl font-semibold text-ink">{t('home.pack', { n })}</span>
+                  <span className="text-sm text-ink/70">{t('home.packText', { n })}</span>
                 </Link>
               </li>
             ))}
@@ -176,34 +177,56 @@ export default function Home() {
               <h2 className="mb-2 text-3xl font-semibold tracking-tight md:text-4xl">{t('home.b2bTitle')}</h2>
               <p className="text-white/85">{t('home.b2bText')}</p>
             </div>
-            <Link to="/wholesale" className="inline-block whitespace-nowrap rounded-full bg-white/95 px-8 py-3 font-semibold text-brand-dark transition hover:scale-105 active:scale-95">
+            <Link to="/wholesale" className="inline-block whitespace-nowrap rounded-full bg-white/95 px-8 py-3 font-semibold text-ink transition hover:scale-105 active:scale-95">
               {t('home.b2bCta')}
             </Link>
           </div>
         </Reveal>
       </section>
 
-      {/* 8.8 Manufacturing and quality */}
-      <Section id="manufacturing" title={t('home.manufacturingTitle')}>
-        <div className={`grid items-center gap-8 ${photo ? 'md:grid-cols-2' : ''}`}>
-          <div>
-            <p className="mb-6 max-w-xl text-lg text-gray-600">{t('home.manufacturingText')}</p>
-            <div className="flex flex-wrap gap-3">
-              <Link to="/manufacturing" className="rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark">
-                {t('home.learnMore')}
-              </Link>
-              <Link to="/quality" className="rounded-full border border-brand px-6 py-3 text-sm font-semibold text-brand transition hover:bg-brand-light">
-                {t('footer.quality')}
-              </Link>
+      {/* 8.8 Manufacturing and quality: dark panel, the facts that are true today (own production, material,
+          clear specifications) plus two figures that come straight from the size list. */}
+      <section id="manufacturing" className="max-w-7xl mx-auto px-4 py-12 md:py-16" aria-labelledby="manufacturing-title">
+        <Reveal>
+          <div className={`grid items-stretch gap-8 rounded-3xl bg-ink p-6 text-white md:p-12 ${photo ? 'lg:grid-cols-[1.2fr_1fr]' : ''}`}>
+            <div className="flex flex-col">
+              <h2 id="manufacturing-title" className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">{t('home.manufacturingTitle')}</h2>
+              <p className="mb-8 max-w-xl text-lg text-white/80">{t('home.manufacturingText')}</p>
+
+              <ul className="mb-8 space-y-3 text-white/80">
+                {['benefitOwnText', 'benefitMaterialText', 'benefitQualityText'].map((key) => (
+                  <li key={key} className="border-l-2 border-brand pl-4">{t(`home.${key}`)}</li>
+                ))}
+              </ul>
+
+              <dl className="mb-8 grid grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-white/10 p-5">
+                  <dd className="text-4xl font-semibold">{VOLUMES_ML.length}</dd>
+                  <dt className="mt-1 text-sm text-white/70">{t('home.statSizes')}</dt>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-5">
+                  <dd className="text-3xl font-semibold md:text-4xl">{VOLUMES_ML[0]}-{VOLUMES_ML[VOLUMES_ML.length - 1]}<span className="ml-1 text-base font-normal text-white/70">ml</span></dd>
+                  <dt className="mt-1 text-sm text-white/70">{t('home.statRange')}</dt>
+                </div>
+              </dl>
+
+              <div className="mt-auto flex flex-wrap gap-3">
+                <Link to="/manufacturing" className="rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark active:scale-[0.98]">
+                  {t('home.learnMore')}
+                </Link>
+                <Link to="/quality" className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10">
+                  {t('footer.quality')}
+                </Link>
+              </div>
             </div>
+            {photo && (
+              <div className="flex min-h-[16rem] items-center justify-center rounded-3xl bg-white p-8">
+                <img src={photo} alt="" loading="lazy" className="max-h-[22rem] w-full object-contain" />
+              </div>
+            )}
           </div>
-          {photo && (
-            <div className="flex aspect-[4/3] items-center justify-center rounded-3xl bg-brand-light p-8">
-              <img src={photo} alt="" loading="lazy" className="h-full w-full object-contain" />
-            </div>
-          )}
-        </div>
-      </Section>
+        </Reveal>
+      </section>
 
       {/* 8.9 Reviews: only shown once real approved reviews exist */}
       {reviews.length > 0 && (
