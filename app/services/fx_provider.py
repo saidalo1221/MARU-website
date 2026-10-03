@@ -1,3 +1,4 @@
+from typing import Optional
 import time
 from decimal import Decimal
 
@@ -15,7 +16,7 @@ from app.models.exchange_rate import ExchangeRate
 # already exist, no hardcoded list to keep in sync with the admin panel.
 DEFAULT_BOOTSTRAP_CURRENCIES = ("UZS", "EUR", "KZT", "AED")
 
-_codes_cache: list[dict[str, str]] | None = None
+_codes_cache: Optional[list[dict[str, str]]] = None
 _codes_cache_at: float = 0.0
 _CODES_CACHE_TTL_SECONDS = 24 * 3600
 

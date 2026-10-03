@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { adminListAuditLogs } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import { formatDateTime } from '../../lib/format'
 
 export default function AdminAuditLog() {
   const { t } = useLocale()
@@ -22,19 +23,21 @@ export default function AdminAuditLog() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">{t('admin.auditLog.title')}</h1>
-        <input value={entityFilter} onChange={(e) => setEntityFilter(e.target.value)} placeholder={t('admin.auditLog.filterPlaceholder')} className="border border-gray-300 rounded px-2 py-1.5 text-sm" />
+        <input value={entityFilter} onChange={(e) => setEntityFilter(e.target.value)} placeholder={t('admin.auditLog.filterPlaceholder')} aria-label={t('admin.auditLog.filterPlaceholder')} className="border border-gray-300 rounded px-2 py-1.5 text-sm" />
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {!loading && (
         <ul className="divide-y divide-gray-100 border border-gray-200 rounded-lg">
           {logs.map((l) => (
             <li key={l.id} className="px-3 py-2 text-sm">
               <span className="font-medium">{l.action}</span> on {l.entity} #{l.entity_id ?? '—'}
-              {l.user_id != null && <span className="text-gray-400"> · {t('admin.auditLog.byUser', { id: l.user_id })}</span>}
-              <span className="text-gray-400"> · {new Date(l.created_at).toLocaleString()}</span>
+              {l.user_id != null && <span className="text-gray-500"> · {t('admin.auditLog.byUser', { id: l.user_id })}</span>}
+              <span className="text-gray-500"> · {formatDateTime(l.created_at)}</span>
+              {l.ip_address && <span className="text-gray-500"> · IP {l.ip_address}</span>}
+              {l.request_id && <span className="text-gray-500"> · {t('admin.auditLog.requestId')} <code className="text-xs">{l.request_id}</code></span>}
               {(l.old_value || l.new_value) && (
                 <p className="text-xs text-gray-500 mt-1">
                   {l.old_value ? t('admin.auditLog.before', { value: l.old_value }) : ''}{l.old_value && l.new_value ? ' → ' : ''}{l.new_value ? t('admin.auditLog.after', { value: l.new_value }) : ''}
@@ -42,7 +45,7 @@ export default function AdminAuditLog() {
               )}
             </li>
           ))}
-          {logs.length === 0 && <li className="px-3 py-6 text-center text-gray-400">{t('admin.auditLog.none')}</li>}
+          {logs.length === 0 && <li className="px-3 py-6 text-center text-gray-500">{t('admin.auditLog.none')}</li>}
         </ul>
       )}
     </div>

@@ -116,7 +116,7 @@ export default function AdminAccessGate({ children }) {
           <input
             required
             type="email"
-            placeholder={t('admin.login.emailPlaceholder')}
+            placeholder={t('admin.login.emailPlaceholder')} aria-label={t('admin.login.emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
@@ -128,7 +128,7 @@ export default function AdminAccessGate({ children }) {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
@@ -145,12 +145,12 @@ export default function AdminAccessGate({ children }) {
             required
             inputMode="numeric"
             pattern="[0-9]*"
-            placeholder={t('admin.login.codePlaceholder')}
+            placeholder={t('admin.login.codePlaceholder')} aria-label={t('admin.login.codePlaceholder')}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm tracking-widest text-center text-lg"
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={submitting}

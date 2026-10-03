@@ -1,3 +1,5 @@
+import json
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from secrets import token_urlsafe
@@ -17,16 +19,39 @@ from app.models.promo_code import PromoCode
 from app.models.user import User
 from app.models.warehouse import Warehouse
 from app.schemas.order import CheckoutRequest
+from app.core.request_id import ads_consent_var
+from app.services import document_generator, loyalty, market, outbound_webhooks, payment_ledger
+from app.services.integrations import events as integration_events
 from app.services.analytics import record_event
 from app.services.audit import log_audit
-from app.services.currency import CurrencyError
-from app.services.pricing import PromoCodeError, apply_promo, resolve_unit_price, validate_promo
+from app.services.currency import CurrencyError, convert_amount
+from app.services.pricing import (
+    PromoCodeError,
+    promo_line_discounts,
+    record_redemption,
+    redeem_promo,
+    resolve_unit_price,
+    validate_promo,
+)
 from app.services.shipping import ShippingError, calculate_shipping, cart_weight_g
-from app.services.tax import calculate_tax
+from app.services.tax import calculate_lines_tax
 
 
 def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+ATTRIBUTION_KEYS = ("utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "referrer", "landing_page")
+
+
+def clean_attribution(raw: Optional[dict]) -> Optional[str]:
+    """Keeps only known string keys, each capped at 255 chars, as a JSON string
+    (or None when nothing usable was sent). Client-supplied, so never trusted
+    beyond being stored and displayed as text."""
+    if not raw:
+        return None
+    kept = {k: str(raw[k])[:255] for k in ATTRIBUTION_KEYS if raw.get(k) not in (None, "")}
+    return json.dumps(kept) if kept else None
 
 
 class OrderError(Exception):
@@ -151,11 +176,21 @@ def expire_stale_reservations(db: Session) -> int:
     return expired
 
 
+def _unit_cost_usd(db: Session, sku) -> Optional[Decimal]:
+    """The SKU's cost converted to USD, or None when no cost is set or no rate exists."""
+    if sku.cost_price is None:
+        return None
+    try:
+        return convert_amount(db, sku.cost_price, sku.currency, "USD")
+    except CurrencyError:
+        return None
+
+
 def generate_order_number() -> str:
     return f"MARU-{datetime.now(timezone.utc):%Y%m%d}-{uuid4().hex[:6].upper()}"
 
 
-def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: User | None) -> Order:
+def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: Optional[User]) -> Order:
     if not cart.items:
         raise OrderError("Cart is empty")
 
@@ -172,8 +207,16 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: User 
     subtotal = Decimal("0")
     line_data = []
     for item in cart.items:
+        product = item.sku.variant.product
+        if not market.is_available(product, checkout.country):
+            raise OrderError(f"MARKET: {product.name} is not sold in {checkout.country}")
         if available_stock(db, item.sku_id) < item.quantity:
             raise OrderError(f"INSUFFICIENT_STOCK: not enough stock for SKU {item.sku.sku_code}")
+        minimum = item.sku.variant.product.min_order_quantity or 1
+        if item.quantity < minimum:
+            raise OrderError(
+                f"MIN_ORDER_QUANTITY: SKU {item.sku.sku_code} requires at least {minimum} units"
+            )
         try:
             unit_price = resolve_unit_price(db, item.sku, customer_type, item.quantity, cart.currency)
         except CurrencyError as exc:
@@ -182,20 +225,48 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: User 
         subtotal += line_total
         line_data.append((item, unit_price, line_total))
 
-    promo: PromoCode | None = None
+    promo: Optional[PromoCode] = None
     if checkout.promo_code:
         try:
-            promo = validate_promo(db, checkout.promo_code, subtotal)
+            promo = validate_promo(
+                db, checkout.promo_code, subtotal, cart.currency,
+                lines=[(item.sku, total) for item, _price, total in line_data],
+                user_id=user.id if user is not None else None, email=checkout.email, country=checkout.country,
+            )
         except PromoCodeError as exc:
             raise OrderError(str(exc)) from exc
 
-    discount = apply_promo(subtotal, promo) if promo is not None else Decimal("0")
+    try:
+        line_discounts = promo_line_discounts(db, promo, [(item.sku, total) for item, _price, total in line_data], cart.currency)
+    except PromoCodeError as exc:
+        raise OrderError(str(exc)) from exc
+    discount = sum(line_discounts, Decimal("0"))
+    # Loyalty points pay for part of the goods; the discount is spread over the lines like a promo discount.
+    loyalty_points = int(checkout.loyalty_points or 0)
+    loyalty_discount = Decimal("0.00")
+    if loyalty_points:
+        if user is None:
+            raise OrderError("LOYALTY: sign in to use loyalty points")
+        allowed = loyalty.max_points_for(db, user, subtotal - discount, cart.currency)
+        if loyalty_points > allowed:
+            raise OrderError(f"LOYALTY: you can use at most {allowed} points on this order")
+        loyalty_discount = min(loyalty.spend_amount(db, loyalty_points, cart.currency), subtotal - discount)
+        shares = loyalty.split(loyalty_discount, [total - line_discounts[i] for i, (_item, _price, total) in enumerate(line_data)])
+        line_discounts = [a + b for a, b in zip(line_discounts, shares)]
+        discount = sum(line_discounts, Decimal("0"))
     # PRD §69 pricing pipeline: ... Discount -> Tax -> Shipping -> Total.
     # Tax is computed on the post-discount merchandise subtotal; shipping
     # itself is not taxed (PRD doesn't specify shipping being taxable).
-    tax = calculate_tax(db, checkout.country, customer_type.value, subtotal - discount)
+    line_taxes = calculate_lines_tax(
+        db, checkout.country, customer_type.value,
+        [(item.sku.variant.product.tax_class, total - line_discounts[i]) for i, (item, _price, total) in enumerate(line_data)],
+        region=checkout.region, currency=cart.currency,
+    )
+    tax = sum(line_taxes, Decimal("0"))
     try:
-        delivery = calculate_shipping(db, checkout.country, checkout.delivery_method, cart_weight_g(cart))
+        delivery = calculate_shipping(
+            db, checkout.country, checkout.delivery_method, cart_weight_g(cart), subtotal - discount, cart.currency
+        )
     except ShippingError as exc:
         raise OrderError(str(exc)) from exc
     total = subtotal + delivery + tax - discount
@@ -212,6 +283,9 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: User 
         currency=cart.currency,
         subtotal_amount=subtotal,
         discount_amount=discount,
+        loyalty_points_used=loyalty_points,
+        ads_consent=ads_consent_var.get(),
+        loyalty_discount_amount=loyalty_discount,
         tax_amount=tax,
         delivery_amount=delivery,
         total_amount=total,
@@ -221,26 +295,33 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: User 
         phone=checkout.phone,
         email=checkout.email,
         country=checkout.country,
+        region=checkout.region,
         city=checkout.city,
         address_line=checkout.address_line,
         postal_code=checkout.postal_code,
         delivery_method=checkout.delivery_method,
         payment_method=checkout.payment_method,
+        language=checkout.language,
+        whatsapp_opt_in=checkout.whatsapp_opt_in,
         source=checkout.source,
         company_name=checkout.company_name,
         company_reg_number=checkout.company_reg_number,
         company_tax_number=checkout.company_tax_number,
         company_address=checkout.company_address,
         contact_person=checkout.contact_person,
+        attribution=clean_attribution(checkout.attribution),
     )
     db.add(order)
     db.flush()  # need order.id before inserting items/history
 
     # Appended to order.items (rather than db.add per row) so the in-memory
     # relationship is populated for _reserve_stock() below without a re-query.
-    for item, unit_price, line_total in line_data:
+    for index, (item, unit_price, line_total) in enumerate(line_data):
         order.items.append(
             OrderItem(
+                discount_amount=line_discounts[index],
+                unit_cost_usd=_unit_cost_usd(db, item.sku),
+                tax_amount=line_taxes[index],
                 sku_id=item.sku_id,
                 sku_code_snapshot=item.sku.sku_code,
                 product_name_snapshot=item.sku.variant.product.name,
@@ -268,15 +349,30 @@ def create_order(db: Session, cart: Cart, checkout: CheckoutRequest, user: User 
     )
 
     if promo is not None:
-        promo.used_count += 1
+        try:
+            redeem_promo(db, promo)
+        except PromoCodeError as exc:
+            raise OrderError(str(exc)) from exc
+        record_redemption(db, promo, order, user.id if user is not None else None, checkout.email)
 
     cart.is_active = False
     cart.converted_at = _now()
+    # Keep a signed-in customer's saved-for-later lines: they were not bought, so
+    # they move to a fresh active cart instead of staying on the converted one.
+    if cart.user_id is not None and cart.saved_items:
+        carried = Cart(user_id=cart.user_id, currency=cart.currency)
+        db.add(carried)
+        db.flush()
+        for saved in list(cart.saved_items):
+            saved.cart_id = carried.id
 
     # The caller creates the provider payment intent in the same transaction.
     # A configuration or provider failure can therefore roll everything back
     # without consuming the customer's cart, promo usage, or reservation.
     db.flush()
+    payment_ledger.open_payment(db, order)
+    if loyalty_points and user is not None:
+        loyalty.record_redeem(db, user.id, order.id, loyalty_points)
     return order
 
 
@@ -284,8 +380,8 @@ def set_order_status(
     db: Session,
     order: Order,
     new_status: OrderStatus,
-    changed_by: User | None,
-    note: str | None = None,
+    changed_by: Optional[User],
+    note: Optional[str] = None,
 ) -> Order:
     old_status = order.status
     if old_status == new_status:
@@ -306,6 +402,8 @@ def set_order_status(
     )
 
     order.status = new_status
+    payment_ledger.apply_order_status(db, order, new_status, changed_by)
+    loyalty.on_status_change(db, order, old_status, new_status)
     log_audit(
         db, changed_by, "order_status_change", "order", order.id, {"status": old_status.value}, {"status": new_status.value}
     )
@@ -327,9 +425,28 @@ def set_order_status(
         # webhooks, admin override) — see app/services/analytics.py.
         record_event(
             db, "purchase", user=order.user, session_id=order.guest_order_token,
+            forward_ads=bool(order.ads_consent),
             order_id=order.id, value=str(order.total_amount), currency=order.currency,
+            items=[
+                {"item_id": i.sku_code_snapshot, "item_name": i.product_name_snapshot, "price": str(i.unit_price), "quantity": i.quantity}
+                for i in order.items
+            ],
         )
+        integration_events.emit(db, integration_events.ORDER_PAID, order, commit=True)
+    elif new_status == OrderStatus.CANCELLED:
+        integration_events.emit(db, integration_events.ORDER_CANCELLED, order, commit=True)
+    for event in outbound_webhooks.STATUS_EVENTS.get(new_status.name, ()):
+        outbound_webhooks.emit_for_order(db, event, order)
+    document_generator.generate_for_status(db, order, new_status)
     return order
+
+
+def _lock_ordered_items(order: Order) -> list[OrderItem]:
+    """Items in a stable (sku_id) order. Inventory rows are locked one line at
+    a time (FOR UPDATE), so two concurrent orders touching the same SKUs in
+    opposite cart order would otherwise deadlock on InnoDB (MariaDB aborts one
+    with error 1213). SQLite serialises writers and never shows this."""
+    return sorted(order.items, key=lambda item: item.sku_id or 0)
 
 
 def _reserve_stock(db: Session, order: Order) -> None:
@@ -341,7 +458,7 @@ def _reserve_stock(db: Session, order: Order) -> None:
     fulfillment, which this does not attempt. If no single warehouse can
     cover a line (even when the sum across warehouses could), this raises
     even though available_stock() might have looked sufficient."""
-    for item in order.items:
+    for item in _lock_ordered_items(order):
         if item.sku_id is None:
             continue
         candidates = db.execute(
@@ -359,7 +476,7 @@ def _reserve_stock(db: Session, order: Order) -> None:
 
 
 def _release_stock(db: Session, order: Order) -> None:
-    for item in order.items:
+    for item in _lock_ordered_items(order):
         if item.sku_id is None or item.warehouse_id is None:
             continue
         inventory = db.execute(

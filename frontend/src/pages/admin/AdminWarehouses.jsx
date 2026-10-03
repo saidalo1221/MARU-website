@@ -67,13 +67,13 @@ export default function AdminWarehouses() {
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
-          <input required placeholder={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input required placeholder={t('admin.common.country')} value={form.country} onChange={update('country')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input placeholder={t('admin.warehouses.address')} value={form.address} onChange={update('address')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required placeholder={t('admin.common.country')} aria-label={t('admin.common.country')} value={form.country} onChange={update('country')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input placeholder={t('admin.warehouses.address')} aria-label={t('admin.warehouses.address')} value={form.address} onChange={update('address')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
           <div>
             <label className="block text-xs text-gray-500 mb-1">{t('admin.warehouses.location')}</label>
             <MapPicker
@@ -91,12 +91,12 @@ export default function AdminWarehouses() {
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">{t('admin.warehouses.priority')}</label>
-            <input type="number" min="0" value={form.priority} onChange={update('priority')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input type="number" min="0" value={form.priority} aria-label={t('admin.warehouses.priority')} onChange={update('priority')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.is_active} onChange={update('is_active')} /> {t('admin.common.active')}
           </label>
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          {formError && <p role="alert" className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.common.saving') : t('admin.common.save')}
@@ -111,11 +111,11 @@ export default function AdminWarehouses() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="px-3 py-2">{t('admin.common.name')}</th>
-                <th className="px-3 py-2">{t('admin.common.country')}</th>
-                <th className="px-3 py-2">{t('admin.warehouses.priority')}</th>
-                <th className="px-3 py-2">{t('admin.common.active')}</th>
-                <th className="px-3 py-2"></th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.name')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.country')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.warehouses.priority')}</th>
+                <th scope="col" className="px-3 py-2">{t('admin.common.active')}</th>
+                <th scope="col" className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -128,7 +128,7 @@ export default function AdminWarehouses() {
                   <td className="px-3 py-2 text-right"><button onClick={() => openEdit(w)} className="text-brand">{t('admin.common.edit')}</button></td>
                 </tr>
               ))}
-              {warehouses.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-400">{t('admin.warehouses.none')}</td></tr>}
+              {warehouses.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-500">{t('admin.warehouses.none')}</td></tr>}
             </tbody>
           </table>
         </div>

@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
@@ -10,23 +11,33 @@ class PromoCodeCreate(BaseModel):
     code: str = Field(min_length=2, max_length=50)
     discount_type: PromoDiscountType
     discount_value: Decimal = Field(gt=0)
-    currency: str | None = None
+    currency: Optional[str] = None
     min_order_amount: Decimal = Decimal("0")
-    max_uses: int | None = Field(default=None, ge=1)
-    valid_from: datetime | None = None
-    valid_until: datetime | None = None
+    max_uses: Optional[int] = Field(default=None, ge=1)
+    max_uses_per_customer: Optional[int] = Field(default=None, ge=1)
+    product_ids: Optional[list[int]] = None
+    category_ids: Optional[list[int]] = None
+    countries: Optional[list[str]] = None
+    customer_ids: Optional[list[int]] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
     is_active: bool = True
 
 
 class PromoCodeUpdate(BaseModel):
-    discount_type: PromoDiscountType | None = None
-    discount_value: Decimal | None = Field(default=None, gt=0)
-    currency: str | None = None
-    min_order_amount: Decimal | None = None
-    max_uses: int | None = Field(default=None, ge=1)
-    valid_from: datetime | None = None
-    valid_until: datetime | None = None
-    is_active: bool | None = None
+    discount_type: Optional[PromoDiscountType] = None
+    discount_value: Optional[Decimal] = Field(default=None, gt=0)
+    currency: Optional[str] = None
+    min_order_amount: Optional[Decimal] = None
+    max_uses: Optional[int] = Field(default=None, ge=1)
+    max_uses_per_customer: Optional[int] = Field(default=None, ge=1)
+    product_ids: Optional[list[int]] = None
+    category_ids: Optional[list[int]] = None
+    countries: Optional[list[str]] = None
+    customer_ids: Optional[list[int]] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    is_active: Optional[bool] = None
 
 
 class PromoCodeOut(BaseModel):
@@ -36,12 +47,17 @@ class PromoCodeOut(BaseModel):
     code: str
     discount_type: PromoDiscountType
     discount_value: Decimal
-    currency: str | None
+    currency: Optional[str]
     min_order_amount: Decimal
-    max_uses: int | None
+    max_uses: Optional[int]
     used_count: int
-    valid_from: datetime | None
-    valid_until: datetime | None
+    max_uses_per_customer: Optional[int] = None
+    product_ids: Optional[list[int]] = None
+    category_ids: Optional[list[int]] = None
+    countries: Optional[list[str]] = None
+    customer_ids: Optional[list[int]] = None
+    valid_from: Optional[datetime]
+    valid_until: Optional[datetime]
     is_active: bool
     created_at: datetime
     updated_at: datetime

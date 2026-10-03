@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
@@ -9,7 +10,7 @@ class ExchangeRateCreate(BaseModel):
     # Optional: when omitted, the rate is fetched live from the FX provider
     # (app/services/fx_provider.py) instead of requiring the admin to type
     # one in. Still accepted for currencies the provider doesn't support.
-    units_per_usd: Decimal | None = Field(default=None, gt=0)
+    units_per_usd: Optional[Decimal] = Field(default=None, gt=0)
 
     @field_validator("currency")
     @classmethod

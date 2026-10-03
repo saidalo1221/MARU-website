@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
-import { errorMessage } from '../api/client'
+import { ApiError, errorMessage } from '../api/client'
 import PasswordInput from '../components/PasswordInput'
+import AuthSplit, { authButtonClass, authInputClass } from '../components/auth/AuthSplit'
 import Seo from '../components/Seo'
 
 export default function Login() {
@@ -31,7 +32,7 @@ export default function Login() {
         navigate(next)
       }
     } catch (err) {
-      setError(errorMessage(err, t('login.failed')))
+      setError(err instanceof ApiError ? errorMessage(err, t('login.failed')) : t('login.networkError'))
     } finally {
       setSubmitting(false)
     }
@@ -53,53 +54,50 @@ export default function Login() {
 
   if (phase === 'device-code') {
     return (
-      <div className="max-w-sm mx-auto px-4 py-12">
-        <h1 className="text-2xl font-bold mb-1">{t('login.deviceCodeTitle')}</h1>
-        <p className="text-sm text-gray-500 mb-6">{t('login.deviceCodeSubtitle', { email })}</p>
-        <form onSubmit={handleVerifyDevice} className="space-y-3">
+      <AuthSplit title={t('login.deviceCodeTitle')} description={t('login.deviceCodeSubtitle', { email })}>
+        <form onSubmit={handleVerifyDevice} className="space-y-5">
           <input
             required
             inputMode="numeric"
             pattern="[0-9]*"
-            placeholder={t('login.deviceCodePlaceholder')}
+            placeholder={t('login.deviceCodePlaceholder')} aria-label={t('login.deviceCodePlaceholder')}
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm tracking-widest text-center text-lg"
+            className={`${authInputClass} tracking-widest text-center text-lg`}
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+          <button type="submit" disabled={submitting} className={authButtonClass}>
             {submitting ? t('login.submitting') : t('login.deviceCodeVerify')}
           </button>
           <button
             type="button"
             onClick={() => { setPhase('credentials'); setCode(''); setError(null) }}
-            className="w-full text-xs text-gray-500"
+            className="w-full text-sm text-gray-500"
           >
             {t('admin.login.back')}
           </button>
         </form>
-      </div>
+      </AuthSplit>
     )
   }
 
   return (
-    <div className="max-w-sm mx-auto px-4 py-12">
+    <AuthSplit title={t('login.title')} description={t('login.subtitle')}>
       <Seo title={t('login.title')} noindex />
-      <h1 className="text-2xl font-bold mb-6">{t('login.title')}</h1>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input required type="email" placeholder={t('checkout.email')} value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <PasswordInput required placeholder={t('login.password')} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <input required type="text" inputMode="email" autoComplete="username" placeholder={t('login.identifier')} aria-label={t('login.identifier')} value={email} onChange={(e) => setEmail(e.target.value)} className={authInputClass} />
+        <PasswordInput required placeholder={t('login.password')} value={password} onChange={(e) => setPassword(e.target.value)} className={authInputClass} />
         <div className="text-right">
-          <Link to="/forgot-password" className="text-xs text-brand">{t('forgotPassword.link')}</Link>
+          <Link to="/forgot-password" className="text-sm text-brand hover:underline">{t('forgotPassword.link')}</Link>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+        <button type="submit" disabled={submitting} className={authButtonClass}>
           {submitting ? t('login.submitting') : t('login.submit')}
         </button>
       </form>
-      <p className="text-sm text-gray-500 mt-4">
-        {t('login.noAccount')} <Link to={`/register?next=${encodeURIComponent(next)}`} className="text-brand">{t('login.register')}</Link>
+      <p className="text-center text-sm text-gray-500 mt-6">
+        {t('login.noAccount')} <Link to={`/register?next=${encodeURIComponent(next)}`} className="text-brand hover:underline">{t('login.register')}</Link>
       </p>
-    </div>
+    </AuthSplit>
   )
 }

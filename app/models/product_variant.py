@@ -25,3 +25,6 @@ class ProductVariant(Base):
 
     product = relationship("Product", back_populates="variants")
     skus = relationship("SKU", back_populates="variant", cascade="all, delete-orphan")
+    images = relationship(
+        "VariantImage", back_populates="variant", cascade="all, delete-orphan", order_by="VariantImage.sort_order"
+    )

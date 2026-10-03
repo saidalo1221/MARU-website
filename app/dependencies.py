@@ -1,4 +1,5 @@
-from datetime import datetime
+from typing import Optional
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import Depends, Header, HTTPException, Response, status
@@ -17,9 +18,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=F
 
 
 def get_current_user_optional(
-    token: str | None = Depends(oauth2_scheme),
+    token: Optional[str] = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
-) -> User | None:
+) -> Optional[User]:
     if not token:
         return None
 
@@ -39,7 +40,7 @@ def get_current_user_optional(
 
 
 def get_current_user_required(
-    user: User | None = Depends(get_current_user_optional),
+    user: Optional[User] = Depends(get_current_user_optional),
 ) -> User:
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
@@ -54,7 +55,7 @@ def require_role(*roles: UserRole):
         # email-code login (app/routers/auth.py's admin_login_request/
         # admin_login_verify) to have been completed recently — a plain
         # site login is not enough to reach the admin panel or its API.
-        if user.admin_mfa_verified_until is None or user.admin_mfa_verified_until < datetime.utcnow():
+        if user.admin_mfa_verified_until is None or user.admin_mfa_verified_until < datetime.now(timezone.utc).replace(tzinfo=None):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="admin_verification_required")
         return user
 
@@ -63,8 +64,8 @@ def require_role(*roles: UserRole):
 
 def get_or_create_cart(
     response: Response,
-    x_cart_token: str | None = Header(default=None, alias="X-Cart-Token"),
-    user: User | None = Depends(get_current_user_optional),
+    x_cart_token: Optional[str] = Header(default=None, alias="X-Cart-Token"),
+    user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ) -> Cart:
     """Resolve the caller's active cart. Authenticated users are matched by

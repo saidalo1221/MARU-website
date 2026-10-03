@@ -8,6 +8,7 @@ from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.warehouse import Warehouse
 from app.models.user import User
+from app.services.audit import audit_create, audit_update, log_audit
 from app.schemas.warehouse import WarehouseCreate, WarehouseOut, WarehouseUpdate
 
 router = APIRouter(prefix="/admin/warehouses", tags=["admin-warehouses"])
@@ -35,6 +36,7 @@ def create_warehouse(
     warehouse = Warehouse(**payload.model_dump())
     db.add(warehouse)
     try:
+        audit_create(db, user, "warehouse_create", "warehouse", warehouse, payload.model_dump())
         db.commit()
     except SQLAlchemyError as exc:
         db.rollback()
@@ -55,7 +57,9 @@ def update_warehouse(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Warehouse not found")
 
     try:
-        for field, value in payload.model_dump(exclude_unset=True).items():
+        changes = payload.model_dump(exclude_unset=True)
+        audit_update(db, user, "warehouse_update", "warehouse", warehouse, changes)
+        for field, value in changes.items():
             setattr(warehouse, field, value)
         db.commit()
     except SQLAlchemyError as exc:

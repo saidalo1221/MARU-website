@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -22,6 +23,6 @@ class InventoryCreate(BaseModel):
 
 
 class InventoryUpdate(BaseModel):
-    stock: int | None = Field(default=None, ge=0)
-    incoming: int | None = Field(default=None, ge=0)
-    min_stock: int | None = Field(default=None, ge=0)
+    stock: Optional[int] = Field(default=None, ge=0)
+    incoming: Optional[int] = Field(default=None, ge=0)
+    min_stock: Optional[int] = Field(default=None, ge=0)

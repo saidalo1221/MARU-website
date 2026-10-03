@@ -10,6 +10,7 @@ provider's test environment, and re-check error codes against their current
 merchant docs, before processing real payments.
 """
 
+from typing import Optional
 import base64
 import hmac
 import hashlib
@@ -20,6 +21,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.config import settings
 from app.database import get_db
 from app.models.click_transaction import ClickTransaction
@@ -37,10 +39,16 @@ def _now_ms() -> int:
     return int(time.time() * 1000)
 
 
-@router.get("/methods", response_model=list[PaymentMethodOut], tags=["payments"])
-def payment_methods() -> list[dict]:
-    """Frontend-safe capabilities list; secrets are never exposed."""
-    return list_payment_methods()
+@router.get(
+    "/methods",
+    response_model=list[PaymentMethodOut],
+    tags=["payments"],
+    dependencies=[Depends(rate_limit("payment_methods", 120, 60))],
+)
+def payment_methods(country: Optional[str] = None) -> list[dict]:
+    """Frontend-safe capabilities list; secrets are never exposed. With ?country=,
+    methods that cannot be used for that destination come back disabled."""
+    return list_payment_methods(country)
 
 
 # ===========================================================================
@@ -94,7 +102,7 @@ async def payme_webhook(request: Request, db: Session = Depends(get_db)) -> dict
     return handler(db, rpc_id, params)
 
 
-def _payme_order(db: Session, params: dict) -> Order | None:
+def _payme_order(db: Session, params: dict) -> Optional[Order]:
     order_id = params.get("account", {}).get("order_id")
     if order_id is None:
         return None

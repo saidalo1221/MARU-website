@@ -1,28 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.review import Review, ReviewStatus
 from app.models.user import User
 from app.schemas.extras import ReviewModeration, ReviewOut
+from app.services.audit import log_audit
 
 router = APIRouter(prefix="/admin/reviews", tags=["admin-reviews"])
 
 
 @router.get("/", response_model=list[ReviewOut])
 def list_reviews(
-    status_filter: ReviewStatus | None = None,
+    response: Response,
+    status_filter: Optional[ReviewStatus] = None,
+    params: PageParams = Depends(page_params),
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[Review]:
     stmt = select(Review).order_by(Review.id.desc())
     if status_filter is not None:
         stmt = stmt.where(Review.status == status_filter)
-    return list(db.execute(stmt).scalars().all())
+    return paged(db, response, stmt, stmt, params)
 
 
 @router.patch("/{review_id}", response_model=ReviewOut)
@@ -43,3 +48,18 @@ def moderate_review(
         raise HTTPException(status_code=500, detail="Failed to update review") from exc
     db.refresh(review)
     return review
+
+
+@router.delete("/{review_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_review(
+    review_id: int,
+    user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
+    db: Session = Depends(get_db),
+) -> None:
+    """Removes a review for good (hiding it is the reversible option); audited."""
+    review = db.get(Review, review_id)
+    if review is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
+    log_audit(db, user, "review_delete", "review", review.id, old={"product_id": review.product_id, "rating": review.rating})
+    db.delete(review)
+    db.commit()

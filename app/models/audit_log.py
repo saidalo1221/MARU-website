@@ -16,4 +16,6 @@ class AuditLog(Base):
     entity_id = Column(String(50), nullable=True)
     old_value = Column(Text, nullable=True)
     new_value = Column(Text, nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    request_id = Column(String(64), nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

@@ -224,3 +224,23 @@ def test_partial_refund_then_full_refund(client, sku, db_session, monkeypatch):
     # A further refund attempt is rejected — nothing left to refund.
     r = client.post(f"/api/v1/admin/orders/{order_id}/refund", headers=admin_headers, json={"amount": "1"})
     assert r.status_code == 400
+
+
+def test_local_gateways_are_hidden_outside_uzbekistan(client):
+    everywhere = {m["id"]: m for m in client.get("/api/v1/payments/methods").json()}
+    assert everywhere["payme"]["enabled"] is True
+
+    de = {m["id"]: m for m in client.get("/api/v1/payments/methods", params={"country": "Germany"}).json()}
+    assert de["payme"]["enabled"] is False and de["payme"]["reason"] == "Not available in this country"
+    assert de["click"]["enabled"] is False
+    uz = {m["id"]: m for m in client.get("/api/v1/payments/methods", params={"country": "uzbekistan"}).json()}
+    assert uz["payme"]["enabled"] is True and uz["click"]["enabled"] is True
+
+
+def test_checkout_refuses_a_local_gateway_for_a_foreign_destination(client, sku):
+    headers = register(client, "german@example.com")
+    client.post("/api/v1/cart/items", headers=headers, json={"sku_id": sku.id, "quantity": 1})
+    payload = {**CHECKOUT_PAYLOAD, "payment_method": "payme", "country": "Germany"}
+    r = client.post("/api/v1/orders/", headers=headers, json=payload)
+    assert r.status_code == 400
+    assert "not available in Germany" in r.json()["detail"]

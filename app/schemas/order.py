@@ -1,11 +1,14 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, Literal
+import json
+from typing import Annotated, Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
-from app.models.enums import OrderStatus
+from app.models.enums import OrderStatus, PaymentStatus
 from app.models.order import OrderType
+from app.schemas.shipment import ShipmentOut
+from app.schemas.user import normalize_required_phone
 
 EmailStr = Annotated[
     str,
@@ -28,50 +31,59 @@ class CheckoutRequest(BaseModel):
     first_name: str
     last_name: str
     phone: str
+    _phone = field_validator("phone")(normalize_required_phone)
     email: EmailStr
     country: str
+    region: Optional[str] = Field(default=None, max_length=100)
     city: str
     address_line: str
     postal_code: str
     delivery_method: str
     payment_method: PaymentMethod
+    language: Optional[Literal["ru", "uz", "en"]] = None
+    loyalty_points: int = Field(default=0, ge=0, le=10_000_000)
+    whatsapp_opt_in: bool = False
     source: OrderSource = "website"
-    promo_code: str | None = None
+    promo_code: Optional[str] = None
+    # Free-form on purpose: the service keeps only a whitelist of keys.
+    attribution: Optional[dict[str, Any]] = None
 
-    company_name: str | None = None
-    company_reg_number: str | None = None
-    company_tax_number: str | None = None
-    company_address: str | None = None
-    contact_person: str | None = None
+    company_name: Optional[str] = None
+    company_reg_number: Optional[str] = None
+    company_tax_number: Optional[str] = None
+    company_address: Optional[str] = None
+    contact_person: Optional[str] = None
 
 
 class OrderItemOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    sku_id: int | None
-    warehouse_id: int | None
+    sku_id: Optional[int]
+    warehouse_id: Optional[int]
     sku_code_snapshot: str
     product_name_snapshot: str
-    variant_name_snapshot: str | None
+    variant_name_snapshot: Optional[str]
     unit_price: Decimal
     quantity: int
     line_total: Decimal
+    discount_amount: Decimal = Decimal("0")
+    tax_amount: Decimal = Decimal("0")
     currency: str
 
 
 class OrderStatusHistoryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    from_status: OrderStatus | None
+    from_status: Optional[OrderStatus]
     to_status: OrderStatus
-    note: str | None
+    note: Optional[str]
     created_at: datetime
 
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
-    note: str | None = None
+    note: Optional[str] = None
 
 
 class OrderOut(BaseModel):
@@ -91,12 +103,31 @@ class OrderOut(BaseModel):
     last_name: str
     email: str
     country: str
+    region: Optional[str] = None
     city: str
+    address_line: Optional[str] = None
+    postal_code: Optional[str] = None
+    delivery_method: Optional[str] = None
     source: str
     payment_method: str
+    loyalty_points_used: int = 0
+    loyalty_discount_amount: Decimal = Decimal("0")
+    payment_status: PaymentStatus
     created_at: datetime
     items: list[OrderItemOut]
     status_history: list[OrderStatusHistoryOut]
+    shipments: list[ShipmentOut] = []
+    attribution: Optional[dict[str, str]] = None
+
+    @field_validator("attribution", mode="before")
+    @classmethod
+    def _parse_attribution(cls, value):
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except ValueError:
+                return None
+        return value if isinstance(value, dict) else None
 
 
 PaymentReferenceKind = Literal["redirect_url", "client_secret", "provider_order_id"]
@@ -113,12 +144,12 @@ class CheckoutOut(OrderOut):
     access token. Neither is included in normal order-history responses."""
 
     payment: PaymentInitiationOut
-    guest_order_token: str | None = None
+    guest_order_token: Optional[str] = None
 
 
 class PaymentMethodOut(BaseModel):
     id: str
     display_name: str
     enabled: bool
-    reference_kind: PaymentReferenceKind | None = None
-    reason: str | None = None
+    reference_kind: Optional[PaymentReferenceKind] = None
+    reason: Optional[str] = None

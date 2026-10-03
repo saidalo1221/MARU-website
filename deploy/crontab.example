@@ -1,0 +1,28 @@
+# Scheduled jobs for MARU - install with `crontab -e` as the app user.
+# NOT TESTED on a real server. Each job must run from the project root with the
+# production .env available (the app reads it from the working directory).
+# Logs go to /var/log/maru/ (create it and give the app user write access).
+
+APP=/srv/maru
+PY=/srv/maru/venv/bin/python
+
+# Release stock held by unpaid orders whose reservation expired
+*/5  * * * *  cd $APP && $PY -m app.tasks.expire_reservations   >> /var/log/maru/expire.log 2>&1
+# Retry failed CRM pushes
+*/10 * * * *  cd $APP && $PY -m app.tasks.retry_integrations    >> /var/log/maru/crm.log 2>&1
+# Email ALERT_EMAIL about dead-letter/stuck integrations and payment-failure spikes
+*/10 * * * *  cd $APP && $PY -m app.tasks.check_alerts          >> /var/log/maru/alerts.log 2>&1
+# "Notify me when back in stock" emails
+*/15 * * * *  cd $APP && $PY -m app.tasks.notify_back_in_stock  >> /var/log/maru/stock-alerts.log 2>&1
+# Abandoned-cart reminder e-mails (signed-in customers only)
+5 * * * *     cd $APP && $PY -m app.tasks.abandoned_carts       >> /var/log/maru/abandoned-carts.log 2>&1
+# Loyalty points that expired (only does anything when an expiry period is set in Admin > Loyalty)
+30 3 * * *    cd $APP && $PY -m app.tasks.expire_loyalty_points >> /var/log/maru/loyalty.log 2>&1
+# Exchange rates (free API tier: once a day is plenty)
+10 3 * * *    cd $APP && $PY -m app.tasks.sync_exchange_rates   >> /var/log/maru/fx.log 2>&1
+# Stock drift report (exit status 1 = mismatches found; read it before adding --fix)
+30 3 * * *    cd $APP && $PY -m app.tasks.reconcile_stock       >> /var/log/maru/reconcile.log 2>&1
+# Database + uploads backup (see scripts/backup_db.sh for setup)
+15 2 * * *    /srv/maru/scripts/backup_db.sh                    >> /var/log/maru/backup.log 2>&1
+# Background jobs - only if you do NOT run the maru-worker systemd unit (JOBS_ASYNC=true)
+* * * * *     cd $APP && $PY -m app.tasks.worker --once         >> /var/log/maru/worker.log 2>&1

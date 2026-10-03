@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -16,7 +17,7 @@ router = APIRouter(prefix="/admin/notification-templates", tags=["admin-notifica
 
 @router.get("/", response_model=list[NotificationTemplateOut])
 def list_templates(
-    event: str | None = None,
+    event: Optional[str] = None,
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[NotificationTemplate]:

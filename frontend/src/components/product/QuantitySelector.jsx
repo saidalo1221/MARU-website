@@ -5,11 +5,11 @@ export default function QuantitySelector({ value, min = 1, max, onChange }) {
   const clamp = (n) => Math.max(min, max ? Math.min(max, n) : n)
 
   return (
-    <div className="flex items-center border border-gray-300 rounded w-fit">
+    <div className="flex w-fit items-center rounded-full border border-gray-300 bg-white">
       <button
         type="button"
         onClick={() => onChange(clamp(value - 1))}
-        className="px-3 py-2 text-lg leading-none disabled:opacity-30"
+        className="px-4 py-2 text-lg leading-none disabled:opacity-30"
         disabled={value <= min}
         aria-label={t('product.decreaseQty')}
       >
@@ -19,7 +19,7 @@ export default function QuantitySelector({ value, min = 1, max, onChange }) {
       <button
         type="button"
         onClick={() => onChange(clamp(value + 1))}
-        className="px-3 py-2 text-lg leading-none disabled:opacity-30"
+        className="px-4 py-2 text-lg leading-none disabled:opacity-30"
         disabled={max !== undefined && value >= max}
         aria-label={t('product.increaseQty')}
       >

@@ -8,6 +8,7 @@ from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.promo_code import PromoCode
 from app.models.user import User
+from app.services.audit import audit_create, audit_update, log_audit
 from app.schemas.promo_code import PromoCodeCreate, PromoCodeOut, PromoCodeUpdate
 
 router = APIRouter(prefix="/admin/promo-codes", tags=["admin-promo-codes"])
@@ -36,6 +37,7 @@ def create_promo_code(
     code = PromoCode(**payload.model_dump())
     db.add(code)
     try:
+        audit_create(db, user, "promo_create", "promo_code", code, payload.model_dump())
         db.commit()
     except IntegrityError as exc:
         db.rollback()
@@ -78,7 +80,9 @@ def update_promo_code(
         if code is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Promo code not found")
 
-        for field, value in payload.model_dump(exclude_unset=True).items():
+        changes = payload.model_dump(exclude_unset=True)
+        audit_update(db, user, "promo_update", "promo_code", code, changes)
+        for field, value in changes.items():
             setattr(code, field, value)
 
         db.commit()

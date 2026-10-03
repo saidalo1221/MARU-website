@@ -8,6 +8,7 @@ from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.shipping_rate import ShippingRate
 from app.models.user import User
+from app.services.audit import audit_create, audit_update, log_audit
 from app.schemas.shipping import ShippingRateCreate, ShippingRateOut, ShippingRateUpdate
 
 # Delivery cost isn't assigned to a specific role in PRD section 34; it's gated
@@ -39,6 +40,7 @@ def create_shipping_rate(
     rate = ShippingRate(**payload.model_dump())
     db.add(rate)
     try:
+        audit_create(db, user, "shipping_rate_create", "shipping_rate", rate, payload.model_dump())
         db.commit()
     except IntegrityError as exc:
         db.rollback()
@@ -66,7 +68,9 @@ def update_shipping_rate(
         if rate is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipping rate not found")
 
-        for field, value in payload.model_dump(exclude_unset=True).items():
+        changes = payload.model_dump(exclude_unset=True)
+        audit_update(db, user, "shipping_rate_update", "shipping_rate", rate, changes)
+        for field, value in changes.items():
             setattr(rate, field, value)
 
         db.commit()

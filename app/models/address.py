@@ -14,6 +14,7 @@ class Address(Base):
     last_name = Column(String(100), nullable=False)
     phone = Column(String(30), nullable=False)
     country = Column(String(100), nullable=False)
+    region = Column(String(100), nullable=True)  # state/province; selects region tax rules
     city = Column(String(100), nullable=False)
     address_line = Column(String(255), nullable=False)
     postal_code = Column(String(20), nullable=False)

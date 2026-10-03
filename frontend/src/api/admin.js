@@ -29,9 +29,16 @@ export function adminUpsertSiteSettingsTranslation(locale, payload) {
 }
 
 // Orders
-export function adminListOrders(statusFilter) {
-  const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''
-  return apiRequest(`/admin/orders/${qs}`)
+// Paged lists resolve to { data, total } (see apiRequest `meta`).
+function pagedQuery(statusFilter, page, extra = {}) {
+  const params = new URLSearchParams()
+  if (statusFilter) params.set('status_filter', statusFilter)
+  Object.entries(extra).forEach(([k, v]) => v && params.set(k, v))
+  if (page > 1) params.set('page', String(page))
+  return params.toString() ? `?${params.toString()}` : ''
+}
+export function adminListOrders(statusFilter, page = 1, paymentStatus) {
+  return apiRequest(`/admin/orders/${pagedQuery(statusFilter, page, { payment_status: paymentStatus })}`, { meta: true })
 }
 export function adminGetOrder(orderId) {
   return apiRequest(`/admin/orders/${orderId}`)
@@ -39,14 +46,19 @@ export function adminGetOrder(orderId) {
 export function adminUpdateOrderStatus(orderId, status, note) {
   return apiRequest(`/admin/orders/${orderId}/status`, { method: 'PATCH', body: { status, note: note || null } })
 }
+export function adminCreateShipment(orderId, body) {
+  return apiRequest(`/admin/orders/${orderId}/shipments`, { method: 'POST', body })
+}
+export function adminAddShipmentEvent(orderId, shipmentId, body) {
+  return apiRequest(`/admin/orders/${orderId}/shipments/${shipmentId}/events`, { method: 'POST', body })
+}
 export function adminRefundOrder(orderId, amount, reason) {
   return apiRequest(`/admin/orders/${orderId}/refund`, { method: 'POST', body: { amount, reason: reason || null } })
 }
 
 // Quotes
-export function adminListQuotes(statusFilter) {
-  const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''
-  return apiRequest(`/admin/quotes/${qs}`)
+export function adminListQuotes(statusFilter, page = 1) {
+  return apiRequest(`/admin/quotes/${pagedQuery(statusFilter, page)}`, { meta: true })
 }
 export function adminGetQuote(quoteId) {
   return apiRequest(`/admin/quotes/${quoteId}`)
@@ -59,9 +71,8 @@ export function adminConvertQuote(quoteId, payload) {
 }
 
 // Reviews
-export function adminListReviews(statusFilter) {
-  const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''
-  return apiRequest(`/admin/reviews/${qs}`)
+export function adminListReviews(statusFilter, page = 1) {
+  return apiRequest(`/admin/reviews/${pagedQuery(statusFilter, page)}`, { meta: true })
 }
 export function adminModerateReview(reviewId, status) {
   return apiRequest(`/admin/reviews/${reviewId}`, { method: 'PATCH', body: { status } })
@@ -76,6 +87,12 @@ export function adminCreateCategory(payload) {
 }
 export function adminUpdateCategory(categoryId, payload) {
   return apiRequest(`/admin/categories/${categoryId}`, { method: 'PATCH', body: payload })
+}
+export function adminListCategoryTranslations(categoryId) {
+  return apiRequest(`/admin/categories/${categoryId}/translations`)
+}
+export function adminUpsertCategoryTranslation(categoryId, locale, payload) {
+  return apiRequest(`/admin/categories/${categoryId}/translations/${locale}`, { method: 'PUT', body: payload })
 }
 export function adminDeleteCategory(categoryId) {
   return apiRequest(`/admin/categories/${categoryId}`, { method: 'DELETE' })
@@ -113,6 +130,12 @@ export function adminUploadImage(file) {
   return apiRequest('/admin/uploads/image', { method: 'POST', body: formData })
 }
 
+export function adminUploadVideo(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiRequest('/admin/uploads/video', { method: 'POST', body: formData })
+}
+
 // Product translations
 export function adminListProductTranslations(productId) {
   return apiRequest(`/admin/products/${productId}/translations`)
@@ -132,9 +155,47 @@ export function adminCreateSku(variantId, payload) {
   return apiRequest(`/admin/variants/${variantId}/skus`, { method: 'POST', body: payload })
 }
 
+export function adminReplaceSkuTiers(skuId, tiers) {
+  return apiRequest(`/admin/skus/${skuId}/tiers`, { method: 'PUT', body: { tiers } })
+}
+
+// Variant image gallery
+export function adminAddVariantImage(variantId, imageUrl) {
+  return apiRequest(`/admin/variants/${variantId}/images`, { method: 'POST', body: { image_url: imageUrl } })
+}
+export function adminReorderVariantImage(variantId, imageId, sortOrder) {
+  return apiRequest(`/admin/variants/${variantId}/images/${imageId}`, {
+    method: 'PATCH',
+    body: { sort_order: sortOrder },
+  })
+}
+export function adminDeleteVariantImage(variantId, imageId) {
+  return apiRequest(`/admin/variants/${variantId}/images/${imageId}`, { method: 'DELETE' })
+}
+
 // SKUs
 export function adminUpdateSku(skuId, payload) {
   return apiRequest(`/admin/skus/${skuId}`, { method: 'PATCH', body: payload })
+}
+
+// Dashboard
+export function adminDashboard() {
+  return apiRequest('/admin/dashboard/')
+}
+export function adminListMarketingSpend() {
+  return apiRequest('/admin/dashboard/marketing-spend')
+}
+export function adminAddMarketingSpend(payload) {
+  return apiRequest('/admin/dashboard/marketing-spend', { method: 'POST', body: payload })
+}
+export function adminDeleteMarketingSpend(id) {
+  return apiRequest(`/admin/dashboard/marketing-spend/${id}`, { method: 'DELETE' })
+}
+export function adminGetSkuCost(skuId) {
+  return apiRequest(`/admin/skus/${skuId}/cost`)
+}
+export function adminSetSkuCost(skuId, costPrice) {
+  return apiRequest(`/admin/skus/${skuId}/cost`, { method: 'PUT', body: { cost_price: costPrice } })
 }
 
 // Inventory
@@ -214,12 +275,20 @@ export function adminUpdateNotificationTemplate(templateId, payload) {
 }
 
 // Integration logs
-export function adminListIntegrationLogs(statusFilter, integration) {
-  const params = new URLSearchParams()
-  if (statusFilter) params.set('status_filter', statusFilter)
-  if (integration) params.set('integration', integration)
-  const qs = params.toString() ? `?${params.toString()}` : ''
-  return apiRequest(`/admin/integration-logs/${qs}`)
+export function adminListIntegrationLogs(statusFilter, integration, page = 1) {
+  return apiRequest(`/admin/integration-logs/${pagedQuery(statusFilter, page, { integration })}`, { meta: true })
+}
+export function adminJobStats() {
+  return apiRequest('/admin/jobs/stats')
+}
+export function adminListDeadJobs() {
+  return apiRequest('/admin/jobs/?status_filter=dead')
+}
+export function adminRetryJob(id) {
+  return apiRequest(`/admin/jobs/${id}/retry`, { method: 'POST' })
+}
+export function adminIntegrationHealth() {
+  return apiRequest('/admin/integration-logs/health')
 }
 export function adminRetryIntegrationLog(logId) {
   return apiRequest(`/admin/integration-logs/${logId}/retry`, { method: 'POST' })
@@ -232,6 +301,21 @@ export function adminListAuditLogs(entity) {
 }
 
 // Analytics events
+export function adminListNewsletter(statusFilter) {
+  const qs = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ''
+  return apiRequest(`/admin/newsletter/${qs}`)
+}
+
+export function adminListCampaigns() {
+  return apiRequest('/admin/newsletter/campaigns')
+}
+export function adminTestCampaign(payload) {
+  return apiRequest('/admin/newsletter/campaigns/test', { method: 'POST', body: payload })
+}
+export function adminSendCampaign(payload) {
+  return apiRequest('/admin/newsletter/campaigns', { method: 'POST', body: payload })
+}
+
 export function adminListAnalyticsEvents(eventName) {
   const qs = eventName ? `?event_name=${encodeURIComponent(eventName)}` : ''
   return apiRequest(`/admin/analytics-events/${qs}`)
@@ -301,8 +385,8 @@ export function adminDeleteBlogCategory(categoryId) {
 }
 
 // Blog posts
-export function adminListBlogPosts() {
-  return apiRequest('/admin/blog/posts')
+export function adminListBlogPosts(page = 1) {
+  return apiRequest(`/admin/blog/posts${page > 1 ? `?page=${page}` : ''}`, { meta: true })
 }
 export function adminGetBlogPost(postId) {
   return apiRequest(`/admin/blog/posts/${postId}`)

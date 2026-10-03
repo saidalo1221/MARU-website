@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { adminCreateCategory, adminDeleteCategory, adminListCategories, adminUpdateCategory } from '../../api/admin'
 import { errorMessage } from '../../api/client'
 import { useLocale } from '../../context/LocaleContext'
+import CategoryTranslations from '../../components/admin/CategoryTranslations'
 
-const emptyForm = { name: '', slug: '', parent_id: '' }
+const emptyForm = { name: '', slug: '', parent_id: '', description: '', seo_content: '', image_url: '' }
 
 function flatten(nodes, depth = 0) {
   return nodes.flatMap((n) => [{ ...n, depth }, ...flatten(n.children || [], depth + 1)])
@@ -28,14 +29,17 @@ export default function AdminCategories() {
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
   const openNew = () => { setEditingId(null); setForm(emptyForm); setFormError(null); setFormOpen(true) }
-  const openEdit = (c) => { setEditingId(c.id); setForm({ name: c.name, slug: c.slug, parent_id: c.parent_id ?? '' }); setFormError(null); setFormOpen(true) }
+  const openEdit = (c) => { setEditingId(c.id); setForm({ name: c.name, slug: c.slug, parent_id: c.parent_id ?? '', description: c.description || '', seo_content: c.seo_content || '', image_url: c.image_url || '' }); setFormError(null); setFormOpen(true) }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormError(null)
     setSubmitting(true)
     try {
-      const payload = { name: form.name, slug: form.slug, parent_id: form.parent_id === '' ? null : Number(form.parent_id) }
+      const payload = {
+        name: form.name, slug: form.slug, parent_id: form.parent_id === '' ? null : Number(form.parent_id),
+        description: form.description || null, seo_content: form.seo_content || null, image_url: form.image_url || null,
+      }
       if (editingId) await adminUpdateCategory(editingId, payload)
       else await adminCreateCategory(payload)
       setFormOpen(false)
@@ -64,19 +68,23 @@ export default function AdminCategories() {
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
-          <input required placeholder={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input required placeholder={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <select value={form.parent_id} onChange={update('parent_id')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+          <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required placeholder={t('admin.common.slug')} aria-label={t('admin.common.slug')} value={form.slug} onChange={update('slug')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <select value={form.parent_id} aria-label={t('admin.categories.noParent')} onChange={update('parent_id')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
             <option value="">{t('admin.categories.noParent')}</option>
             {flat.filter((c) => c.id !== editingId).map((c) => (
               <option key={c.id} value={c.id}>{'  '.repeat(c.depth)}{c.name}</option>
             ))}
           </select>
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          <textarea placeholder={t('admin.categories.description')} aria-label={t('admin.categories.description')} value={form.description} onChange={update('description')} rows={3} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <textarea placeholder={t('admin.categories.seoContent')} aria-label={t('admin.categories.seoContent')} value={form.seo_content} onChange={update('seo_content')} rows={4} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="url" placeholder={t('admin.categories.imageUrl')} aria-label={t('admin.categories.imageUrl')} value={form.image_url} onChange={update('image_url')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          {formError && <p role="alert" className="text-sm text-red-600">{formError}</p>}
+          {editingId && <CategoryTranslations categoryId={editingId} />}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.common.saving') : t('admin.common.save')}
@@ -90,14 +98,14 @@ export default function AdminCategories() {
         <ul className="border border-gray-200 rounded-lg divide-y divide-gray-100">
           {flat.map((c) => (
             <li key={c.id} className="px-3 py-2 flex justify-between items-center text-sm" style={{ paddingLeft: `${12 + c.depth * 20}px` }}>
-              <span>{c.name} <span className="text-gray-400">({c.slug})</span></span>
+              <span>{c.name} <span className="text-gray-500">({c.slug})</span></span>
               <span className="flex gap-3">
                 <button onClick={() => openEdit(c)} className="text-brand">{t('admin.common.edit')}</button>
-                <button onClick={() => handleDelete(c.id)} className="text-red-500">{t('admin.common.delete')}</button>
+                <button onClick={() => handleDelete(c.id)} className="text-red-600">{t('admin.common.delete')}</button>
               </span>
             </li>
           ))}
-          {flat.length === 0 && <li className="px-3 py-6 text-center text-gray-400">{t('admin.categories.none')}</li>}
+          {flat.length === 0 && <li className="px-3 py-6 text-center text-gray-500">{t('admin.categories.none')}</li>}
         </ul>
       )}
     </div>

@@ -1,0 +1,26 @@
+# systemd unit for the API. NOT TESTED on a real server. Adjust paths and user.
+#   sudo cp deploy/maru-backend.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now maru-backend
+[Unit]
+Description=MARU API (FastAPI / uvicorn)
+After=network.target
+
+[Service]
+User=maru
+WorkingDirectory=/srv/maru
+EnvironmentFile=/srv/maru/.env
+# Trust X-Forwarded-For only from the local reverse proxy, so rate limits see
+# real client IPs and clients cannot spoof them.
+Environment=FORWARDED_ALLOW_IPS=127.0.0.1
+# More than one worker REQUIRES REDIS_URL in .env: without it each worker keeps
+# its own rate-limit counters, so the real limits become multiplied.
+ExecStart=/srv/maru/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2
+Restart=on-failure
+RestartSec=3
+# Keep the process from writing outside the app and uploads.
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/srv/maru/app/static/uploads
+
+[Install]
+WantedBy=multi-user.target

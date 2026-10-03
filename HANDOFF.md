@@ -1,6 +1,6 @@
 # MARU — Session Handoff
 
-Written 2026-09-28 (end of session) to let a fresh session pick up without
+Written 2026-09-28, updated 2026-09-30, to let a fresh session pick up without
 re-deriving context or re-reading the whole diff history. Read this file
 first. `TODO.md` and `session_notes.md` are older and predate everything
 below — don't trust their "what's done" sections over this one. `PRD.md` is
@@ -127,7 +127,99 @@ New admins are added via the "Admins" admin page (Super Admin only),
 promoting an *existing registered account* by email — it doesn't create
 new accounts.
 
-## Feature work done this session (2026-09-28), newest first
+## Feature work done 2026-09-29/30, newest first
+
+All committed on `main`, nothing pushed. Everything was verified at the level
+noted; **none of the UI has been looked at in a real browser yet** (see
+"Not yet verified" below).
+
+- `f9ea569` — Loading skeletons (`components/Skeleton.jsx`) on catalog,
+  search and product pages (PRD s53). WCAG 2.1 AA fixes from a static audit:
+  `<html lang>` now follows the UI language (`LocaleContext`), skip-to-content
+  link + focusable `<main id="main">`, `aria-label` on placeholder-only fields
+  and unlabeled selects (`PasswordInput` defaults its label to its
+  placeholder), storefront `text-gray-400` -> `text-gray-500` for contrast,
+  Quick View dialog has an accessible name and initial focus. Admin pages were
+  NOT touched by the contrast/label pass.
+- `9106902` — Analytics: `remove_from_cart` (only when an item was really
+  removed) and `refund` (after a completed refund) now recorded server-side.
+- `b2c7f91` — All 21 FAQ Q&A pairs seeded in ru/uz in `app/dev_seed.py`.
+  **`dev.db` was also updated, but `dev.db` is gitignored** — a real/staging
+  database needs these entered via the admin "Support Pages Content" page.
+  The translations are my drafts, not native-speaker reviewed. The one junk
+  test translation on the first FAQ row in `dev.db` was overwritten.
+- `a31e8cc` — Product gallery: hover-zoom + full-screen lightbox (Esc/arrows),
+  inline video. A gallery entry is just a URL, classified in
+  `frontend/src/lib/media.js`: `.mp4/.webm` -> `<video>`, YouTube link ->
+  embedded iframe, anything else -> image (no schema change). New
+  `POST /admin/uploads/video` (mp4/webm, 25MB, local disk like images).
+  Mobile catalog filters are now a bottom sheet.
+- `85ee617` — Rate limits on cart (router-wide 300/60s), order lookup (30/60s)
+  and cancel, wishlist, reviews, addresses, blog/about/page-sections/
+  site-settings, shipping, categories, exchange rates, payment methods,
+  `auth/me`, `verify-email`. **Payme/Click webhooks are deliberately
+  unlimited** (few shared provider IPs, authenticated by signature). No search
+  endpoint exists — search filters the product list client-side, covered by
+  `products_list`.
+- `3c69195` — Committed the previously-uncommitted batch: product badges
+  (`app/services/badges.py`, auto/manual per product), multi-image variant
+  gallery (`variant_images`), Quick View modal, country auto-detect banner,
+  dark mode (`ThemeContext`, retrofit via `.dark` overrides in `index.css`),
+  `migration_2026_session8.sql`.
+- `9571d47` — Cart upsell: `GET /cart/recommendations` ranks products by
+  co-purchase in past paid orders, then best sellers, then newest; excludes
+  cart contents and out-of-stock; heading says "Frequently bought together"
+  only when the top result really came from order history, else "You may also
+  like". Advisory only — frontend swallows any failure so checkout is never
+  blocked. `app/services/recommendations.py`.
+
+### Browser verification (done 2026-09-30, Chrome, dark mode, ru locale)
+
+Verified in a real browser: badges match API data; gallery hover-zoom,
+lightbox (Esc/arrows/scroll-lock/focus), mp4 playback and YouTube embed;
+Quick View; cart upsell (excludes cart items and out-of-stock, honest
+"You may also like" heading); mobile filter bottom sheet; country banner
+(incl. EUR switch and dismiss); dark-mode toggle; `<html lang>` sync; skip
+link; skeleton loading state. Console had no errors.
+
+Bugs found and fixed in `6178908`: the mobile header was 499px wide at 390px
+(hamburger off-screen; search now has its own row), the Quick View button was
+unreadable in dark mode and overlapped titles (now an in-flow button), the
+lightbox image showed tiny, and two close buttons read "Close quick view".
+
+Still NOT verified: admin video-upload UI (needs admin 2FA login; the backend
+endpoint itself was tested), light mode visuals, touch behaviour on a real
+phone, checkout/account pages at phone width, Safari/Firefox.
+
+Open decision: `CountryBanner` calls `ipapi.co` from the visitor's browser,
+which discloses every visitor's IP to a third party with no consent step and
+has a low free-tier rate limit. Consider a consent gate or a server-side/paid
+geo lookup before launch.
+
+### Gotchas learned this session
+
+- **Rate limits key on `request.client.host`.** Behind a reverse proxy that is
+  the proxy's IP, so every visitor would share one bucket and get 429s. Before
+  deploying, run uvicorn with `--proxy-headers --forwarded-allow-ips=<proxy>`
+  (or equivalent) so the real client IP is used.
+- **Windows Python defaults to cp1251** when reading/writing files without an
+  explicit encoding. Always pass `encoding="utf-8"` (or work in bytes); a bare
+  `open(...)` silently corrupted an em dash into an invalid byte once, and
+  console output of Cyrillic prints as `?` — write to a UTF-8 file and read it.
+- Most source files have CRLF endings in the working tree; preserve them when
+  scripting edits or diffs balloon.
+- Background dev servers can be reaped by Claude Code under memory pressure;
+  restart them manually (commands in "Running it locally").
+- Video/image uploads are local-disk only; same object-storage caveat as before.
+- The frontend talks to the backend directly at `VITE_API_BASE_URL` (default
+  `http://127.0.0.1:8000/api/v1`); Vite only proxies `/sitemap.xml`. Requesting
+  `/api/...` on :5173 returns the SPA's HTML with a 200, so a 200 there proves
+  nothing — hit :8000.
+- Claude-in-Chrome's `resize_window` did not change the viewport. To test
+  phone widths, load the site in a same-origin `<iframe style="width:390px">`
+  from a scratch page (e.g. `/robots.txt`) and drive it via `contentDocument`.
+
+## Feature work done 2026-09-28, newest first
 
 - `395ce40` — Per-page SEO: `<Seo>` component (react-helmet-async) sets
   title/description/canonical/OG/Twitter tags + JSON-LD on every public
@@ -211,8 +303,8 @@ log, Bitrix24 CRM push, integration logging with retry/backoff.
 decided: ERP/1С integration, SMS/WhatsApp/Telegram notifications, Uzum
 marketplace connector, Uzum Pay.
 
-**Actually missing, buildable now** (priority order):
-1. ~~SEO meta tags / sitemap~~ — **done this session**, see above.
+**Actually missing, buildable now** (priority order; items 3-8 of the original list — badges, Quick View, country banner, cart upsell, rate-limit coverage, loading skeletons — are now done, see 2026-09-29/30 above):
+1. ~~SEO meta tags / sitemap~~ — **done**.
 2. GA4/Meta pixel forwarding — events are captured server-side
    (`app/services/analytics.py`) but never forwarded; needs a Measurement
    Protocol secret.
@@ -234,20 +326,28 @@ coverage against the PRD's event list.
 ## Known gaps / open decisions (carried forward, still true)
 
 - **MariaDB has never been verified.** Every migration this whole project
-  has produced (`app/migration_*.sql`, latest is `migration_2026_session7.sql`)
+  has produced (`app/migration_*.sql`, latest is `migration_2026_session9.sql`)
   and `app/schema_mariadb.sql` (fresh-install version) are SQLite-tested
   only — MariaDB isn't reachable from this dev machine. Re-verify before
-  any production deploy. `migration_2026_session7.sql` covers everything
-  from this session: page sections, trusted devices, account lockout, blog
-  slugs, warehouse lat/long.
+  any production deploy. `migration_2026_session7.sql` covers page sections, trusted devices,
+  account lockout, blog slugs, warehouse lat/long; `migration_2026_session8.sql`
+  covers `variant_images` and the product badge columns; `migration_2026_session9.sql`
+  covers `shipments`, `shipment_events` and `orders.idempotency_key`.
 - **Object storage decision still open** (see PRD gap audit above).
 - Production server reportedly only has Python 3.9 (see `TODO.md`) — this
   codebase uses 3.10+ union syntax (`X | None`) throughout and will not
   import at all on 3.9. Unresolved.
 - Everything blocked-on-vendor-decision from the PRD audit above (ERP,
   SMS/WhatsApp/Telegram, Uzum marketplace, Uzum Pay) is still outstanding.
-- GA4/Meta forwarding, product badges, Quick View, country-detect banner,
-  cart upsell — see PRD gap audit, all unbuilt.
+- GA4/Meta forwarding is still unbuilt, and so are the **client-side analytics
+  events** the PRD lists (`view_item`, `view_item_list`, `search`, `view_cart`,
+  `add_payment_info`, `select_variant`): they only happen in the browser, so
+  they need a small public, rate-limited, name-whitelisted ingest endpoint
+  (e.g. `POST /analytics/events`) plus a frontend tracker. Also `begin_checkout`
+  currently fires when the order is *placed*, not when checkout opens.
+- Accessibility follow-ups: dialogs have initial focus but no focus trap or
+  focus restore; error messages lack `role="alert"`; admin pages weren't
+  audited; a real axe/keyboard pass in a browser is still owed.
 
 ## Conventions worth knowing before adding more features
 

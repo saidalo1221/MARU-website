@@ -36,6 +36,7 @@ class IntegrationLog(Base):
     error_code = Column(String(100), nullable=True)
     error_message = Column(Text, nullable=True)
     attempt = Column(Integer, nullable=False, default=1)
+    duration_ms = Column(Integer, nullable=True)  # wall time of the call itself
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     completed_at = Column(DateTime, nullable=True)

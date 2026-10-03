@@ -8,7 +8,7 @@ import pytest
 
 from app.models.enums import UserRole
 from app.models.exchange_rate import ExchangeRate
-from app.services.fx_provider import FxProviderError, fetch_latest_rates, sync_exchange_rates
+from app.services.fx_provider import FxProviderError, fetch_all_rates, fetch_rate_for_currency, sync_exchange_rates
 from conftest import login, make_admin
 
 
@@ -33,33 +33,33 @@ _SUCCESS_BODY = {
 }
 
 
-def test_fetch_latest_rates_requires_api_key(monkeypatch):
+def test_fetch_all_rates_requires_api_key(monkeypatch):
     import app.config as config_module
 
     monkeypatch.setattr(config_module.settings, "EXCHANGERATE_API_KEY", None)
     with pytest.raises(FxProviderError, match="not configured"):
-        fetch_latest_rates()
+        fetch_all_rates()
 
 
-def test_fetch_latest_rates_parses_tracked_currencies(monkeypatch):
+def test_fetch_all_rates_returns_every_currency_but_usd(monkeypatch):
     import app.config as config_module
     import app.services.fx_provider as fx_module
 
     monkeypatch.setattr(config_module.settings, "EXCHANGERATE_API_KEY", "test-key")
     monkeypatch.setattr(fx_module.requests, "get", lambda url, timeout: _FakeResponse(_SUCCESS_BODY))
 
-    rates = fetch_latest_rates()
+    rates = fetch_all_rates()
     assert rates == {
         "UZS": Decimal("12500"),
         "EUR": Decimal("0.92"),
         "KZT": Decimal("450"),
         "AED": Decimal("3.67"),
+        "RUB": Decimal("90"),
     }
     assert "USD" not in rates  # implicit base, never stored
-    assert "RUB" not in rates  # not a tracked currency
 
 
-def test_fetch_latest_rates_raises_on_provider_error(monkeypatch):
+def test_fetch_all_rates_raises_on_provider_error(monkeypatch):
     import app.config as config_module
     import app.services.fx_provider as fx_module
 
@@ -68,18 +68,18 @@ def test_fetch_latest_rates_raises_on_provider_error(monkeypatch):
         fx_module.requests, "get", lambda url, timeout: _FakeResponse({"result": "error", "error-type": "invalid-key"})
     )
     with pytest.raises(FxProviderError, match="invalid-key"):
-        fetch_latest_rates()
+        fetch_all_rates()
 
 
-def test_fetch_latest_rates_raises_on_missing_currency(monkeypatch):
+def test_fetch_rate_for_currency_raises_when_provider_lacks_it(monkeypatch):
     import app.config as config_module
     import app.services.fx_provider as fx_module
 
     monkeypatch.setattr(config_module.settings, "EXCHANGERATE_API_KEY", "test-key")
     incomplete = {"result": "success", "conversion_rates": {"USD": 1, "UZS": 12500}}
     monkeypatch.setattr(fx_module.requests, "get", lambda url, timeout: _FakeResponse(incomplete))
-    with pytest.raises(FxProviderError, match="missing"):
-        fetch_latest_rates()
+    with pytest.raises(FxProviderError, match="no rate for EUR"):
+        fetch_rate_for_currency("EUR")
 
 
 def test_sync_exchange_rates_creates_and_updates(db_session, monkeypatch):
@@ -93,13 +93,25 @@ def test_sync_exchange_rates_creates_and_updates(db_session, monkeypatch):
     db_session.add(ExchangeRate(currency="UZS", units_per_usd=Decimal("11000")))
     db_session.commit()
 
+    # Only currencies already in the table are refreshed once it is non-empty.
     updated_count = sync_exchange_rates(db_session)
-    assert updated_count == 4
+    assert updated_count == 1
 
     rows = {r.currency: r.units_per_usd for r in db_session.query(ExchangeRate).all()}
-    assert rows["UZS"] == Decimal("12500")
+    assert rows == {"UZS": Decimal("12500")}  # updated in place, no duplicate row
+
+
+def test_sync_exchange_rates_bootstraps_defaults_on_empty_table(db_session, monkeypatch):
+    import app.config as config_module
+    import app.services.fx_provider as fx_module
+
+    monkeypatch.setattr(config_module.settings, "EXCHANGERATE_API_KEY", "test-key")
+    monkeypatch.setattr(fx_module.requests, "get", lambda url, timeout: _FakeResponse(_SUCCESS_BODY))
+
+    assert sync_exchange_rates(db_session) == 4
+    rows = {r.currency: r.units_per_usd for r in db_session.query(ExchangeRate).all()}
     assert rows["EUR"] == Decimal("0.92")
-    assert len(rows) == 4  # no duplicate UZS row
+    assert set(rows) == {"UZS", "EUR", "KZT", "AED"}  # RUB is not a default
 
 
 def test_admin_sync_endpoint(client, db_session, monkeypatch):

@@ -1,5 +1,15 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { useCart } from '../../context/CartContext'
 import { useLocale } from '../../context/LocaleContext'
+import Picture from '../ui/Picture'
+import { toggleWishlist, useWishlistSkus } from '../../lib/wishlistStore'
+import Rating from '../ui/Rating'
+import { useToast } from '../ui/Toast'
+import ProductBadges from './ProductBadges'
+import QuickViewModal from './QuickViewModal'
 
 function cheapestSku(product) {
   const skus = product.variants.flatMap((v) => v.skus)
@@ -8,34 +18,124 @@ function cheapestSku(product) {
 
 export default function ProductCard({ product }) {
   const { t } = useLocale()
+  const { user } = useAuth()
+  const { addItem } = useCart()
+  const navigate = useNavigate()
+  const toast = useToast()
+  const wishlist = useWishlistSkus(user)
+  const [quickViewOpen, setQuickViewOpen] = useState(false)
+  const [adding, setAdding] = useState(false)
+  const [added, setAdded] = useState(false)
   const sku = cheapestSku(product)
   const variant = product.variants[0]
+  const coverImage = variant?.images?.[0]?.image_url || variant?.photo_url
   const inStock = sku ? sku.available_quantity > 0 : false
+  const onSale = sku && sku.special_price != null && Number(sku.special_price) < Number(sku.retail_price)
+  const discount = onSale ? Math.round((1 - Number(sku.special_price) / Number(sku.retail_price)) * 100) : 0
+  const skuCount = product.variants.reduce((n, v) => n + v.skus.length, 0)
+  const canQuickAdd = inStock && skuCount === 1
+  const wishlisted = sku ? wishlist.has(sku.id) : false
+
+  const handleAdd = async () => {
+    setAdding(true)
+    try {
+      await addItem(sku.id, product.min_order_quantity || 1)
+      setAdded(true)
+      setTimeout(() => setAdded(false), 2000)
+    } catch {
+      toast(t('productDetail.addToCartError'), 'error')
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  const handleWishlist = async () => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    try {
+      await toggleWishlist(sku.id)
+    } catch {
+      toast(t('wishlist.failed'), 'error')
+    }
+  }
 
   return (
-    <Link
-      to={`/products/${product.slug}`}
-      className="block border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition"
-    >
-      <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
-        {variant?.photo_url ? (
-          <img src={variant.photo_url} alt={product.name} className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-gray-400 text-sm">{t('product.noImage')}</span>
-        )}
-      </div>
-      <div className="p-3">
-        <h3 className="font-medium text-sm truncate">{product.name}</h3>
-        <p className="text-xs text-gray-500">{product.volume_ml} ml</p>
-        <div className="flex items-center justify-between mt-2">
-          <span className="font-semibold">
-            {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
-          </span>
-          <span className={`text-xs ${inStock ? 'text-green-600' : 'text-red-500'}`}>
-            {inStock ? t('product.inStock') : t('product.outOfStock')}
-          </span>
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 transition duration-base hover:-translate-y-1 hover:shadow-token">
+      <ProductBadges badges={product.badges} className="absolute left-5 right-16 top-5 z-10" />
+      {sku && (
+        <button
+          type="button"
+          onClick={handleWishlist}
+          aria-pressed={wishlisted}
+          aria-label={wishlisted ? t('wishlist.remove') : t('wishlist.add')}
+          className={`absolute top-5 right-5 z-10 h-9 w-9 rounded-full bg-white/90 text-xl leading-none shadow ${wishlisted ? 'text-red-600' : 'text-gray-500'}`}
+        >
+          {wishlisted ? '♥' : '♡'}
+        </button>
+      )}
+
+      <Link to={`/products/${product.slug}`} className="block flex-1">
+        <div className="m-2 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gray-100">
+          {coverImage ? (
+            <Picture src={coverImage} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-gray-500 text-sm">{t('product.noImage')}</span>
+          )}
         </div>
-      </div>
-    </Link>
+        <div className="px-4 pb-3 pt-2">
+          <h3 className="truncate font-semibold">{product.name}</h3>
+          <p className="text-sm text-gray-500">{product.volume_ml} ml</p>
+          <Rating value={product.rating_average} count={product.rating_count} className="mt-0.5" />
+          <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-lg font-semibold">
+              {sku ? `${sku.currency} ${Number(onSale ? sku.special_price : sku.retail_price).toFixed(2)}` : '-'}
+              {onSale && (
+                <>
+                  {' '}
+                  <s className="text-xs font-normal text-gray-500">{Number(sku.retail_price).toFixed(2)}</s>{' '}
+                  <span className="text-xs font-medium text-red-600">−{discount}%</span>
+                </>
+              )}
+            </span>
+            <span className={`text-xs ${inStock ? 'text-green-700' : 'text-red-600'}`}>
+              {inStock ? t('product.inStock') : t('product.outOfStock')}
+            </span>
+          </div>
+        </div>
+      </Link>
+
+      {canQuickAdd && (
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={adding}
+          className="mx-3 block rounded-full bg-brand py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark active:scale-[0.98] disabled:opacity-50"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={added ? 'added' : 'add'}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="inline-block"
+            >
+              {added ? `\u2713 ${t('product.added')}` : t('productDetail.addToCart')}
+            </motion.span>
+          </AnimatePresence>
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={() => setQuickViewOpen(true)}
+        className="block w-full py-3 text-xs font-medium text-brand hover:underline"
+      >
+        {t('product.quickView')}
+      </button>
+
+      {quickViewOpen && <QuickViewModal product={product} onClose={() => setQuickViewOpen(false)} />}
+    </div>
   )
 }

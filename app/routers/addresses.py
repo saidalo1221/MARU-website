@@ -3,13 +3,14 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.dependencies import get_current_user_required
 from app.models.address import Address
 from app.models.user import User
 from app.schemas.extras import AddressIn, AddressOut
 
-router = APIRouter(prefix="/addresses", tags=["addresses"])
+router = APIRouter(prefix="/addresses", tags=["addresses"], dependencies=[Depends(rate_limit("addresses", 120, 60))])
 
 
 def _own(db: Session, user: User, address_id: int) -> Address:
