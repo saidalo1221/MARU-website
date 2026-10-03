@@ -24,6 +24,7 @@ os.environ["CLICK_SERVICE_ID"] = "test-service"
 os.environ["CLICK_MERCHANT_ID"] = "test-click-merchant"
 os.environ["CLICK_SECRET_KEY"] = "test-click-secret"
 os.environ["BITRIX24_WEBHOOK_URL"] = ""
+os.environ["TELEGRAM_BOT_TOKEN"] = ""  # never message the real staff chat from tests
 os.environ["REDIS_URL"] = ""
 os.environ["TELEGRAM_BOT_TOKEN"] = ""  # tests must never message the real bot
 os.environ["TELEGRAM_ADMIN_CHAT_ID"] = ""

@@ -81,7 +81,7 @@ export default function Footer() {
 
   // Deep forest block that closes the page; flat edge, text in warm off-white.
   return (
-    <footer className="mt-20 bg-ink px-4 py-14 text-sm text-white/80">
+    <footer className="relative mt-20 bg-ink px-4 py-14 text-sm text-white/80">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-8 gap-y-10 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div className="col-span-2 lg:col-span-1">
           <p className="mb-2 text-2xl font-bold text-white">MARU</p>

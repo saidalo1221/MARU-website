@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { listPageSections } from '../api/pageSections'
 import { listProducts } from '../api/products'
 import { listFeaturedReviews } from '../api/reviews'
@@ -16,6 +16,8 @@ import Magnetic from '../components/motion/Magnetic'
 import ScrollProgress from '../components/motion/ScrollProgress'
 import Spotlight from '../components/motion/Spotlight'
 import TiltCard from '../components/motion/TiltCard'
+import VelocityMarquee from '../components/motion/VelocityMarquee'
+import WordReveal from '../components/motion/WordReveal'
 import Seo from '../components/Seo'
 
 const BENEFITS = ['benefitMaterial', 'benefitOwn', 'benefitRange', 'benefitQuality', 'benefitB2b', 'benefitExport']
@@ -42,7 +44,7 @@ function Section({ id, title, children, action }) {
     <section id={id} className="max-w-7xl mx-auto px-4 py-12 md:py-16" aria-labelledby={`${id}-title`}>
       <Reveal>
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <h2 id={`${id}-title`} className="text-3xl font-semibold tracking-tight md:text-4xl">{title}</h2>
+          <h2 id={`${id}-title`} className="text-3xl font-semibold tracking-tight md:text-4xl"><WordReveal text={title} /></h2>
           {action}
         </div>
         {children}
@@ -56,6 +58,10 @@ export default function Home() {
   const { t, locale } = useLocale()
   const { cart } = useCart()
   const reduce = useReducedMotion()
+  // the dark manufacturing panel grows into place as it scrolls into view
+  const mfgRef = useRef(null)
+  const { scrollYProgress: mfgProgress } = useScroll({ target: mfgRef, offset: ['start end', 'start 0.35'] })
+  const mfgScale = useTransform(mfgProgress, [0, 1], [0.93, 1])
   const currency = cart?.currency
   const location = useLocation()
   const [popular, setPopular] = useState([])
@@ -151,6 +157,12 @@ export default function Home() {
         </Section>
       )}
 
+      {/* Moving text band: drifts by itself and reacts to the scroll speed */}
+      <div className="overflow-hidden py-6 md:py-10">
+        <VelocityMarquee items={[t('home.heroTag'), t('home.manufacturingTitle')]} base={-3} className="text-4xl font-semibold tracking-tight text-gray-900 md:text-7xl" />
+        <VelocityMarquee items={[`${VOLUMES_ML.join(' · ')} ml`]} base={3} outline className="mt-3 text-4xl font-semibold tracking-tight text-gray-400 md:mt-5 md:text-7xl" />
+      </div>
+
       {/* 8.5 Why MARU: six benefits in a bento (lg: 4 columns, A A B C / D E E F) */}
       <Section id="why" title={t('home.whyTitle')}>
         <motion.ul
@@ -231,9 +243,10 @@ export default function Home() {
 
       {/* 8.8 Manufacturing and quality: dark panel, the facts that are true today (own production, material,
           clear specifications) plus two figures that come straight from the size list. */}
-      <section id="manufacturing" className="max-w-7xl mx-auto px-4 py-12 md:py-16" aria-labelledby="manufacturing-title">
+      <section ref={mfgRef} id="manufacturing" className="max-w-7xl mx-auto px-4 py-12 md:py-16" aria-labelledby="manufacturing-title">
         <Reveal>
-          <div className={`grid items-stretch gap-8 rounded-3xl bg-ink p-6 text-white md:p-12 ${photo ? 'lg:grid-cols-[1.2fr_1fr]' : ''}`}>
+          <motion.div style={reduce ? undefined : { scale: mfgScale }}>
+          <Spotlight color="rgb(255 255 255 / 0.10)" className={`grid items-stretch gap-8 rounded-3xl bg-ink p-6 text-white md:p-12 ${photo ? 'lg:grid-cols-[1.2fr_1fr]' : ''}`}>
             <div className="flex flex-col">
               <h2 id="manufacturing-title" className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">{t('home.manufacturingTitle')}</h2>
               <p className="mb-8 max-w-xl text-lg text-white/80">{t('home.manufacturingText')}</p>
@@ -269,16 +282,17 @@ export default function Home() {
                 <img src={photo} alt="" loading="lazy" className="max-h-[22rem] w-full object-contain" />
               </div>
             )}
-          </div>
+          </Spotlight>
+          </motion.div>
         </Reveal>
       </section>
 
       {/* 8.9 Reviews: only shown once real approved reviews exist */}
       {reviews.length > 0 && (
         <Section id="reviews" title={t('home.reviewsTitle')}>
-          <ul className="grid gap-4 md:grid-cols-3">
+          <motion.ul className="grid gap-4 md:grid-cols-3" variants={stagger} initial={reduce ? false : 'hidden'} whileInView="show" viewport={{ once: true, amount: 0.2 }}>
             {reviews.map((r, i) => (
-              <li key={r.id} className={`rounded-3xl bg-gray-50 p-6 text-sm ${i === 1 ? 'md:mt-8' : ''}`}>
+              <motion.li key={r.id} variants={rise} className={`rounded-3xl bg-gray-50 p-6 text-sm ${i === 1 ? 'md:mt-8' : ''}`}>
                 <p className="mb-2 text-yellow-600" role="img" aria-label={t('product.ratingLabel', { avg: r.rating, n: 1 })}>
                   <span aria-hidden="true">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
                 </p>
@@ -287,9 +301,9 @@ export default function Home() {
                   {r.author ? `${r.author} · ` : ''}
                   <Link to={`/products/${r.product_slug}`} className="underline">{r.product_name}</Link>
                 </p>
-              </li>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
         </Section>
       )}
 
@@ -314,10 +328,12 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 pt-6 pb-12 md:pb-16">
         <Reveal>
           <div className="rounded-3xl bg-brand-light px-6 py-14 text-center md:py-20">
-            <h2 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">{t('home.finalTitle')}</h2>
-            <Link to="/shop" className="inline-block rounded-full bg-brand px-8 py-3 font-semibold text-white shadow-lg transition hover:scale-105 hover:bg-brand-dark active:scale-95">
-              {t('home.finalCta')}
-            </Link>
+            <h2 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl"><WordReveal text={t('home.finalTitle')} /></h2>
+            <Magnetic strength={0.35}>
+              <Link to="/shop" className="inline-block rounded-full bg-brand px-8 py-3 font-semibold text-white shadow-lg transition hover:scale-105 hover:bg-brand-dark active:scale-95">
+                {t('home.finalCta')}
+              </Link>
+            </Magnetic>
           </div>
         </Reveal>
       </section>

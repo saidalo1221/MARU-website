@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import EmailVerifyBanner from './components/layout/EmailVerifyBanner'
@@ -77,9 +77,11 @@ import AccountProfile from './pages/AccountProfile'
 import ContentPage from './pages/ContentPage'
 import NotFound from './pages/NotFound'
 import { useLocale } from './context/LocaleContext'
+import PageTransition from './components/motion/PageTransition'
 
 export default function App() {
   const { t } = useLocale()
+  const location = useLocation()
   return (
     <div className="min-h-screen flex flex-col">
       <a
@@ -93,7 +95,8 @@ export default function App() {
       <ConsentBanner />
       <EmailVerifyBanner />
       <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
-        <Routes>
+        <PageTransition>
+        <Routes location={location}>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Catalog />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
@@ -171,6 +174,7 @@ export default function App() {
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </PageTransition>
       </main>
       <Footer />
     </div>

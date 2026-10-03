@@ -20,6 +20,7 @@ from app.models.user import User
 from app.schemas.order import CheckoutOut, CheckoutRequest, OrderOut, PaymentInitiationOut
 from app.schemas.shipment import TrackOrderOut, TrackOrderRequest
 from app.services.crm.bitrix24 import Bitrix24Connector
+from app.services.integrations import telegram
 from app.services.integrations.log import run_with_log
 from app.services import document_generator, outbound_webhooks
 from app.services.notifications.queued import QueuedNotifier
@@ -175,6 +176,7 @@ def checkout(
 
     order = _load_order(db, order.id)
     notifier.order_created(order, db=db)
+    telegram.notify_new_order(order)
     run_with_log(db, "crm_bitrix24", "push_order", "order", order.id, lambda: crm.push_order(order))
     db.commit()
     outbound_webhooks.emit_for_order(db, "order.created", order)

@@ -1,4 +1,6 @@
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 
 // Home hero: centred copy over a slowly scrolling strip of product photos.
 // Layout follows the 21st.dev "animated marquee hero" (design.md); animation is plain CSS
@@ -9,9 +11,18 @@ export default function MarqueeHero({ tagline, title, description, primaryCta, s
   const base = images.length > 0 ? Array.from({ length: Math.ceil(8 / images.length) }, () => images).flat() : []
   const track = [...base, ...base]
 
+  // Scrolling away: the copy drifts up and fades while the photo strip lags behind (depth).
+  const ref = useRef(null)
+  const reduce = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
+  const copyY = useTransform(scrollYProgress, [0, 1], [0, -70])
+  const copyOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0.1])
+  const stripY = useTransform(scrollYProgress, [0, 1], [0, 90])
+
   return (
-    <section className="relative overflow-hidden bg-brand-light">
-      <div
+    <section ref={ref} className="relative overflow-hidden bg-brand-light">
+      <motion.div
+        style={reduce ? undefined : { y: copyY, opacity: copyOpacity }}
         className={`relative z-10 max-w-3xl mx-auto px-4 text-center flex flex-col items-center ${
           base.length ? 'pt-14 pb-56 md:pt-20 md:pb-72' : 'py-16 md:py-24'
         }`}
@@ -52,10 +63,11 @@ export default function MarqueeHero({ tagline, title, description, primaryCta, s
             {secondaryCta}
           </Link>
         </div>
-      </div>
+      </motion.div>
 
       {base.length > 0 && (
-        <div
+        <motion.div
+          style={reduce ? undefined : { y: stripY }}
           aria-hidden="true"
           className="maru-marquee-wrap absolute bottom-0 left-0 w-full h-52 md:h-72 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
         >
@@ -75,7 +87,7 @@ export default function MarqueeHero({ tagline, title, description, primaryCta, s
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
     </section>
   )

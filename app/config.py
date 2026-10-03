@@ -105,6 +105,7 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_BOT_USERNAME: str = ""
     TELEGRAM_ADMIN_CHAT_ID: str = ""  # chat/group id that receives operational alerts
+    TELEGRAM_ALERT_LANG: str = "ru"  # language of the new-order alert: ru, uz, en, or "order" (the customer's language)
     # Google Analytics 4 Measurement Protocol (app/services/integrations/ga4.py). Keep the secret in .env only.
     GA4_MEASUREMENT_ID: str = ""
     GA4_API_SECRET: str = ""
