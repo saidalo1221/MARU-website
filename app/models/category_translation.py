@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Column, ForeignKey, String, UniqueConstraint
+from sqlalchemy import BigInteger, Column, ForeignKey, String, Text, UniqueConstraint
 
 from app.database import Base
 
@@ -18,3 +18,5 @@ class CategoryTranslation(Base):
     category_id = Column(BigInteger, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     locale = Column(String(10), nullable=False)
     name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    seo_content = Column(Text, nullable=True)

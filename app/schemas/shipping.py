@@ -1,7 +1,13 @@
+from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+
+def _check_days(min_days, max_days):
+    if min_days is not None and max_days is not None and min_days > max_days:
+        raise ValueError("min_delivery_days cannot exceed max_delivery_days")
 
 
 class ShippingRateCreate(BaseModel):
@@ -10,14 +16,30 @@ class ShippingRateCreate(BaseModel):
     currency: str = Field(default="USD", min_length=3, max_length=3)
     base_fee: Decimal = Field(default=Decimal("0"), ge=0)
     per_kg_fee: Decimal = Field(default=Decimal("0"), ge=0)
+    free_shipping_threshold: Optional[Decimal] = Field(default=None, gt=0)
+    min_delivery_days: Optional[int] = Field(default=None, ge=0, le=365)
+    max_delivery_days: Optional[int] = Field(default=None, ge=0, le=365)
     is_active: bool = True
+
+    @model_validator(mode="after")
+    def _days(self):
+        _check_days(self.min_delivery_days, self.max_delivery_days)
+        return self
 
 
 class ShippingRateUpdate(BaseModel):
-    currency: str | None = Field(default=None, min_length=3, max_length=3)
-    base_fee: Decimal | None = Field(default=None, ge=0)
-    per_kg_fee: Decimal | None = Field(default=None, ge=0)
-    is_active: bool | None = None
+    currency: Optional[str] = Field(default=None, min_length=3, max_length=3)
+    base_fee: Optional[Decimal] = Field(default=None, ge=0)
+    per_kg_fee: Optional[Decimal] = Field(default=None, ge=0)
+    free_shipping_threshold: Optional[Decimal] = Field(default=None, gt=0)
+    min_delivery_days: Optional[int] = Field(default=None, ge=0, le=365)
+    max_delivery_days: Optional[int] = Field(default=None, ge=0, le=365)
+    is_active: Optional[bool] = None
+
+    @model_validator(mode="after")
+    def _days(self):
+        _check_days(self.min_delivery_days, self.max_delivery_days)
+        return self
 
 
 class ShippingRateOut(BaseModel):
@@ -29,6 +51,22 @@ class ShippingRateOut(BaseModel):
     currency: str
     base_fee: Decimal
     per_kg_fee: Decimal
+    free_shipping_threshold: Optional[Decimal]
+    min_delivery_days: Optional[int]
+    max_delivery_days: Optional[int]
     is_active: bool
     created_at: datetime
     updated_at: datetime
+
+
+class ShippingEstimateOut(BaseModel):
+    min_days: Optional[int] = None
+    max_days: Optional[int] = None
+    # In `currency`; the storefront converts for display.
+    free_shipping_threshold: Optional[Decimal] = None
+    currency: Optional[str] = None
+    # Whether any active rate serves this country, and the cheapest base fee
+    # among them (in `fee_currency`) - the "delivery from X" line (PRD ТЗ№2 §17).
+    available: bool = False
+    from_fee: Optional[Decimal] = None
+    fee_currency: Optional[str] = None

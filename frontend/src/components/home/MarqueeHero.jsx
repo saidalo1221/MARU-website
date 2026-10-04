@@ -1,0 +1,94 @@
+import { useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+
+// Home hero: centred copy over a slowly scrolling strip of product photos.
+// Layout follows the 21st.dev "animated marquee hero" (design.md); animation is plain CSS
+// (see .maru-marquee / .maru-fade-up in index.css) so no animation library is needed.
+// `images` are [{ src, alt }]; with none the hero is just the copy.
+export default function MarqueeHero({ tagline, title, description, primaryCta, secondaryCta, images = [] }) {
+  // Repeat a short list so one half of the track is always wider than the screen.
+  const base = images.length > 0 ? Array.from({ length: Math.ceil(8 / images.length) }, () => images).flat() : []
+  const track = [...base, ...base]
+
+  // Scrolling away: the copy drifts up and fades while the photo strip lags behind (depth).
+  const ref = useRef(null)
+  const reduce = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
+  const copyY = useTransform(scrollYProgress, [0, 1], [0, -70])
+  const copyOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0.1])
+  const stripY = useTransform(scrollYProgress, [0, 1], [0, 90])
+
+  return (
+    <section ref={ref} className="relative overflow-hidden bg-brand-light">
+      <motion.div
+        style={reduce ? undefined : { y: copyY, opacity: copyOpacity }}
+        className={`relative z-10 max-w-3xl mx-auto px-4 text-center flex flex-col items-center ${
+          base.length ? 'pt-14 pb-56 md:pt-20 md:pb-72' : 'py-16 md:py-24'
+        }`}
+      >
+        <p
+          className="maru-fade-up mb-5 inline-block rounded-full border border-brand/20 bg-white/70 px-4 py-1.5 text-sm font-medium text-gray-600"
+          style={{ '--maru-delay': '0ms' }}
+        >
+          {tagline}
+        </p>
+        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900">
+          {String(title).split(' ').map((word, i) => (
+            <span key={i}>
+              <span className="maru-fade-up inline-block" style={{ '--maru-delay': `${100 + i * 70}ms` }}>{word}</span>{' '}
+            </span>
+          ))}
+        </h1>
+        <p
+          className="maru-fade-up mt-6 max-w-xl text-lg text-gray-600"
+          style={{ '--maru-delay': '250ms' }}
+        >
+          {description}
+        </p>
+        <div
+          className="maru-fade-up mt-8 flex flex-wrap justify-center gap-3"
+          style={{ '--maru-delay': '400ms' }}
+        >
+          <Link
+            to="/shop"
+            className="inline-block rounded-full bg-brand px-8 py-3 font-semibold text-white shadow-lg transition hover:bg-brand-dark hover:scale-105 active:scale-95"
+          >
+            {primaryCta}
+          </Link>
+          <Link
+            to="/wholesale"
+            className="inline-block rounded-full border border-brand bg-white/60 px-8 py-3 font-semibold text-brand transition hover:bg-white"
+          >
+            {secondaryCta}
+          </Link>
+        </div>
+      </motion.div>
+
+      {base.length > 0 && (
+        <motion.div
+          style={reduce ? undefined : { y: stripY }}
+          aria-hidden="true"
+          className="maru-marquee-wrap absolute bottom-0 left-0 w-full h-52 md:h-72 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
+        >
+          <div className="maru-marquee flex w-max gap-4">
+            {track.map((img, i) => (
+              <div
+                key={i}
+                className="h-44 md:h-60 aspect-[3/4] flex-shrink-0"
+                style={{ transform: `rotate(${i % 2 === 0 ? -2 : 4}deg)` }}
+              >
+                <img
+                  src={img.src}
+                  alt=""
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  className="h-full w-full rounded-2xl bg-white object-contain p-3 shadow-md"
+                />
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </section>
+  )
+}

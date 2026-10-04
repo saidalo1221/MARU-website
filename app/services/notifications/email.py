@@ -1,3 +1,4 @@
+from typing import Optional
 import logging
 import smtplib
 from email.mime.text import MIMEText
@@ -6,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models.order import Order
+from app.models.shipment import Shipment
 from app.services.notifications.base import NotificationBase
 from app.services.notifications.templates import render_template
 
@@ -17,6 +19,10 @@ class EmailNotifier(NotificationBase):
     SMTP_HOST and SMTP_FROM_EMAIL in .env (SMTP_USER/SMTP_PASSWORD too, unless
     the relay allows anonymous send). Never raises — a notification failure
     must not fail an already-committed order; failures are logged instead."""
+
+    def __init__(self, raise_errors: bool = False) -> None:
+        # In a background job a failed send must raise so the job is retried; in a request it must not.
+        self.raise_errors = raise_errors
 
     def _send(self, to_email: str, subject: str, body: str) -> None:
         if not settings.SMTP_HOST or not settings.SMTP_FROM_EMAIL:
@@ -37,8 +43,21 @@ class EmailNotifier(NotificationBase):
                 server.send_message(message)
         except (smtplib.SMTPException, OSError):
             logger.exception("Failed to send email: %s -> %s", subject, to_email)
+            if self.raise_errors:
+                raise
 
-    def email_verification(self, to_email: str, token: str, db: Session | None = None) -> None:
+    def custom(self, to_email: str, subject: str, body: str) -> None:
+        """A free-text mail written by an admin (newsletter campaign, test send)."""
+        self._send(to_email, subject, body)
+
+    def admin_alert(self, subject: str, body: str) -> None:
+        """Operational alert to ALERT_EMAIL; a no-op when it is not set."""
+        if not settings.ALERT_EMAIL:
+            logger.warning("Alert not sent (ALERT_EMAIL not set): %s", subject)
+            return
+        self._send(settings.ALERT_EMAIL, subject, body)
+
+    def email_verification(self, to_email: str, token: str, db: Optional[Session] = None) -> None:
         link = f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?token={token}"
         context = {"link": link, "to_email": to_email}
         rendered = render_template(db, "email_verification", context)
@@ -52,7 +71,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
-    def password_reset(self, to_email: str, token: str, db: Session | None = None) -> None:
+    def password_reset(self, to_email: str, token: str, db: Optional[Session] = None) -> None:
         link = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?token={token}"
         context = {"link": link, "to_email": to_email}
         rendered = render_template(db, "password_reset", context)
@@ -66,7 +85,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
-    def admin_login_code(self, to_email: str, code: str, db: Session | None = None) -> None:
+    def admin_login_code(self, to_email: str, code: str, db: Optional[Session] = None) -> None:
         context = {"code": code, "to_email": to_email}
         rendered = render_template(db, "admin_login_code", context)
         if rendered:
@@ -79,7 +98,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
-    def device_login_code(self, to_email: str, code: str, db: Session | None = None) -> None:
+    def device_login_code(self, to_email: str, code: str, db: Optional[Session] = None) -> None:
         context = {"code": code, "to_email": to_email}
         rendered = render_template(db, "device_login_code", context)
         if rendered:
@@ -93,7 +112,53 @@ class EmailNotifier(NotificationBase):
             )
         self._send(to_email, subject, body)
 
-    def order_created(self, order: Order, db: Session | None = None) -> None:
+    def newsletter_confirmation(self, to_email: str, token: str, db: Optional[Session] = None) -> None:
+        base = settings.FRONTEND_URL.rstrip("/")
+        context = {
+            "confirm_link": f"{base}/newsletter/confirm?token={token}",
+            "unsubscribe_link": f"{base}/newsletter/unsubscribe?token={token}",
+            "to_email": to_email,
+        }
+        rendered = render_template(db, "newsletter_confirmation", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = "Confirm your MARU newsletter subscription"
+            body = (
+                f"Confirm your subscription:\n{context['confirm_link']}\n\n"
+                "If you did not sign up, ignore this email - you will not be subscribed.\n\nMARU"
+            )
+        self._send(to_email, subject, body)
+
+    def back_in_stock(self, to_email: str, product_name: str, slug: str, db: Optional[Session] = None) -> None:
+        link = f"{settings.FRONTEND_URL.rstrip('/')}/products/{slug}"
+        context = {"product_name": product_name, "link": link, "to_email": to_email}
+        rendered = render_template(db, "back_in_stock", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = f"{product_name} is back in stock"
+            body = f"Good news - {product_name} is available again:\n{link}\n\nMARU"
+        self._send(to_email, subject, body)
+
+    def abandoned_cart(self, to_email: str, first_name: Optional[str], items: list, db: Optional[Session] = None) -> None:
+        link = f"{settings.FRONTEND_URL.rstrip('/')}/cart"
+        lines = "\n".join(f"- {name} x {qty}" for name, qty in items)
+        context = {"first_name": first_name or "", "items": lines, "link": link, "to_email": to_email}
+        rendered = render_template(db, "abandoned_cart", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = "You left something in your MARU cart"
+            greeting = f"Hi {first_name}," if first_name else "Hi,"
+            body = (
+                f"{greeting}\n\n"
+                f"You still have items waiting in your cart:\n{lines}\n\n"
+                f"Finish your order here: {link}\n\nMARU"
+            )
+        self._send(to_email, subject, body)
+
+    def order_created(self, order: Order, db: Optional[Session] = None) -> None:
         context = {
             "order_number": order.order_number,
             "first_name": order.first_name,
@@ -112,7 +177,7 @@ class EmailNotifier(NotificationBase):
             )
         self._send(order.email, subject, body)
 
-    def order_status_changed(self, order: Order, old_status: str, new_status: str, db: Session | None = None) -> None:
+    def order_status_changed(self, order: Order, old_status: str, new_status: str, db: Optional[Session] = None) -> None:
         context = {
             "order_number": order.order_number,
             "first_name": order.first_name,
@@ -128,4 +193,29 @@ class EmailNotifier(NotificationBase):
                 f"Hi {order.first_name},\n\n"
                 f"Your order {order.order_number} status changed from {old_status} to {new_status}.\n\nMARU"
             )
+        self._send(order.email, subject, body)
+
+    def shipment_updated(self, order: Order, shipment: Shipment, db: Optional[Session] = None) -> None:
+        tracking = shipment.tracking_number or ""
+        status_text = shipment.status.value.replace("_", " ")
+        context = {
+            "order_number": order.order_number,
+            "first_name": order.first_name,
+            "carrier": shipment.carrier,
+            "tracking_number": tracking,
+            "tracking_url": shipment.tracking_url or "",
+            "shipment_status": shipment.status.value,
+        }
+        rendered = render_template(db, "shipment_updated", context)
+        if rendered:
+            subject, body = rendered
+        else:
+            subject = f"Order {order.order_number}: shipment {status_text}"
+            lines = [f"Hi {order.first_name},", "", f"Your order {order.order_number} is now {status_text} with {shipment.carrier}."]
+            if tracking:
+                lines.append(f"Tracking number: {tracking}")
+            if shipment.tracking_url:
+                lines.append(f"Track it here: {shipment.tracking_url}")
+            lines += ["", "MARU"]
+            body = "\n".join(lines)
         self._send(order.email, subject, body)

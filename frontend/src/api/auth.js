@@ -60,3 +60,14 @@ export function verifyEmail(token) {
 export function resendVerification() {
   return apiRequest('/auth/resend-verification', { method: 'POST' })
 }
+
+export function updateProfile(payload) {
+  return apiRequest('/auth/me', { method: 'PATCH', body: payload })
+}
+
+export function changePassword(currentPassword, newPassword) {
+  return apiRequest('/auth/change-password', {
+    method: 'POST',
+    body: { current_password: currentPassword, new_password: newPassword },
+  })
+}

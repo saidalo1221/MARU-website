@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import Button from '../components/ui/Button'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import { checkout, confirmPayment, getPaymentMethods } from '../api/orders'
+import { getShipCountry } from '../lib/shipCountry'
 import { listAddresses } from '../api/addresses'
 import { listShippingCountries, listShippingMethods } from '../api/shipping'
 import { errorMessage } from '../api/client'
 import StripePaymentForm from '../components/checkout/StripePaymentForm'
 import PayPalButton from '../components/checkout/PayPalButton'
 import MapPicker from '../components/MapPicker'
+import { trackEvent } from '../lib/analytics'
+import { getAttribution } from '../lib/attribution'
 import Seo from '../components/Seo'
+import LegalNotice from '../components/LegalNotice'
+import { getSiteSettings } from '../api/siteSettings'
 
 const NEW_ADDRESS = 'new'
 
@@ -21,6 +27,7 @@ const emptyForm = {
   phone: '',
   email: '',
   country: '',
+  region: '',
   city: '',
   address_line: '',
   postal_code: '',
@@ -31,15 +38,22 @@ const emptyForm = {
   company_tax_number: '',
   company_address: '',
   contact_person: '',
+  whatsapp_opt_in: false,
 }
 
 export default function Checkout() {
   const { user, loading: authLoading } = useAuth()
   const { cart, refresh } = useCart()
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const navigate = useNavigate()
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false)
+  const [points, setPoints] = useState('')
+  useEffect(() => {
+    getSiteSettings().then((s) => setWhatsappEnabled(Boolean(s.whatsapp_enabled))).catch(() => {})
+  }, [])
 
-  const [form, setForm] = useState(emptyForm)
+  // The country picked in the header / delivery block is the default delivery country.
+  const [form, setForm] = useState(() => ({ ...emptyForm, country: getShipCountry() }))
   const [pin, setPin] = useState(null)
   const [countries, setCountries] = useState([])
   const [methods, setMethods] = useState([])
@@ -54,8 +68,17 @@ export default function Checkout() {
 
   useEffect(() => {
     listShippingCountries().then(setCountries).catch(() => {})
-    getPaymentMethods().then(setPaymentMethods).catch(() => {})
   }, [])
+
+  // Local gateways are only offered for deliveries to their home market (PRD ТЗ№2 §37).
+  useEffect(() => {
+    getPaymentMethods(form.country || undefined)
+      .then((methods) => {
+        setPaymentMethods(methods)
+        setForm((f) => (f.payment_method && !methods.some((m) => m.id === f.payment_method && m.enabled) ? { ...f, payment_method: '' } : f))
+      })
+      .catch(() => {})
+  }, [form.country])
 
   useEffect(() => {
     if (!user) return
@@ -84,6 +107,7 @@ export default function Checkout() {
       last_name: address.last_name,
       phone: address.phone,
       country: address.country,
+      region: address.region || '',
       city: address.city,
       address_line: address.address_line,
       postal_code: address.postal_code,
@@ -103,14 +127,37 @@ export default function Checkout() {
   // computed amount instead of staying on the country-less "TBD" preview
   // from the initial page load.
   useEffect(() => {
-    if (!form.country) return
-    refresh({ country: form.country, deliveryMethod: form.delivery_method || undefined }).catch(() => {})
-  }, [form.country, form.delivery_method, refresh])
+    if (!form.country && !points) return
+    // Debounced while a region is being typed: a request per keystroke can
+    // come back out of order and leave the totals on a stale region's tax.
+    const timer = setTimeout(
+      () => refresh({ country: form.country || undefined, deliveryMethod: form.delivery_method || undefined, region: form.region.trim() || undefined, loyaltyPoints: Number(points) || undefined }).catch(() => {}),
+      form.region || points ? 400 : 0,
+    )
+    return () => clearTimeout(timer)
+  }, [form.country, form.region, form.delivery_method, points, refresh])
+
+  // Fires when the checkout page is opened with items (not at order placement).
+  const checkoutTracked = useRef(false)
+  // One key per checkout page visit: a double click or a retry after a dropped
+  // response gets the original order back instead of a second attempt.
+  const idempotencyKey = useRef(null)
+  const cartItemCount = cart?.items.length ?? 0
+  useEffect(() => {
+    if (authLoading || cartItemCount === 0 || checkoutTracked.current) return
+    checkoutTracked.current = true
+    trackEvent('begin_checkout', { item_count: cartItemCount, value: cart.total, currency: cart.currency })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, cartItemCount])
+
+  useEffect(() => {
+    if (form.payment_method) trackEvent('add_payment_info', { payment_method: form.payment_method })
+  }, [form.payment_method])
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
+  // Guests can buy without an account (PRD ТЗ№2 §26); only wait for the sign-in check.
   if (authLoading) return null
-  if (!user) return <Navigate to="/login?next=/checkout" replace />
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -136,7 +183,15 @@ export default function Checkout() {
     setError(null)
     setSubmitting(true)
     try {
-      const payload = { ...form, promo_code: cart.promo_code || null }
+      const payload = {
+        ...form,
+        region: form.region.trim() || null,
+        promo_code: cart.promo_code || null,
+        attribution: getAttribution(),
+        language: locale,
+        loyalty_points: cart.loyalty_points_applied || 0,
+        whatsapp_opt_in: whatsappEnabled && form.whatsapp_opt_in,
+      }
       if (form.order_type !== 'company') {
         delete payload.company_name
         delete payload.company_reg_number
@@ -144,7 +199,8 @@ export default function Checkout() {
         delete payload.company_address
         delete payload.contact_person
       }
-      const result = await checkout(payload)
+      idempotencyKey.current ??= crypto.randomUUID()
+      const result = await checkout(payload, idempotencyKey.current)
       if (result.guest_order_token) {
         sessionStorage.setItem(`maru_order_token_${result.id}`, result.guest_order_token)
       }
@@ -174,13 +230,13 @@ export default function Checkout() {
 
   if (checkoutResult && checkoutResult.payment.reference_kind !== 'redirect_url') {
     return (
-      <div className="max-w-md mx-auto px-4 py-10">
-        <h1 className="text-xl font-bold mb-4">{t('checkout.completePayment')}</h1>
-        <p className="text-sm text-gray-500 mb-4">
-          {t('checkout.order', { number: checkoutResult.order_number })} — {checkoutResult.currency}{' '}
+      <div className="mx-auto max-w-md px-4 py-12">
+        <h1 className="mb-4 text-3xl font-semibold tracking-tight">{t('checkout.completePayment')}</h1>
+        <p className="mb-6 text-gray-600">
+          {t('checkout.order', { number: checkoutResult.order_number })} - {checkoutResult.currency}{' '}
           {Number(checkoutResult.total_amount).toFixed(2)}
         </p>
-        {paymentError && <p className="text-sm text-red-600 mb-3">{paymentError}</p>}
+        {paymentError && <p role="alert" className="text-sm text-red-600 mb-3">{paymentError}</p>}
         {checkoutResult.payment.reference_kind === 'client_secret' && (
           <StripePaymentForm
             clientSecret={checkoutResult.payment.reference}
@@ -200,16 +256,22 @@ export default function Checkout() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="mx-auto max-w-5xl px-4 py-8 md:py-12">
       <Seo title={t('checkout.title')} noindex />
-      <h1 className="text-2xl font-bold mb-4">{t('checkout.title')}</h1>
+      <h1 className="mb-3 text-3xl font-semibold tracking-tight md:text-4xl">{t('checkout.title')}</h1>
+      {!user && (
+        <p className="mb-6 text-gray-600">
+          {t('checkout.guestHint')}{' '}
+          <Link to="/login?next=/checkout" className="text-brand underline">{t('header.login')}</Link>
+        </p>
+      )}
 
-      <div className="md:grid md:grid-cols-[1fr_320px] md:gap-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <fieldset>
-            <legend className="font-semibold mb-2">{t('checkout.orderType')}</legend>
-            <div className="flex gap-4 text-sm">
-              <label className="flex items-center gap-1">
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <fieldset className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+            <legend className="mb-3 text-lg font-semibold">{t('checkout.orderType')}</legend>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <label className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2">
                 <input
                   type="radio"
                   checked={form.order_type === 'individual'}
@@ -217,7 +279,7 @@ export default function Checkout() {
                 />
                 {t('checkout.individual')}
               </label>
-              <label className="flex items-center gap-1">
+              <label className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2">
                 <input
                   type="radio"
                   checked={form.order_type === 'company'}
@@ -228,40 +290,46 @@ export default function Checkout() {
             </div>
           </fieldset>
 
-          <fieldset className="grid grid-cols-2 gap-3">
-            <legend className="font-semibold mb-2 col-span-2">{t('checkout.contactInfo')}</legend>
-            <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required type="tel" placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required type="email" placeholder={t('checkout.email')} value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <fieldset className="grid grid-cols-2 gap-4 rounded-3xl border border-gray-200 bg-gray-50 p-6">
+            <legend className="col-span-2 mb-1 text-lg font-semibold">{t('checkout.contactInfo')}</legend>
+            <input required placeholder={t('checkout.firstName')} aria-label={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+            <input required placeholder={t('checkout.lastName')} aria-label={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+            <input required type="tel" placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+            <input required type="email" placeholder={t('checkout.email')} aria-label={t('checkout.email')} value={form.email} onChange={update('email')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+            {whatsappEnabled && (
+              <label className="col-span-2 flex items-start gap-2 text-sm text-gray-600">
+                <input type="checkbox" checked={form.whatsapp_opt_in} onChange={(e) => setForm((f) => ({ ...f, whatsapp_opt_in: e.target.checked }))} className="mt-0.5" />
+                <span>{t('checkout.whatsappOptIn')}</span>
+              </label>
+            )}
           </fieldset>
 
           {form.order_type === 'company' && (
-            <fieldset className="grid grid-cols-2 gap-3">
-              <legend className="font-semibold mb-2 col-span-2">{t('checkout.companyDetails')}</legend>
-              <input required placeholder={t('checkout.companyName')} value={form.company_name} onChange={update('company_name')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-              <input placeholder={t('checkout.regNumber')} value={form.company_reg_number} onChange={update('company_reg_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder={t('checkout.taxNumber')} value={form.company_tax_number} onChange={update('company_tax_number')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-              <input placeholder={t('checkout.companyAddress')} value={form.company_address} onChange={update('company_address')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-              <input placeholder={t('checkout.contactPerson')} value={form.contact_person} onChange={update('contact_person')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+            <fieldset className="grid grid-cols-2 gap-4 rounded-3xl border border-gray-200 bg-gray-50 p-6">
+              <legend className="col-span-2 mb-1 text-lg font-semibold">{t('checkout.companyDetails')}</legend>
+              <input required placeholder={t('checkout.companyName')} aria-label={t('checkout.companyName')} value={form.company_name} onChange={update('company_name')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
+              <input placeholder={t('checkout.regNumber')} aria-label={t('checkout.regNumber')} value={form.company_reg_number} onChange={update('company_reg_number')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+              <input placeholder={t('checkout.taxNumber')} aria-label={t('checkout.taxNumber')} value={form.company_tax_number} onChange={update('company_tax_number')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+              <input placeholder={t('checkout.companyAddress')} aria-label={t('checkout.companyAddress')} value={form.company_address} onChange={update('company_address')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
+              <input placeholder={t('checkout.contactPerson')} aria-label={t('checkout.contactPerson')} value={form.contact_person} onChange={update('contact_person')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
             </fieldset>
           )}
 
-          <fieldset className="grid grid-cols-2 gap-3">
-            <legend className="font-semibold mb-2 col-span-2">{t('checkout.shippingAddress')}</legend>
+          <fieldset className="grid grid-cols-2 gap-4 rounded-3xl border border-gray-200 bg-gray-50 p-6">
+            <legend className="col-span-2 mb-1 text-lg font-semibold">{t('checkout.shippingAddress')}</legend>
 
             {savedAddresses.length > 0 && (
               <div className="col-span-2 space-y-2 mb-2">
                 {savedAddresses.map((a) => (
-                  <label key={a.id} className="flex items-start gap-2 text-sm border border-gray-200 rounded px-3 py-2 cursor-pointer">
+                  <label key={a.id} className="flex items-start gap-2 text-sm rounded-2xl border border-gray-200 bg-white px-4 py-3 cursor-pointer">
                     <input type="radio" name="saved_address" checked={selectedAddressId === a.id} onChange={() => selectAddress(a.id)} className="mt-1" />
                     <span>
                       {a.label && <span className="font-medium">{a.label} · </span>}
-                      {a.first_name} {a.last_name} · {a.address_line}, {a.city}, {a.country} {a.postal_code}
+                      {a.first_name} {a.last_name} · {a.address_line}, {a.city}{a.region ? `, ${a.region}` : ''}, {a.country} {a.postal_code}
                     </span>
                   </label>
                 ))}
-                <label className="flex items-center gap-2 text-sm border border-gray-200 rounded px-3 py-2 cursor-pointer">
+                <label className="flex items-center gap-2 text-sm rounded-2xl border border-gray-200 bg-white px-4 py-3 cursor-pointer">
                   <input type="radio" name="saved_address" checked={selectedAddressId === NEW_ADDRESS} onChange={() => selectAddress(NEW_ADDRESS)} />
                   {t('checkout.useNewAddress')}
                 </label>
@@ -287,25 +355,27 @@ export default function Checkout() {
                     }}
                   />
                 </div>
-                <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
+                <select required aria-label={t('checkout.selectCountry')} value={form.country} onChange={update('country')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2">
                   <option value="">{t('checkout.selectCountry')}</option>
                   {countries.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <input required placeholder={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-                <input placeholder={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-                <input required placeholder={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+                <input placeholder={t('checkout.region')} aria-label={t('checkout.region')} value={form.region} onChange={update('region')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
+                <input required placeholder={t('checkout.city')} aria-label={t('checkout.city')} value={form.city} onChange={update('city')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+                <input placeholder={t('checkout.postalCode')} aria-label={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+                <input required placeholder={t('checkout.address')} aria-label={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
               </>
             )}
           </fieldset>
 
-          <fieldset>
-            <legend className="font-semibold mb-2">{t('checkout.deliveryMethod')}</legend>
+          <fieldset className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+            <legend className="mb-3 text-lg font-semibold">{t('checkout.deliveryMethod')}</legend>
             <select
               required
+              aria-label={t('checkout.deliveryMethod')}
               value={form.delivery_method}
               onChange={update('delivery_method')}
               disabled={!form.country}
-              className="border border-gray-300 rounded px-3 py-2 text-sm w-full"
+              className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm w-full"
             >
               <option value="">
                 {form.country ? t('checkout.selectDeliveryMethod') : t('checkout.selectCountryFirst')}
@@ -314,14 +384,14 @@ export default function Checkout() {
             </select>
           </fieldset>
 
-          <fieldset>
-            <legend className="font-semibold mb-2">{t('checkout.paymentMethod')}</legend>
+          <fieldset className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+            <legend className="mb-3 text-lg font-semibold">{t('checkout.paymentMethod')}</legend>
             <div className="space-y-2">
               {enabledPaymentMethods.length === 0 && (
-                <p className="text-sm text-gray-500">{t('checkout.noPaymentMethods')}</p>
+                <p className="rounded-2xl bg-brand-light px-4 py-4 text-sm text-gray-700">{t('checkout.noPaymentMethods')}</p>
               )}
               {enabledPaymentMethods.map((m) => (
-                <label key={m.id} className="flex items-center gap-2 text-sm">
+                <label key={m.id} className="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium">
                   <input
                     type="radio"
                     name="payment_method"
@@ -336,43 +406,58 @@ export default function Checkout() {
             </div>
           </fieldset>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-brand text-white rounded py-3 font-medium disabled:opacity-40 sticky bottom-0"
-          >
-            {submitting ? t('checkout.placingOrder') : t('checkout.placeOrder')}
-          </button>
+          <Button type="submit" size="lg" loading={submitting} loadingLabel={t('checkout.placingOrder')} className="w-full sticky bottom-0">
+            {form.payment_method ? t('checkout.payNow') : t('checkout.placeOrder')}
+          </Button>
+          <LegalNotice />
         </form>
 
-        <div className="mt-6 md:mt-0 border border-gray-200 rounded-lg p-4 h-fit">
-          <h2 className="font-semibold mb-3">{t('checkout.orderSummary')}</h2>
-          <ul className="text-sm space-y-1 mb-3">
+        <div className="mt-6 h-fit rounded-3xl border border-gray-200 bg-gray-50 p-6 md:sticky md:top-24 md:mt-0">
+          <h2 className="mb-4 text-lg font-semibold">{t('checkout.orderSummary')}</h2>
+          <ul className="mb-4 space-y-2 text-sm">
             {cart.items.map((item) => (
-              <li key={item.id} className="flex justify-between">
-                <span>{item.sku_code} × {item.quantity}</span>
-                <span>{cart.currency} {Number(item.line_total).toFixed(2)}</span>
+              <li key={item.id} className="flex justify-between gap-3">
+                <span>{item.product_name || item.sku_code} × {item.quantity}</span>
+                <span className="whitespace-nowrap">{cart.currency} {Number(item.line_total).toFixed(2)}</span>
               </li>
             ))}
           </ul>
-          <dl className="text-sm space-y-1 border-t border-gray-200 pt-2">
+          {cart.loyalty && (cart.loyalty.max_points > 0 || cart.loyalty.balance > 0) && (
+            <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 text-sm">
+              <p className="font-medium mb-1">{t('checkout.loyaltyTitle')}</p>
+              <p className="text-xs text-gray-500 mb-2">{t('checkout.loyaltyBalance', { balance: cart.loyalty.balance, value: `${cart.currency} ${cart.loyalty.point_value.toFixed(4)}` })}</p>
+              {cart.loyalty.max_points > 0 && (
+                <div className="flex gap-2">
+                  <input type="number" min="0" max={cart.loyalty.max_points} step="1" value={points} onChange={(e) => setPoints(e.target.value)} placeholder={t('checkout.loyaltyUse', { max: cart.loyalty.max_points })} aria-label={t('checkout.loyaltyUse', { max: cart.loyalty.max_points })} className="min-w-0 flex-1 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm" />
+                  <button type="button" onClick={() => setPoints(String(cart.loyalty.max_points))} className="rounded-full border border-gray-300 px-4 py-2 text-xs font-medium transition-colors hover:bg-brand-light">{t('checkout.loyaltyMax')}</button>
+                </div>
+              )}
+            </div>
+          )}
+          <dl className="space-y-1 border-t border-gray-200 pt-3 text-sm">
             <div className="flex justify-between">
               <dt className="text-gray-500">{t('cart.subtotal')}</dt>
               <dd>{cart.currency} {Number(cart.subtotal).toFixed(2)}</dd>
             </div>
             {Number(cart.discount) > 0 && (
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-green-700">
                 <dt>{t('cart.discount')}</dt>
                 <dd>-{cart.currency} {Number(cart.discount).toFixed(2)}</dd>
+              </div>
+            )}
+            {cart.loyalty_points_applied > 0 && (
+              <div className="flex justify-between text-xs text-green-700">
+                <dt>{t('checkout.loyaltyApplied', { n: cart.loyalty_points_applied })}</dt>
+                <dd>-{cart.currency} {Number(cart.loyalty_discount).toFixed(2)}</dd>
               </div>
             )}
             <div className="flex justify-between">
               <dt className="text-gray-500">{t('productDetail.delivery')}</dt>
               <dd>{Number(cart.delivery) > 0 ? `${cart.currency} ${Number(cart.delivery).toFixed(2)}` : t('checkout.tbd')}</dd>
             </div>
-            <div className="flex justify-between font-semibold text-base border-t border-gray-200 pt-2 mt-2">
+            <div className="mt-3 flex justify-between border-t border-gray-200 pt-3 text-xl font-semibold">
               <dt>{t('cart.total')}</dt>
               <dd>{cart.currency} {Number(cart.total).toFixed(2)}</dd>
             </div>

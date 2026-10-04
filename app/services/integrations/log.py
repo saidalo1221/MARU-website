@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import time
 from typing import Callable
 
 from sqlalchemy import func, select
@@ -41,12 +42,14 @@ def run_with_log(
     fire-and-forget crm.push_order()/notifier calls it replaces."""
     attempt = _attempt_count(db, integration, operation, internal_entity, internal_id) + 1
 
+    started = time.monotonic()
     try:
         success = bool(fn())
         error_message = None if success else "Integration reported failure"
     except Exception as exc:  # noqa: BLE001 - deliberately broad: any connector bug must not propagate
         success = False
         error_message = str(exc)
+    duration_ms = int((time.monotonic() - started) * 1000)
 
     status = (
         IntegrationLogStatus.SUCCESS
@@ -62,6 +65,7 @@ def run_with_log(
             status=status,
             error_message=error_message,
             attempt=attempt,
+            duration_ms=duration_ms,
             completed_at=datetime.now(timezone.utc).replace(tzinfo=None),
         )
     )

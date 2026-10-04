@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +13,16 @@ class Settings(BaseSettings):
     # Comma-separated browser origins. Set this to the deployed frontend URL
     # in production; localhost values make a separate Vite dev server work.
     CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Optional regex for extra allowed origins (local development: a Vite server that moved to another
+    # port, a phone on the LAN). Empty by default, so production only allows CORS_ORIGINS.
+    CORS_ORIGIN_REGEX: Optional[str] = None
+    # Swagger UI / ReDoc / openapi.json publish every admin route. Off unless
+    # explicitly enabled (set ENABLE_DOCS=true in a local .env).
+    ENABLE_DOCS: bool = False
+    # Logging (app/core/logging_config.py): "text" or "json"; optional Sentry DSN.
+    LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "text"
+    SENTRY_DSN: Optional[str] = None
 
     @property
     def cors_origins(self) -> list[str]:
@@ -19,23 +30,23 @@ class Settings(BaseSettings):
 
     # Payment providers (PRD section 13) — all optional; a gateway raises
     # PaymentConfigError at call time if its settings aren't filled in yet.
-    PAYME_MERCHANT_ID: str | None = None
-    PAYME_KEY: str | None = None
+    PAYME_MERCHANT_ID: Optional[str] = None
+    PAYME_KEY: Optional[str] = None
     # Payme's test/sandbox merchant endpoint is checkout.test.paycom.uz; production is checkout.paycom.uz.
     PAYME_CHECKOUT_URL: str = "https://checkout.paycom.uz"
 
-    CLICK_SERVICE_ID: str | None = None
-    CLICK_MERCHANT_ID: str | None = None
-    CLICK_SECRET_KEY: str | None = None
+    CLICK_SERVICE_ID: Optional[str] = None
+    CLICK_MERCHANT_ID: Optional[str] = None
+    CLICK_SECRET_KEY: Optional[str] = None
 
     # Uzum Pay intentionally has no settings yet: merchant API documentation
     # and sandbox credentials must be supplied before an integration is built.
 
-    STRIPE_SECRET_KEY: str | None = None
-    STRIPE_WEBHOOK_SECRET: str | None = None
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
 
-    PAYPAL_CLIENT_ID: str | None = None
-    PAYPAL_CLIENT_SECRET: str | None = None
+    PAYPAL_CLIENT_ID: Optional[str] = None
+    PAYPAL_CLIENT_SECRET: Optional[str] = None
     PAYPAL_API_BASE: str = "https://api-m.sandbox.paypal.com"  # switch to api-m.paypal.com for live
 
     # Base URL of the deployed frontend, used in password-reset links.
@@ -53,7 +64,7 @@ class Settings(BaseSettings):
     # Cache (PRD ТЗ№3 §11). Also backs rate limiting (app/core/rate_limit.py)
     # so limits are shared across worker processes, not per-process memory.
     # Leave unset to keep the old in-process limiter for local dev without Redis.
-    REDIS_URL: str | None = None
+    REDIS_URL: Optional[str] = None
 
     # Live FX feed (app/services/fx_provider.py) that populates the
     # admin-maintained ExchangeRate table (app/models/exchange_rate.py) — it
@@ -62,19 +73,67 @@ class Settings(BaseSettings):
     # free tier is 1,500 requests/month; sync on a daily schedule (see
     # app/tasks/sync_exchange_rates.py), never per-request, to stay well
     # under that with room to spare.
-    EXCHANGERATE_API_KEY: str | None = None
+    EXCHANGERATE_API_KEY: Optional[str] = None
     EXCHANGERATE_API_BASE: str = "https://v6.exchangerate-api.com/v6"
 
     # CRM (PRD section 26).
-    BITRIX24_WEBHOOK_URL: str | None = None
+    BITRIX24_WEBHOOK_URL: Optional[str] = None
 
     # Notifications (PRD section 38) — email only for now.
-    SMTP_HOST: str | None = None
+    SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
-    SMTP_USER: str | None = None
-    SMTP_PASSWORD: str | None = None
-    SMTP_FROM_EMAIL: str | None = None
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: Optional[str] = None
     SMTP_USE_TLS: bool = True
+    # Where operational alerts (e.g. stock reconciliation mismatches) go.
+    ALERT_EMAIL: Optional[str] = None
+    # Thresholds for app/tasks/check_alerts.py (PRD ТЗ№4 §67).
+    ALERT_PAYMENT_FAILURES: int = 5  # PAYMENT_FAILED orders within the last hour
+    ALERT_RETRY_BACKLOG: int = 20  # integration calls waiting for a retry
+    ALERT_SYNC_LAG_MINUTES: int = 60  # oldest unresolved integration failure
+    ALERT_COOLDOWN_MINUTES: int = 360  # don't repeat the same alert sooner than this
+    ALERT_JOB_BACKLOG_MINUTES: int = 30  # a due background job waiting this long raises an alert
+
+    # Background jobs (PRD ТЗ№3 §88-89). With JOBS_ASYNC=false order emails are sent inside the
+    # request (simple, fine for development); set it to true in production and run
+    # `python -m app.tasks.worker` so checkout never waits for SMTP.
+    # Private order documents (invoices, receipts). Empty = app/private_documents; on UzCloud point it
+    # at a persistent volume outside the web root.
+    DOCUMENTS_DIR: str = ""
+    # Telegram bot (app/services/integrations/telegram.py). The token comes from @BotFather; keep it in .env only.
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_BOT_USERNAME: str = ""
+    TELEGRAM_ADMIN_CHAT_ID: str = ""  # chat/group id that receives operational alerts
+    TELEGRAM_ALERT_LANG: str = "ru"  # language of the new-order alert: ru, uz, en, or "order" (the customer's language)
+    # Google Analytics 4 Measurement Protocol (app/services/integrations/ga4.py). Keep the secret in .env only.
+    GA4_MEASUREMENT_ID: str = ""
+    GA4_API_SECRET: str = ""
+    GA4_DEBUG: bool = False  # true = send to Google's validator instead of recording
+    # Meta Conversions API (app/services/integrations/meta.py). Keep the token in .env only.
+    META_PIXEL_ID: str = ""
+    META_CAPI_TOKEN: str = ""
+    META_TEST_EVENT_CODE: str = ""  # from Events Manager > Test events; events then show there only
+    # WhatsApp Business Cloud API (app/services/integrations/whatsapp.py). Keep the token in .env only.
+    WHATSAPP_TOKEN: str = ""
+    WHATSAPP_PHONE_NUMBER_ID: str = ""
+    # Outbound webhooks (app/services/outbound_webhooks.py): allow http:// and internal addresses (dev only).
+    WEBHOOK_ALLOW_PRIVATE_URLS: bool = False
+    # Abandoned-cart e-mail (PRD ТЗ№1 §39): sent to signed-in customers whose cart sat untouched this long.
+    ABANDONED_CART_HOURS: int = 24
+    ABANDONED_CART_MAX_AGE_DAYS: int = 7
+    # Web push (app/services/push.py). Create the pair with `python scripts/generate_vapid.py`; keep the private key secret.
+    VAPID_PUBLIC_KEY: str = ""
+    VAPID_PRIVATE_KEY: str = ""
+    VAPID_SUBJECT: str = ""  # mailto:you@your-domain.com
+    JOBS_ASYNC: bool = False
+    # TTL cache for public categories / site settings / exchange rates (PRD ТЗ№03 §87). Writes invalidate it.
+    CACHE_ENABLED: bool = True
+    CACHE_TTL_SECONDS: int = 300
+    JOB_MAX_ATTEMPTS: int = 5
+    JOB_RETRY_BACKOFF_MINUTES: str = "1,5,15,30,60"  # delay before attempt 2, 3, 4, ...
+    # Inbound webhooks (PRD ТЗ№4 §50-51): JSON object {"provider": "shared secret"}.
+    WEBHOOK_SECRETS: str = ""
 
 
 settings = Settings()

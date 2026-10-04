@@ -5,7 +5,6 @@ import { useLocale } from '../context/LocaleContext'
 import { listShippingCountries } from '../api/shipping'
 import { createAddress, deleteAddress, listAddresses, updateAddress } from '../api/addresses'
 import { errorMessage } from '../api/client'
-import AccountNav from '../components/account/AccountNav'
 import MapPicker from '../components/MapPicker'
 import Seo from '../components/Seo'
 
@@ -15,6 +14,7 @@ const emptyForm = {
   last_name: '',
   phone: '',
   country: '',
+  region: '',
   city: '',
   address_line: '',
   postal_code: '',
@@ -60,7 +60,7 @@ export default function Addresses() {
 
   const openEdit = (address) => {
     setEditingId(address.id)
-    setForm({ ...emptyForm, ...address })
+    setForm({ ...emptyForm, ...address, region: address.region || '' })
     setError(null)
     setFormOpen(true)
   }
@@ -90,13 +90,12 @@ export default function Addresses() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-2xl">
       <Seo title={t('addresses.title')} noindex />
-      <AccountNav />
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{t('addresses.title')}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{t('addresses.title')}</h1>
         {!formOpen && (
-          <button onClick={openNew} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium">
+          <button onClick={openNew} className="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:opacity-40">
             {t('addresses.add')}
           </button>
         )}
@@ -105,12 +104,12 @@ export default function Addresses() {
       {loading && <p>{t('addresses.loading')}</p>}
 
       {formOpen && (
-        <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
+        <form onSubmit={handleSubmit} className="mb-6 space-y-4 rounded-3xl border border-gray-200 bg-gray-50 p-6">
           <div className="grid grid-cols-2 gap-3">
-            <input placeholder={t('addresses.label')} value={form.label || ''} onChange={update('label')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-            <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required type="tel" placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+            <input placeholder={t('addresses.label')} aria-label={t('addresses.label')} value={form.label || ''} onChange={update('label')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
+            <input required placeholder={t('checkout.firstName')} aria-label={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+            <input required placeholder={t('checkout.lastName')} aria-label={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+            <input required type="tel" placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
             <div className="col-span-2">
               <MapPicker
                 latitude={form.latitude}
@@ -128,21 +127,22 @@ export default function Addresses() {
                 }}
               />
             </div>
-            <select required value={form.country} onChange={update('country')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2">
+            <select required aria-label={t('checkout.selectCountry')} value={form.country} onChange={update('country')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2">
               <option value="">{t('checkout.selectCountry')}</option>
               {countries.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-            <input required placeholder={t('checkout.city')} value={form.city} onChange={update('city')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input placeholder={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input required placeholder={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+            <input placeholder={t('checkout.region')} aria-label={t('checkout.region')} value={form.region} onChange={update('region')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
+            <input required placeholder={t('checkout.city')} aria-label={t('checkout.city')} value={form.city} onChange={update('city')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+            <input placeholder={t('checkout.postalCode')} aria-label={t('checkout.postalCode')} value={form.postal_code} onChange={update('postal_code')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm" />
+            <input required placeholder={t('checkout.address')} aria-label={t('checkout.address')} value={form.address_line} onChange={update('address_line')} className="rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-sm col-span-2" />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.is_default} onChange={update('is_default')} />
             {t('addresses.setDefault')}
           </label>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-2">
-            <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
+            <button type="submit" disabled={submitting} className="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:opacity-40">
               {submitting ? t('addresses.saving') : t('addresses.save')}
             </button>
             <button type="button" onClick={() => setFormOpen(false)} className="border border-gray-300 rounded px-4 py-2 text-sm">
@@ -153,21 +153,21 @@ export default function Addresses() {
       )}
 
       {!loading && addresses.length === 0 && !formOpen && (
-        <p className="text-gray-500">{t('addresses.empty')}</p>
+        <p className="rounded-3xl bg-brand-light px-6 py-14 text-center text-gray-700">{t('addresses.empty')}</p>
       )}
 
       <ul className="space-y-3">
         {addresses.map((a) => (
-          <li key={a.id} className="border border-gray-200 rounded-lg p-4 flex justify-between items-start">
+          <li key={a.id} className="flex items-start justify-between gap-4 rounded-3xl border border-gray-200 bg-gray-50 p-5">
             <div className="text-sm">
               {a.label && <p className="font-medium">{a.label}{a.is_default && ` · ${t('addresses.default')}`}</p>}
               {!a.label && a.is_default && <p className="font-medium">{t('addresses.default')}</p>}
               <p>{a.first_name} {a.last_name} · {a.phone}</p>
-              <p className="text-gray-500">{a.address_line}, {a.city}, {a.country} {a.postal_code}</p>
+              <p className="text-gray-500">{a.address_line}, {a.city}{a.region ? `, ${a.region}` : ''}, {a.country} {a.postal_code}</p>
             </div>
             <div className="flex gap-3 text-sm">
               <button onClick={() => openEdit(a)} className="text-brand">{t('addresses.edit')}</button>
-              <button onClick={() => handleDelete(a.id)} className="text-red-500">{t('cart.remove')}</button>
+              <button onClick={() => handleDelete(a.id)} className="text-red-600">{t('cart.remove')}</button>
             </div>
           </li>
         ))}

@@ -1,11 +1,13 @@
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     Column,
     DateTime,
     ForeignKey,
     Integer,
     UniqueConstraint,
+    false,
     func,
 )
 from sqlalchemy.orm import relationship
@@ -28,6 +30,9 @@ class CartItem(Base):
     cart_id = Column(BigInteger, ForeignKey("carts.id"), nullable=False)
     sku_id = Column(BigInteger, ForeignKey("skus.id"), nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
+    # "Save for later": kept on the cart but excluded from Cart.items, so
+    # pricing, shipping and checkout never see it (PRD TZ2 s20).
+    saved_for_later = Column(Boolean, nullable=False, default=False, server_default=false())
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

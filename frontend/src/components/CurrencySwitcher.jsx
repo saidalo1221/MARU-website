@@ -36,7 +36,7 @@ export default function CurrencySwitcher() {
       <select
         value={cart.currency}
         onChange={handleChange}
-        className="bg-transparent text-sm border border-gray-300 rounded px-2 py-1"
+        className="bg-transparent text-sm border border-gray-300 rounded-full px-3 py-1"
         aria-label={t('currency.ariaLabel')}
       >
         {currencies.map((code) => (
@@ -45,7 +45,7 @@ export default function CurrencySwitcher() {
           </option>
         ))}
       </select>
-      {error && <p className="absolute top-full left-0 text-xs text-red-600 whitespace-nowrap">{error}</p>}
+      {error && <p role="alert" className="absolute top-full left-0 text-xs text-red-600 whitespace-nowrap">{error}</p>}
     </div>
   )
 }

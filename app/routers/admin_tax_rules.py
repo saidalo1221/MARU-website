@@ -8,6 +8,7 @@ from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.tax_rule import TaxRule
 from app.models.user import User
+from app.services.audit import audit_create, audit_update, log_audit
 from app.schemas.tax import TaxRuleCreate, TaxRuleOut, TaxRuleUpdate
 
 # PRD ТЗ№3 §41 doesn't assign tax configuration to a specific role; gated to
@@ -37,6 +38,7 @@ def create_tax_rule(
     rule = TaxRule(**payload.model_dump())
     db.add(rule)
     try:
+        audit_create(db, user, "tax_rule_create", "tax_rule", rule, payload.model_dump())
         db.commit()
     except IntegrityError as exc:
         db.rollback()
@@ -63,7 +65,9 @@ def update_tax_rule(
         if rule is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tax rule not found")
 
-        for field, value in payload.model_dump(exclude_unset=True).items():
+        changes = payload.model_dump(exclude_unset=True)
+        audit_update(db, user, "tax_rule_update", "tax_rule", rule, changes)
+        for field, value in changes.items():
             setattr(rule, field, value)
 
         db.commit()

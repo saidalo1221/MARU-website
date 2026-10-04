@@ -1,11 +1,13 @@
 from app.models.category import Category
 from app.models.product import Product, ALLOWED_VOLUMES_ML
 from app.models.product_variant import ProductVariant
+from app.models.variant_image import VariantImage
 from app.models.sku import SKU
+from app.models.sku_bundle_item import SkuBundleItem
 from app.models.inventory import Inventory
 from app.models.warehouse import Warehouse
 from app.models.user import User
-from app.models.enums import CustomerType, UserRole, OrderStatus, RefundStatus
+from app.models.enums import CustomerType, UserRole, OrderStatus, RefundStatus, ShipmentStatus
 from app.models.cart import Cart
 from app.models.cart_item import CartItem
 from app.models.promo_code import PromoCode, PromoDiscountType
@@ -26,11 +28,27 @@ from app.models.review import Review, ReviewStatus
 from app.models.audit_log import AuditLog
 from app.models.password_reset_token import PasswordResetToken
 from app.models.refund import Refund
+from app.models.stock_alert import StockAlert
+from app.models.stock_movement import StockMovement
+from app.models.newsletter_campaign import NewsletterCampaign
+from app.models.newsletter_subscriber import NewsletterSubscriber, NewsletterStatus
+from app.models.shipment import Shipment, ShipmentEvent
 from app.models.email_verification_token import EmailVerificationToken
 from app.models.notification_template import NotificationTemplate
 from app.models.tax_rule import TaxRule
 from app.models.integration_log import IntegrationLog, IntegrationLogStatus
+from app.models.external_id import ExternalId
+from app.models.job import Job
+from app.models.loyalty import LoyaltySettings, LoyaltyTier, LoyaltyTransaction
+from app.models.marketing_spend import MarketingSpend
+from app.models.order_document import OrderDocument
+from app.models.payment import Payment
+from app.models.push_subscription import PushSubscription
+from app.models.promo_code import PromoRedemption
+from app.models.webhook_endpoint import WebhookEndpoint
+from app.models.webhook_event import WebhookEvent
 from app.models.analytics_event import AnalyticsEvent
+from app.models.site_content import ContentOverride, SeoMeta
 from app.models.blog_category import BlogCategory
 from app.models.blog_post import BlogPost
 from app.models.blog_post_translation import BlogPostTranslation
@@ -49,7 +67,9 @@ __all__ = [
     "Product",
     "ALLOWED_VOLUMES_ML",
     "ProductVariant",
+    "VariantImage",
     "SKU",
+    "SkuBundleItem",
     "Inventory",
     "Warehouse",
     "User",
@@ -81,10 +101,30 @@ __all__ = [
     "PasswordResetToken",
     "Refund",
     "RefundStatus",
+    "StockAlert",
+    "StockMovement",
+    "NewsletterCampaign",
+    "NewsletterSubscriber",
+    "NewsletterStatus",
+    "ShipmentStatus",
+    "Shipment",
+    "ShipmentEvent",
     "EmailVerificationToken",
     "NotificationTemplate",
     "TaxRule",
     "IntegrationLog",
+    "ExternalId",
+    "Job",
+    "LoyaltySettings",
+    "LoyaltyTier",
+    "LoyaltyTransaction",
+    "MarketingSpend",
+    "OrderDocument",
+    "Payment",
+    "PushSubscription",
+    "PromoRedemption",
+    "WebhookEndpoint",
+    "WebhookEvent",
     "IntegrationLogStatus",
     "AnalyticsEvent",
     "BlogCategory",
@@ -100,4 +140,6 @@ __all__ = [
     "PageSection",
     "PAGE_KEYS",
     "PageSectionTranslation",
+    "ContentOverride",
+    "SeoMeta",
 ]

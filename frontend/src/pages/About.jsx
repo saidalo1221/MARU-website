@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
 import { getSiteSettings } from '../api/siteSettings'
 import { listAboutSections } from '../api/aboutSections'
+import InfoSections from '../components/layout/InfoSections'
+import PageIntro from '../components/layout/PageIntro'
 import Seo from '../components/Seo'
 
 export default function About() {
@@ -15,19 +17,10 @@ export default function About() {
   }, [locale])
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
       <Seo title={settings?.about_title || t('about.title')} description={settings?.about_body} />
-      <h1 className="text-3xl font-bold mb-3">{settings?.about_title || t('about.title')}</h1>
-      <p className="text-gray-600 mb-10">{settings?.about_body || t('about.subtitle')}</p>
-
-      <div className="space-y-8">
-        {sections.map((s) => (
-          <div key={s.id}>
-            <h2 className="text-lg font-semibold mb-1">{s.title}</h2>
-            <p className="text-sm text-gray-600 whitespace-pre-wrap">{s.body}</p>
-          </div>
-        ))}
-      </div>
+      <PageIntro title={settings?.about_title || t('about.title')} subtitle={settings?.about_body || t('about.subtitle')} />
+      <InfoSections sections={sections} />
     </div>
   )
 }

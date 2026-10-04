@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '../context/LocaleContext'
 import { listPageSections } from '../api/pageSections'
+import InfoSections from '../components/layout/InfoSections'
+import PageIntro from '../components/layout/PageIntro'
 import Seo from '../components/Seo'
 
 export default function Returns() {
@@ -12,21 +14,13 @@ export default function Returns() {
   }, [locale])
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
       <Seo title={t('returns.title')} />
-      <h1 className="text-3xl font-bold mb-3">{t('returns.title')}</h1>
-      <p className="text-gray-600 mb-8">{t('returns.subtitle')}</p>
+      <PageIntro title={t('returns.title')} subtitle={t('returns.subtitle')} />
 
-      <div className="space-y-6 mb-8">
-        {sections.map((s) => (
-          <div key={s.id}>
-            <h2 className="font-semibold mb-1">{s.title}</h2>
-            <p className="text-sm text-gray-600">{s.body}</p>
-          </div>
-        ))}
-      </div>
+      <InfoSections sections={sections} className="mb-8" />
 
-      <p className="text-sm text-gray-500">{t('returns.contactText')}</p>
+      <p className="rounded-3xl bg-brand-light px-6 py-8 text-center text-gray-700">{t('returns.contactText')}</p>
     </div>
   )
 }

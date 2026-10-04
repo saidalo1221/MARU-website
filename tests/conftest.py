@@ -24,7 +24,21 @@ os.environ["CLICK_SERVICE_ID"] = "test-service"
 os.environ["CLICK_MERCHANT_ID"] = "test-click-merchant"
 os.environ["CLICK_SECRET_KEY"] = "test-click-secret"
 os.environ["BITRIX24_WEBHOOK_URL"] = ""
+os.environ["TELEGRAM_BOT_TOKEN"] = ""  # never message the real staff chat from tests
 os.environ["REDIS_URL"] = ""
+os.environ["TELEGRAM_BOT_TOKEN"] = ""  # tests must never message the real bot
+os.environ["TELEGRAM_ADMIN_CHAT_ID"] = ""
+os.environ["GA4_MEASUREMENT_ID"] = ""  # tests must never send to the real property
+os.environ["GA4_API_SECRET"] = ""
+os.environ["META_PIXEL_ID"] = ""  # tests must never send to the real pixel
+os.environ["META_CAPI_TOKEN"] = ""
+os.environ["META_TEST_EVENT_CODE"] = ""
+os.environ["WHATSAPP_TOKEN"] = ""  # tests must never message real customers
+os.environ["WHATSAPP_PHONE_NUMBER_ID"] = ""
+os.environ["WEBHOOK_ALLOW_PRIVATE_URLS"] = "true"  # tests post to fake local receivers
+os.environ["VAPID_PUBLIC_KEY"] = ""  # tests must never push to a real browser
+os.environ["VAPID_PRIVATE_KEY"] = ""
+os.environ["VAPID_SUBJECT"] = ""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -99,13 +113,34 @@ def _reset_module_level_state():
     the in-process rate limiter's hit-counters and cached Redis client."""
     import app.core.rate_limit as rate_limit_module
 
+    from app.core import cache
+
+    cache.clear()
     rate_limit_module._hits.clear()
     rate_limit_module._redis_client = None
     rate_limit_module._redis_warned = False
     yield
+    cache.clear()
     rate_limit_module._hits.clear()
     rate_limit_module._redis_client = None
     rate_limit_module._redis_warned = False
+
+
+@pytest.fixture(autouse=True)
+def _private_documents_dir(tmp_path, monkeypatch):
+    """Generated order documents must not pile up in the real private folder during tests."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "DOCUMENTS_DIR", str(tmp_path / "docs"))
+
+
+@pytest.fixture(autouse=True)
+def _no_real_email(monkeypatch):
+    """The developer's .env may hold real SMTP credentials; without this every
+    registration in a test would try to send actual mail."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "SMTP_HOST", None)
 
 
 @pytest.fixture()
@@ -180,7 +215,35 @@ def _promote(client: TestClient, email: str, role: UserRole) -> None:
 
 
 def login(client: TestClient, email: str, password: str = "Password123!") -> dict:
-    r = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+    """Signs in through the real endpoints, completing the emailed-code step
+    each account type requires: admin roles go through /auth/admin/login +
+    /auth/admin/verify, customers through the new-device challenge
+    (/auth/login + /auth/login/verify-device). The code is captured by
+    swapping the notifier's send method, since only its hash is stored."""
+    import app.routers.auth as auth_router
+
+    notifier = auth_router.email_notifier
+    captured: dict = {}
+    originals = {}
+    for name in ("admin_login_code", "device_login_code"):
+        originals[name] = getattr(notifier, name)
+        setattr(notifier, name, lambda to_email, code, db=None, _n=name: captured.update({_n: code}))
+    try:
+        r = client.post("/api/v1/auth/admin/login", json={"email": email, "password": password})
+        if r.status_code == 200:
+            r = client.post("/api/v1/auth/admin/verify", json={"email": email, "code": captured["admin_login_code"]})
+        else:
+            device_id = "test-device"
+            r = client.post("/api/v1/auth/login", json={"email": email, "password": password, "device_id": device_id})
+            assert r.status_code == 200, r.text
+            if not r.json().get("access_token"):
+                r = client.post(
+                    "/api/v1/auth/login/verify-device",
+                    json={"email": email, "code": captured["device_login_code"], "device_id": device_id},
+                )
+    finally:
+        for name, fn in originals.items():
+            setattr(notifier, name, fn)
     assert r.status_code == 200, r.text
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 

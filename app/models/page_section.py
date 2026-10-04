@@ -6,7 +6,7 @@ from app.database import Base
 # Static "support" pages an admin can attach free-form content sections to —
 # same shape/pattern as AboutSection, just scoped by `page` instead of being
 # its own dedicated table per page.
-PAGE_KEYS = ("delivery", "payment", "returns", "faq", "contact")
+PAGE_KEYS = ("delivery", "payment", "returns", "faq", "contact", "privacy", "terms", "manufacturing", "quality")
 
 
 class PageSection(Base):
@@ -23,6 +23,8 @@ class PageSection(Base):
     title = Column(String(255), nullable=False)
     body = Column(Text, nullable=False)
     sort_order = Column(Integer, nullable=False, default=0)
+    # FAQ sections are grouped by topic (PRD ТЗ№2 §39); None = general.
+    category = Column(String(30), nullable=True)
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

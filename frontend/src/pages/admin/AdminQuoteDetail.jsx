@@ -33,7 +33,7 @@ export default function AdminQuoteDetail() {
 
   useEffect(() => { load() }, [quoteId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (error) return <p className="text-red-600 text-sm">{error}</p>
+  if (error) return <p role="alert" className="text-red-600 text-sm">{error}</p>
   if (!quote) return <p>{t('admin.common.loading')}</p>
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
@@ -102,11 +102,11 @@ export default function AdminQuoteDetail() {
           {canConvert && (
             <form onSubmit={handleConvert} className="border border-gray-200 rounded-lg p-4">
               <h2 className="font-semibold mb-3">{t('admin.quoteDetail.convertTitle')}</h2>
-              <input required placeholder={t('admin.quoteDetail.address')} value={convertForm.address_line} onChange={updateConvert('address_line')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
-              <input required placeholder={t('admin.quoteDetail.postalCode')} value={convertForm.postal_code} onChange={updateConvert('postal_code')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
-              <input placeholder={t('admin.quoteDetail.deliveryMethod')} value={convertForm.delivery_method} onChange={updateConvert('delivery_method')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
-              <input placeholder={t('admin.quoteDetail.paymentMethod')} value={convertForm.payment_method} onChange={updateConvert('payment_method')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
-              {convertError && <p className="text-sm text-red-600 mb-2">{convertError}</p>}
+              <input required placeholder={t('admin.quoteDetail.address')} aria-label={t('admin.quoteDetail.address')} value={convertForm.address_line} onChange={updateConvert('address_line')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
+              <input required placeholder={t('admin.quoteDetail.postalCode')} aria-label={t('admin.quoteDetail.postalCode')} value={convertForm.postal_code} onChange={updateConvert('postal_code')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
+              <input placeholder={t('admin.quoteDetail.deliveryMethod')} aria-label={t('admin.quoteDetail.deliveryMethod')} value={convertForm.delivery_method} onChange={updateConvert('delivery_method')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
+              <input placeholder={t('admin.quoteDetail.paymentMethod')} aria-label={t('admin.quoteDetail.paymentMethod')} value={convertForm.payment_method} onChange={updateConvert('payment_method')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-2" />
+              {convertError && <p role="alert" className="text-sm text-red-600 mb-2">{convertError}</p>}
               <button type="submit" disabled={convertSubmitting} className="bg-brand text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-40">
                 {convertSubmitting ? t('admin.quoteDetail.converting') : t('admin.quoteDetail.convertButton')}
               </button>
@@ -117,19 +117,19 @@ export default function AdminQuoteDetail() {
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 h-fit">
           <h2 className="font-semibold mb-3">{t('admin.quoteDetail.updateTitle')}</h2>
           <label className="block text-xs text-gray-500 mb-1">{t('admin.common.status')}</label>
-          <select value={form.status} onChange={update('status')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
+          <select value={form.status} aria-label={t('admin.common.status')} onChange={update('status')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
           <label className="block text-xs text-gray-500 mb-1">{t('admin.quoteDetail.proposedPrice')}</label>
           <div className="grid grid-cols-2 gap-2 mb-3">
-            <input type="number" step="0.01" min="0" value={form.proposed_price} onChange={update('proposed_price')} placeholder={t('admin.quoteDetail.price')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-            <input value={form.currency} onChange={update('currency')} placeholder={t('admin.quoteDetail.currency')} maxLength={3} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input type="number" step="0.01" min="0" value={form.proposed_price} onChange={update('proposed_price')} placeholder={t('admin.quoteDetail.price')} aria-label={t('admin.quoteDetail.price')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+            <input value={form.currency} onChange={update('currency')} placeholder={t('admin.quoteDetail.currency')} aria-label={t('admin.quoteDetail.currency')} maxLength={3} className="border border-gray-300 rounded px-3 py-2 text-sm" />
           </div>
           <label className="block text-xs text-gray-500 mb-1">{t('admin.quoteDetail.validUntil')}</label>
-          <input type="date" value={form.valid_until} onChange={update('valid_until')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3" />
+          <input type="date" value={form.valid_until} aria-label={t('admin.quoteDetail.validUntil')} onChange={update('valid_until')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3" />
           <label className="block text-xs text-gray-500 mb-1">{t('admin.quoteDetail.managerNotes')}</label>
-          <textarea value={form.manager_notes} onChange={update('manager_notes')} rows={3} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3" />
-          {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
+          <textarea value={form.manager_notes} aria-label={t('admin.quoteDetail.managerNotes')} onChange={update('manager_notes')} rows={3} className="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3" />
+          {error && <p role="alert" className="text-sm text-red-600 mb-2">{error}</p>}
           <button type="submit" disabled={submitting} className="bg-brand text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-40">
             {submitting ? t('admin.common.saving') : t('admin.common.save')}
           </button>

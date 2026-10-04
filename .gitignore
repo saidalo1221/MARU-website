@@ -12,6 +12,9 @@ frontend/.env.local
 # not meant to be committed
 app/static/uploads/
 
+# Private order documents (app/services/documents.py)
+app/private_documents/
+
 # Python
 __pycache__/
 *.pyc

@@ -9,6 +9,7 @@ export default function PasswordInput({ className = '', toggleLabel = 'Show pass
   return (
     <div className="relative">
       <input
+        aria-label={props.placeholder}
         {...props}
         type={visible ? 'text' : 'password'}
         className={`${className} pr-10`}
@@ -18,7 +19,7 @@ export default function PasswordInput({ className = '', toggleLabel = 'Show pass
         onClick={() => setVisible((v) => !v)}
         aria-label={toggleLabel}
         tabIndex={-1}
-        className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-gray-600 text-xs font-medium"
+        className="absolute right-0 top-0 h-full px-3 text-gray-500 hover:text-gray-600 text-xs font-medium"
       >
         {visible ? '🙈' : '👁'}
       </button>

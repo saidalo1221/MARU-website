@@ -1,11 +1,11 @@
 import enum
 
-from sqlalchemy import BigInteger, Column, DateTime, DECIMAL, ForeignKey, String, Text, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, DECIMAL, ForeignKey, Integer, String, Text, func
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import relationship
 
 from app.database import Base
-from app.models.enums import OrderStatus
+from app.models.enums import OrderStatus, PaymentStatus
 
 
 class OrderType(str, enum.Enum):
@@ -27,6 +27,9 @@ class Order(Base):
     # Sent only in the checkout response for guest orders.  It is required to
     # read, cancel, or poll a guest order without exposing it by sequential ID.
     guest_order_token = Column(String(64), nullable=True, unique=True)
+    # Client-chosen `Idempotency-Key` from checkout: a retried request with the
+    # same key returns this order instead of failing on the already-used cart.
+    idempotency_key = Column(String(64), nullable=True, unique=True)
     cart_id = Column(BigInteger, ForeignKey("carts.id"), nullable=True)
     promo_code_id = Column(BigInteger, ForeignKey("promo_codes.id"), nullable=True)
     promo_code_snapshot = Column(String(50), nullable=True)
@@ -54,11 +57,22 @@ class Order(Base):
     phone = Column(String(30), nullable=False)
     email = Column(String(255), nullable=False)
     country = Column(String(100), nullable=False)
+    region = Column(String(100), nullable=True)
     city = Column(String(100), nullable=False)
     address_line = Column(String(255), nullable=False)
     postal_code = Column(String(20), nullable=False)
     delivery_method = Column(String(50), nullable=False)
     payment_method = Column(String(50), nullable=False)
+    # Loyalty points the customer spent on this order and what they were worth (already inside discount_amount).
+    # The visitor allowed analytics / ad measurement when ordering: only then is the purchase sent to GA4 / Meta.
+    ads_consent = Column(Boolean, nullable=False, default=False, server_default="0")
+    loyalty_points_used = Column(Integer, nullable=False, default=0, server_default="0")
+    loyalty_discount_amount = Column(DECIMAL(12, 2), nullable=False, default=0, server_default="0")
+    # Site language at checkout (ru/uz/en) and whether the customer agreed to WhatsApp updates.
+    language = Column(String(5), nullable=True)
+    whatsapp_opt_in = Column(Boolean, nullable=False, default=False)
+    # Mirror of the latest row in `payments` (app/services/payment_ledger.py).
+    payment_status = Column(SAEnum(PaymentStatus, native_enum=False, length=24), nullable=False, default=PaymentStatus.CREATED)
 
     # Acquisition channel for CRM push (PRD section 26).
     source = Column(String(20), nullable=False, default="website")
@@ -76,6 +90,9 @@ class Order(Base):
     # pushes (status changes) update the same deal instead of duplicating it.
     crm_deal_id = Column(String(50), nullable=True)
     notes = Column(Text, nullable=True)
+    # JSON of first/last-touch marketing attribution captured by the storefront
+    # (utm_*, referrer, landing_page; PRD ТЗ№4 §18). See order_service.clean_attribution.
+    attribution = Column(Text, nullable=True)
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -85,7 +102,13 @@ class Order(Base):
         "OrderStatusHistory",
         back_populates="order",
         cascade="all, delete-orphan",
-        order_by="OrderStatusHistory.created_at",
+        order_by="OrderStatusHistory.created_at, OrderStatusHistory.id",
+    )
+    shipments = relationship(
+        "Shipment",
+        back_populates="order",
+        cascade="all, delete-orphan",
+        order_by="Shipment.id",
     )
     user = relationship("User")
     promo_code = relationship("PromoCode")

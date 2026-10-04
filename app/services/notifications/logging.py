@@ -1,6 +1,7 @@
 import logging
 
 from app.models.order import Order
+from app.models.shipment import Shipment
 from app.services.notifications.base import NotificationBase
 
 logger = logging.getLogger("maru.notifications")
@@ -21,3 +22,12 @@ class LoggingNotifier(NotificationBase):
 
     def order_status_changed(self, order: Order, old_status: str, new_status: str) -> None:
         logger.info("order.status_changed order_number=%s %s -> %s", order.order_number, old_status, new_status)
+
+    def shipment_updated(self, order: Order, shipment: Shipment) -> None:
+        logger.info(
+            "shipment.updated order_number=%s carrier=%s tracking=%s status=%s",
+            order.order_number,
+            shipment.carrier,
+            shipment.tracking_number,
+            shipment.status.value,
+        )

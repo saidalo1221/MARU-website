@@ -9,7 +9,7 @@ export default function LanguageSwitcher() {
     <select
       value={locale}
       onChange={(e) => setLocale(e.target.value)}
-      className="bg-transparent text-sm border border-gray-300 rounded px-2 py-1"
+      className="bg-transparent text-sm border border-gray-300 rounded-full px-3 py-1"
       aria-label={t('language.ariaLabel')}
     >
       {LOCALES.map((code) => (

@@ -1,10 +1,12 @@
 import logging
 
 import requests
+from sqlalchemy.orm import object_session
 
 from app.config import settings
 from app.models.order import Order
 from app.services.crm.base import CRMBase
+from app.services.integrations.adapters import set_external_id
 
 logger = logging.getLogger("maru.crm.bitrix24")
 
@@ -108,6 +110,9 @@ class Bitrix24Connector(CRMBase):
                     logger.error("Bitrix24 rejected order %s: %s", order.order_number, result)
                     return False
                 order.crm_deal_id = str(result.get("result"))
+                _session = object_session(order)
+                if _session is not None:
+                    set_external_id(_session, "crm_bitrix24", "order", order.id, order.crm_deal_id)
             else:
                 response = requests.post(
                     f"{base_url}/crm.deal.update.json",

@@ -4,7 +4,9 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { errorMessage } from '../api/client'
 import PasswordInput from '../components/PasswordInput'
+import AuthSplit, { authButtonClass, authInputClass } from '../components/auth/AuthSplit'
 import Seo from '../components/Seo'
+import LegalNotice from '../components/LegalNotice'
 
 const emptyForm = { email: '', password: '', first_name: '', last_name: '', phone: '' }
 
@@ -14,7 +16,8 @@ export default function Register() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const next = params.get('next') || '/account/orders'
-  const [form, setForm] = useState(emptyForm)
+  // The order page links here with ?email= after a guest checkout.
+  const [form, setForm] = useState({ ...emptyForm, email: params.get('email') || '' })
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -35,23 +38,25 @@ export default function Register() {
   }
 
   return (
-    <div className="max-w-sm mx-auto px-4 py-12">
+    <AuthSplit title={t('register.title')} description={t('register.subtitle')}>
       <Seo title={t('register.title')} noindex />
-      <h1 className="text-2xl font-bold mb-6">{t('register.title')}</h1>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input required placeholder={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input required placeholder={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input placeholder={t('checkout.phone')} value={form.phone} onChange={update('phone')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input required type="email" placeholder={t('checkout.email')} value={form.email} onChange={update('email')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <PasswordInput required placeholder={t('login.password')} value={form.password} onChange={update('password')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={submitting} className="w-full bg-brand text-white rounded py-2.5 font-medium disabled:opacity-40">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <input required placeholder={t('checkout.firstName')} aria-label={t('checkout.firstName')} value={form.first_name} onChange={update('first_name')} className={authInputClass} />
+          <input required placeholder={t('checkout.lastName')} aria-label={t('checkout.lastName')} value={form.last_name} onChange={update('last_name')} className={authInputClass} />
+        </div>
+        <input placeholder={t('checkout.phone')} aria-label={t('checkout.phone')} value={form.phone} onChange={update('phone')} className={authInputClass} />
+        <input required type="email" placeholder={t('checkout.email')} aria-label={t('checkout.email')} value={form.email} onChange={update('email')} className={authInputClass} />
+        <PasswordInput required placeholder={t('login.password')} value={form.password} onChange={update('password')} className={authInputClass} />
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+        <button type="submit" disabled={submitting} className={authButtonClass}>
           {submitting ? t('register.submitting') : t('register.submit')}
         </button>
+        <LegalNotice />
       </form>
-      <p className="text-sm text-gray-500 mt-4">
-        {t('register.haveAccount')} <Link to={`/login?next=${encodeURIComponent(next)}`} className="text-brand">{t('register.login')}</Link>
+      <p className="mt-6 text-center text-sm text-gray-500">
+        {t('register.haveAccount')} <Link to={`/login?next=${encodeURIComponent(next)}`} className="text-brand hover:underline">{t('register.login')}</Link>
       </p>
-    </div>
+    </AuthSplit>
   )
 }

@@ -38,6 +38,10 @@ export default function AdminSiteSettings() {
           longitude: s.longitude,
           about_title: s.about_title || '',
           about_body: s.about_body || '',
+          facebook_url: s.facebook_url || '',
+          instagram_url: s.instagram_url || '',
+          telegram_url: s.telegram_url || '',
+          youtube_url: s.youtube_url || '',
         })
         setTranslations(Object.fromEntries(tr.map((row) => [row.locale, row])))
       })
@@ -57,7 +61,7 @@ export default function AdminSiteSettings() {
   }, [activeLocale, translations])
 
   if (loading) return <p>{t('admin.common.loading')}</p>
-  if (error) return <p className="text-red-600 text-sm">{error}</p>
+  if (error) return <p role="alert" className="text-red-600 text-sm">{error}</p>
   if (!form) return null
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
@@ -101,9 +105,9 @@ export default function AdminSiteSettings() {
       <h1 className="text-2xl font-bold mb-4">{t('admin.siteSettings.title')}</h1>
 
       <form onSubmit={handleSave} className="border border-gray-200 rounded-lg p-4 mb-8 grid grid-cols-2 gap-3">
-        <input placeholder={t('admin.siteSettings.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input placeholder={t('admin.siteSettings.email')} value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input placeholder={t('admin.siteSettings.address')} value={form.address} onChange={update('address')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+        <input placeholder={t('admin.siteSettings.phone')} aria-label={t('admin.siteSettings.phone')} value={form.phone} onChange={update('phone')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input placeholder={t('admin.siteSettings.email')} aria-label={t('admin.siteSettings.email')} value={form.email} onChange={update('email')} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input placeholder={t('admin.siteSettings.address')} aria-label={t('admin.siteSettings.address')} value={form.address} onChange={update('address')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
 
         <div className="col-span-2">
           <label className="block text-xs text-gray-500 mb-1">{t('admin.siteSettings.mapHint')}</label>
@@ -114,10 +118,14 @@ export default function AdminSiteSettings() {
           />
         </div>
 
-        <input placeholder={t('admin.siteSettings.aboutTitle')} value={form.about_title} onChange={update('about_title')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
-        <textarea placeholder={t('admin.siteSettings.aboutBody')} value={form.about_body} onChange={update('about_body')} rows={6} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+        {['facebook_url', 'instagram_url', 'telegram_url', 'youtube_url'].map((field) => (
+          <input key={field} type="url" placeholder={t(`admin.siteSettings.${field}`)} aria-label={t(`admin.siteSettings.${field}`)} value={form[field]} onChange={update(field)} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+        ))}
 
-        {saveError && <p className="text-sm text-red-600 col-span-2">{saveError}</p>}
+        <input placeholder={t('admin.siteSettings.aboutTitle')} aria-label={t('admin.siteSettings.aboutTitle')} value={form.about_title} onChange={update('about_title')} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+        <textarea placeholder={t('admin.siteSettings.aboutBody')} aria-label={t('admin.siteSettings.aboutBody')} value={form.about_body} onChange={update('about_body')} rows={6} className="border border-gray-300 rounded px-3 py-2 text-sm col-span-2" />
+
+        {saveError && <p role="alert" className="text-sm text-red-600 col-span-2">{saveError}</p>}
         <div className="col-span-2">
           <button type="submit" disabled={saving} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
             {saving ? t('admin.common.saving') : t('admin.common.save')}
@@ -138,10 +146,10 @@ export default function AdminSiteSettings() {
         ))}
       </div>
       <form onSubmit={handleTranslationSave} className="border border-gray-200 rounded-lg p-4 space-y-3">
-        <input placeholder={t('admin.siteSettings.address')} value={translationForm.address} onChange={updateTranslation('address')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <input placeholder={t('admin.siteSettings.aboutTitle')} value={translationForm.about_title} onChange={updateTranslation('about_title')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        <textarea placeholder={t('admin.siteSettings.aboutBody')} value={translationForm.about_body} onChange={updateTranslation('about_body')} rows={6} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-        {translationError && <p className="text-sm text-red-600">{translationError}</p>}
+        <input placeholder={t('admin.siteSettings.address')} aria-label={t('admin.siteSettings.address')} value={translationForm.address} onChange={updateTranslation('address')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <input placeholder={t('admin.siteSettings.aboutTitle')} aria-label={t('admin.siteSettings.aboutTitle')} value={translationForm.about_title} onChange={updateTranslation('about_title')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <textarea placeholder={t('admin.siteSettings.aboutBody')} aria-label={t('admin.siteSettings.aboutBody')} value={translationForm.about_body} onChange={updateTranslation('about_body')} rows={6} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        {translationError && <p role="alert" className="text-sm text-red-600">{translationError}</p>}
         <button type="submit" disabled={translationSaving} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
           {translationSaving ? t('admin.common.saving') : t('admin.common.save')}
         </button>

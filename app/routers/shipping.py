@@ -1,11 +1,14 @@
+from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.models.shipping_rate import ANY, ShippingRate
+from app.schemas.shipping import ShippingEstimateOut
 
-router = APIRouter(prefix="/shipping", tags=["shipping"])
+router = APIRouter(prefix="/shipping", tags=["shipping"], dependencies=[Depends(rate_limit("shipping", 120, 60))])
 
 
 @router.get("/countries", response_model=list[str])
@@ -22,7 +25,7 @@ def list_shipping_countries(db: Session = Depends(get_db)) -> list[str]:
 
 
 @router.get("/methods", response_model=list[str])
-def list_shipping_methods(country: str | None = None, db: Session = Depends(get_db)) -> list[str]:
+def list_shipping_methods(country: Optional[str] = None, db: Session = Depends(get_db)) -> list[str]:
     """Delivery methods available for a country (or all configured methods if
     no country is given), for the checkout delivery-method picker."""
     stmt = select(ShippingRate.delivery_method).where(
@@ -32,3 +35,39 @@ def list_shipping_methods(country: str | None = None, db: Session = Depends(get_
         stmt = stmt.where(ShippingRate.country.in_((country, ANY)))
     stmt = stmt.distinct().order_by(ShippingRate.delivery_method)
     return list(db.execute(stmt).scalars().all())
+
+
+@router.get("/estimate", response_model=ShippingEstimateOut)
+def shipping_estimate(country: Optional[str] = None, db: Session = Depends(get_db)) -> ShippingEstimateOut:
+    """Fastest configured delivery window (and free-shipping offer) for a
+    country, for the product page. Country-specific rates win over "*" ones;
+    with no country it summarises every active rate."""
+    all_rates = db.execute(select(ShippingRate).where(ShippingRate.is_active.is_(True))).scalars().all()
+    if country:
+        specific = [r for r in all_rates if r.country == country]
+        pool = specific or [r for r in all_rates if r.country == ANY]
+    else:
+        pool = all_rates
+    if not pool:
+        return ShippingEstimateOut()
+
+    # The cheapest base fee of a real delivery method (a "pickup" method does not
+    # count as delivery), compared within one currency.
+    delivery_pool = [r for r in pool if "pick" not in r.delivery_method.lower()] or pool
+    fee_currency = delivery_pool[0].currency
+    from_fee = min(r.base_fee for r in delivery_pool if r.currency == fee_currency)
+    availability = {"available": True, "from_fee": from_fee, "fee_currency": fee_currency}
+
+    rates = [r for r in pool if r.max_delivery_days is not None]
+    if not rates:
+        return ShippingEstimateOut(**availability)
+    best = min(rates, key=lambda r: (r.max_delivery_days, r.min_delivery_days or 0))
+    offers = [r for r in rates if r.free_shipping_threshold is not None and r.currency == best.currency]
+    threshold = min((r.free_shipping_threshold for r in offers), default=None)
+    return ShippingEstimateOut(
+        min_days=best.min_delivery_days,
+        max_days=best.max_delivery_days,
+        free_shipping_threshold=threshold,
+        currency=best.currency,
+        **availability,
+    )

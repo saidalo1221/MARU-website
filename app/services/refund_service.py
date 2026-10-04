@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -8,6 +9,7 @@ from app.models.enums import OrderStatus, RefundStatus
 from app.models.order import Order
 from app.models.refund import Refund
 from app.models.user import User
+from app.services.analytics import record_event
 from app.services.audit import log_audit
 from app.services.order_service import set_order_status
 from app.services.payment.errors import PaymentProviderError, RefundNotSupportedError
@@ -45,12 +47,16 @@ def total_refunded(db: Session, order_id: int) -> Decimal:
     return Decimal(result)
 
 
-def create_refund(db: Session, order: Order, amount: Decimal, reason: str | None, admin_user: User) -> Refund:
+def create_refund(db: Session, order: Order, amount: Decimal, reason: Optional[str], admin_user: User) -> Refund:
     """Refund part or all of a paid order (PRD ТЗ№3 §31/§67, ТЗ№4 §28).
     Raises RefundError for request-shape problems (bad amount, wrong order
     status) that never reach the provider. A provider-side failure is
     recorded as a FAILED Refund row and re-raised so the caller still sees
     an error, but the row stays for audit/reconciliation."""
+    # Serialise refunds per order: a concurrent double-submit waits here, then
+    # sees the first refund's COMPLETED row and status instead of both passing
+    # the "would exceed total" check on stale data.
+    db.refresh(order, with_for_update=True)
     if order.status not in _REFUNDABLE_STATUSES:
         raise RefundError(f"Order in status {order.status.value} cannot be refunded")
 
@@ -104,5 +110,9 @@ def create_refund(db: Session, order: Order, amount: Decimal, reason: str | None
         {"amount": str(amount), "provider_refund_id": provider_refund_id},
     )
     db.commit()
+    record_event(
+        db, "refund", user=order.user, session_id=order.guest_order_token,
+        order_id=order.id, value=str(amount), currency=order.currency,
+    )
     db.refresh(refund)
     return refund

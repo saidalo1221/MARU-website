@@ -48,13 +48,13 @@ function CurrencyPicker({ onSelect }) {
   return (
     <div ref={containerRef} className="relative">
       <input
-        placeholder={t('admin.exchangeRates.searchCurrency')}
+        placeholder={t('admin.exchangeRates.searchCurrency')} aria-label={t('admin.exchangeRates.searchCurrency')}
         value={query}
         onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
         className="border border-gray-300 rounded px-3 py-2 text-sm w-64"
       />
-      {loadError && <p className="text-xs text-red-600 mt-1">{loadError}</p>}
+      {loadError && <p role="alert" className="text-xs text-red-600 mt-1">{loadError}</p>}
       {open && suggestions.length > 0 && (
         <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-hidden max-h-64 overflow-y-auto">
           {suggestions.map((c) => (
@@ -164,7 +164,7 @@ export default function AdminExchangeRates() {
 
       {syncMessage && <p className="text-sm mb-3">{syncMessage}</p>}
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {newOpen && (
         <div className="border border-gray-200 rounded-lg p-4 mb-6">
@@ -182,7 +182,7 @@ export default function AdminExchangeRates() {
           {adding && <p className="text-sm mt-2">{t('admin.exchangeRates.fetchingRate')}</p>}
           {newError && (
             <div className="mt-3">
-              <p className="text-red-600 text-sm mb-2">{newError}</p>
+              <p role="alert" className="text-red-600 text-sm mb-2">{newError}</p>
               {selectedCurrency && (
                 <form onSubmit={handleManualSave} className="flex gap-2 items-start">
                   <input
@@ -190,7 +190,7 @@ export default function AdminExchangeRates() {
                     type="number"
                     step="0.0001"
                     min="0"
-                    placeholder={t('admin.exchangeRates.unitsPerUsd')}
+                    placeholder={t('admin.exchangeRates.unitsPerUsd')} aria-label={t('admin.exchangeRates.unitsPerUsd')}
                     value={manualRate}
                     onChange={(e) => setManualRate(e.target.value)}
                     className="border border-gray-300 rounded px-3 py-2 text-sm"
@@ -208,20 +208,20 @@ export default function AdminExchangeRates() {
       {!loading && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left"><tr><th className="px-3 py-2">{t('admin.common.name')}</th><th className="px-3 py-2">{t('admin.exchangeRates.unitsPerUsd')}</th><th className="px-3 py-2"></th></tr></thead>
+            <thead className="bg-gray-50 text-left"><tr><th scope="col" className="px-3 py-2">{t('admin.common.name')}</th><th scope="col" className="px-3 py-2">{t('admin.exchangeRates.unitsPerUsd')}</th><th scope="col" className="px-3 py-2"><span className="sr-only">{t('admin.common.actions')}</span></th></tr></thead>
             <tbody className="divide-y divide-gray-100">
               {rates.map((r) => (
                 <tr key={r.id}>
                   <td className="px-3 py-2 font-medium">{r.currency}</td>
                   <td className="px-3 py-2">
-                    <input type="number" step="0.0001" defaultValue={r.units_per_usd} onBlur={(e) => updateRate(r.id, e.target.value)} className="w-32 border border-gray-200 rounded px-2 py-1" />
+                    <input type="number" step="0.0001" defaultValue={r.units_per_usd} aria-label={t('admin.exchangeRates.unitsPerUsd')} onBlur={(e) => updateRate(r.id, e.target.value)} className="w-32 border border-gray-200 rounded px-2 py-1" />
                   </td>
                   <td className="px-3 py-2 text-right">
-                    <button type="button" onClick={() => deleteRate(r.id)} className="text-red-500 text-xs">{t('admin.common.delete')}</button>
+                    <button type="button" onClick={() => deleteRate(r.id)} className="text-red-600 text-xs">{t('admin.common.delete')}</button>
                   </td>
                 </tr>
               ))}
-              {rates.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-gray-400">{t('admin.exchangeRates.none')}</td></tr>}
+              {rates.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-gray-500">{t('admin.exchangeRates.none')}</td></tr>}
             </tbody>
           </table>
         </div>

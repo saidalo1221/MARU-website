@@ -1,7 +1,179 @@
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html {
   overflow-x: hidden;
+}
+
+body {
+  background-color: rgb(var(--color-page));
+  color: #141413;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.015em;
+}
+
+/* Dark mode (toggled via ThemeContext adding/removing `dark` on <html>,
+ * see tailwind.config.js's darkMode:'class'). The app was built with
+ * hardcoded light-mode utility classes throughout ~70 components rather
+ * than per-class `dark:` variants, so this retrofits dark colors globally
+ * by overriding those same utility classes under a `.dark` ancestor —
+ * `.dark .bg-white` (two classes) naturally outranks `.bg-white` (one
+ * class) in specificity, no !important needed. New components should
+ * still prefer this same set of gray/white/status utility classes so they
+ * pick up dark mode for free; only reach for `dark:` variants directly if
+ * a component needs a shade not covered here. */
+.dark body {
+  background-color: #111110;
+  color: #ececea;
+}
+
+.dark .bg-white { background-color: #1b1b1a; }
+.dark .bg-gray-50 { background-color: #111110; }
+.dark .bg-gray-100 { background-color: #1b1b1a; }
+.dark .bg-gray-200 { background-color: #2e2e2c; }
+.dark .bg-gray-700 { background-color: #2e2e2c; }
+.dark .hover\:bg-white:hover { background-color: #1b1b1a; }
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover { background-color: #2e2e2c; }
+
+.dark .text-gray-400 { color: #a3a39e; }
+.dark .text-gray-500 { color: #a3a39e; }
+.dark .text-gray-600 { color: #d2d2cd; }
+.dark .text-gray-700 { color: #d2d2cd; }
+.dark .text-gray-800 { color: #ececea; }
+.dark .text-gray-900 { color: #f4f4f2; }
+.dark .hover\:text-gray-600:hover,
+.dark .hover\:text-gray-800:hover { color: #f4f4f2; }
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 { border-color: #2e2e2c; }
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #2e2e2c; }
+
+.dark .bg-amber-50 { background-color: #451a03; }
+.dark .border-amber-200 { border-color: #92400e; }
+.dark .text-amber-600,
+.dark .text-amber-700,
+.dark .text-amber-800 { color: #fbbf24; }
+
+.dark .bg-brand-light { background-color: #262624; }
+.dark .bg-green-50 { background-color: #052e16; }
+.dark .border-green-200,
+.dark .border-green-300 { border-color: #166534; }
+.dark .text-green-800 { color: #86efac; }
+.dark .bg-red-50 { background-color: #450a0a; }
+.dark .border-red-200,
+.dark .border-red-300 { border-color: #991b1b; }
+.dark .text-red-800 { color: #fca5a5; }
+.dark .bg-yellow-50 { background-color: #422006; }
+.dark .border-yellow-200,
+.dark .border-yellow-300 { border-color: #854d0e; }
+.dark .text-yellow-800,
+.dark .text-yellow-900 { color: #fde68a; }
+.dark .bg-blue-50 { background-color: #172554; }
+.dark .border-blue-200 { border-color: #1e3a8a; }
+.dark .text-blue-700,
+.dark .text-blue-900 { color: #93c5fd; }
+
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #1b1b1a;
+  color: #f4f4f2;
+  border-color: #2e2e2c;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #7a7a75;
+}
+.dark .bg-transparent { background-color: transparent; }
+
+/* Native form controls (dropdown popups, scrollbars) follow the dark scheme.
+ * Options get an explicit background: selects use bg-transparent above, so
+ * their options would otherwise inherit transparent and render light-on-white. */
+.dark { color-scheme: dark; }
+.dark select option,
+.dark select optgroup { background-color: #1b1b1a; color: #f4f4f2; }
+
+/* Outlined form controls: #2e2e2c on the dark surfaces is ~1.5:1, so the
+ * language/currency choosers and inputs nearly vanish (WCAG 1.4.11 wants 3:1). */
+.dark input.border,
+.dark select.border,
+.dark textarea.border { border-color: #7a7a75; }
+
+/* Brand/status text colors: the light-mode shades are too dark on the dark
+ * surfaces above (axe color-contrast). */
+.dark .text-brand,
+.dark .hover\:text-brand:hover { color: #ff8d70; }
+.dark .text-red-500,
+.dark .text-red-600 { color: #f87171; }
+.dark .text-green-700 { color: #4ade80; }
+
+/* Leaflet attribution links (#0078a8 on the translucent white bar) miss 4.5:1. */
+.leaflet-container .leaflet-control-attribution a { color: #00557a; }
+
+/* Home hero (components/home/MarqueeHero.jsx): fade-up on load, endless photo strip.
+ * Both are switched off by the global prefers-reduced-motion rule in tokens.css. */
+@keyframes maru-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.maru-fade-up {
+  opacity: 0;
+  animation: maru-fade-up 0.6s var(--ease-standard) forwards;
+  animation-delay: var(--maru-delay, 0ms);
+}
+@keyframes maru-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.maru-marquee {
+  animation: maru-marquee 60s linear infinite;
+}
+.maru-marquee-wrap:hover .maru-marquee {
+  animation-play-state: paused;
+}
+
+.dark .bg-white\/85,
+.dark .bg-white\/70,
+.dark .bg-white\/60 { background-color: rgb(27 27 26 / 0.7); }
+
+/* Scroll reveal for the home sections (components/home/Reveal.jsx). */
+.maru-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s var(--ease-standard), transform 0.6s var(--ease-standard);
+}
+.maru-reveal.maru-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Leaflet gives its panes and controls z-index values up to 1000. Without a stacking context on the
+ * container they paint over the sticky header when the page scrolls, so the map is isolated. */
+.leaflet-container {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+/* A <legend> normally sits on top of its fieldset's border. Inside the soft checkout panels it is a plain
+ * heading (same approach as Bootstrap's reboot). */
+fieldset.rounded-3xl > legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 0.75rem;
+}
+fieldset.rounded-3xl > legend + * {
+  clear: both;
 }

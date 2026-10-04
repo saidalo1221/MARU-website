@@ -1,15 +1,46 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { getProduct } from '../api/products'
-import { listShippingCountries } from '../api/shipping'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { getProduct, getRelated, listProducts } from '../api/products'
+import { useShipCountry } from '../lib/shipCountry'
+import { listPageSections } from '../api/pageSections'
+import { trackEvent } from '../lib/analytics'
 import { addToWishlist, getWishlist, removeFromWishlist } from '../api/wishlist'
+import { markWishlist } from '../lib/wishlistStore'
 import { useLocale } from '../context/LocaleContext'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import VariantSelector from '../components/product/VariantSelector'
 import QuantitySelector from '../components/product/QuantitySelector'
 import Reviews from '../components/product/Reviews'
+import ProductCard from '../components/product/ProductCard'
+import ProductGallery from '../components/product/ProductGallery'
+import { ProductDetailSkeleton } from '../components/Skeleton'
+import ProductBadges from '../components/product/ProductBadges'
+import Breadcrumbs from '../components/Breadcrumbs'
+import FaqItem from '../components/FaqItem'
 import Seo from '../components/Seo'
+import DeliveryEstimate from '../components/product/DeliveryEstimate'
+import StockAlertForm from '../components/product/StockAlertForm'
+
+// The price of one unit at `quantity`: the highest matching quantity tier, but
+// never above the SKU's own price (same rule as app/services/pricing.py).
+function unitPriceAt(sku, quantity) {
+  const base = Number(sku.retail_price)
+  const tier = [...(sku.quantity_tiers || [])].reverse().find((t) => quantity >= t.min_quantity)
+  return tier ? Math.min(Number(tier.price), base) : base
+}
+
+// "1–9", "10–49", "50+" rows for the quantity price table.
+function tierRows(sku) {
+  const tiers = sku.quantity_tiers || []
+  if (tiers.length === 0) return []
+  const base = Number(sku.retail_price)
+  const starts = [1, ...tiers.map((t) => t.min_quantity)]
+  return starts.map((from, i) => {
+    const to = starts[i + 1] != null ? starts[i + 1] - 1 : null
+    return { from, to, price: i === 0 ? base : Math.min(Number(tiers[i - 1].price), base) }
+  })
+}
 
 export default function ProductDetail() {
   const { slug } = useParams()
@@ -24,9 +55,11 @@ export default function ProductDetail() {
   const [error, setError] = useState(null)
   const [variantId, setVariantId] = useState(null)
   const [quantity, setQuantity] = useState(1)
-  const [countries, setCountries] = useState([])
-  const [country, setCountry] = useState('')
   const [status, setStatus] = useState(null)
+  const [related, setRelated] = useState([])
+  const shipCountry = useShipCountry()
+  const [groups, setGroups] = useState({ other_sizes: [], bought_together: [], sets: [] })
+  const [faq, setFaq] = useState([])
 
   useEffect(() => {
     setProduct(null)
@@ -38,17 +71,44 @@ export default function ProductDetail() {
         setQuantity(p.min_order_quantity || 1)
       })
       .catch(setError)
+  }, [slug, locale, currency, shipCountry])
+
+  useEffect(() => {
+    listProducts(locale, currency, { sort: 'popularity', limit: 5 })
+      .then((list) => setRelated(list.filter((p) => p.slug !== slug).slice(0, 4)))
+      .catch(() => {})
   }, [slug, locale, currency])
 
   useEffect(() => {
-    listShippingCountries().then(setCountries).catch(() => {})
-  }, [])
+    getRelated(slug, locale, currency).then(setGroups).catch(() => setGroups({ other_sizes: [], bought_together: [], sets: [] }))
+  }, [slug, locale, currency, shipCountry])
+
+  useEffect(() => {
+    listPageSections('faq', locale).then((rows) => setFaq(rows.slice(0, 4))).catch(() => {})
+  }, [locale])
 
   const variant = useMemo(
     () => product?.variants.find((v) => v.id === variantId) ?? null,
     [product, variantId]
   )
   const sku = variant?.skus.find((s) => s.is_active) ?? null
+  const coverImage = variant?.images?.[0]?.image_url || variant?.photo_url
+
+  // The product refetches when the cart currency loads; count one view per
+  // product, not one per fetch.
+  const viewedProductId = useRef(null)
+  const productId = product?.id
+  useEffect(() => {
+    if (!productId || viewedProductId.current === productId) return
+    viewedProductId.current = productId
+    trackEvent('view_item', { product_id: productId, slug })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId])
+
+  const handleSelectVariant = (id) => {
+    setVariantId(id)
+    trackEvent('select_variant', { product_id: product.id, variant_id: id })
+  }
 
   useEffect(() => {
     if (!user || !sku) return
@@ -59,18 +119,25 @@ export default function ProductDetail() {
     if (!sku) return
     if (wishlisted) {
       await removeFromWishlist(sku.id)
+      markWishlist(sku.id, false)
       setWishlisted(false)
     } else {
       await addToWishlist(sku.id)
+      markWishlist(sku.id, true)
       setWishlisted(true)
     }
   }
 
-  if (error) return <p className="max-w-3xl mx-auto px-4 py-8 text-red-600">{t('productDetail.notFound')}</p>
-  if (!product) return <p className="max-w-3xl mx-auto px-4 py-8">{t('productDetail.loading')}</p>
+  if (error) return <p role="alert" className="max-w-3xl mx-auto px-4 py-8 text-red-600">{t('productDetail.notFound')}</p>
+  if (!product) return <ProductDetailSkeleton />
 
   const inStock = sku ? sku.available_quantity > 0 : false
   const maxQty = sku ? sku.available_quantity : undefined
+  const onSale = sku && sku.special_price != null && Number(sku.special_price) < Number(sku.retail_price)
+  const discount = onSale ? Math.round((1 - Number(sku.special_price) / Number(sku.retail_price)) * 100) : 0
+  const rows = sku ? tierRows(sku) : []
+  const unitNow = sku ? unitPriceAt(sku, quantity) : null
+  const tierActive = (row) => quantity >= row.from && (row.to == null || quantity <= row.to)
 
   const handleAddToCart = async () => {
     if (!sku) return
@@ -97,12 +164,15 @@ export default function ProductDetail() {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: product.description || undefined,
-    image: variant?.photo_url || undefined,
+    description: product.meta_description || product.description || undefined,
+    image: coverImage || undefined,
+    aggregateRating: product.rating_count > 0
+      ? { '@type': 'AggregateRating', ratingValue: product.rating_average, reviewCount: product.rating_count }
+      : undefined,
     offers: sku
       ? {
           '@type': 'Offer',
-          price: Number(sku.retail_price).toFixed(2),
+          price: Number(onSale ? sku.special_price : sku.retail_price).toFixed(2),
           priceCurrency: sku.currency,
           availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         }
@@ -111,35 +181,71 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
-      <Seo title={product.name} description={product.description} image={variant?.photo_url} type="product" jsonLd={jsonLd} />
-      <nav className="text-xs text-gray-500 mb-4">{t('productDetail.breadcrumb', { name: product.name })}</nav>
+      <Seo title={product.seo_title || product.name} description={product.meta_description || product.description} image={coverImage} type="product" jsonLd={jsonLd} />
+      <Breadcrumbs
+        items={[{ to: '/', label: t('header.home') }, { to: '/shop', label: t('header.shop') }]}
+        current={product.name}
+      />
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-          {variant?.photo_url ? (
-            <img src={variant.photo_url} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-gray-400">{t('product.noImage')}</span>
-          )}
+      <div className="grid gap-8 md:grid-cols-2 md:gap-12">
+        <div className="self-start md:sticky md:top-24">
+          <ProductGallery variant={variant} alt={product.name} />
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold">{product.name}</h1>
+          <ProductBadges badges={product.badges} className="mb-2" />
+          <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{product.name}</h1>
           {sku && <p className="text-xs text-gray-500 mt-1">SKU: {sku.sku_code}</p>}
+          {product.rating_count > 0 && (
+            <p className="text-sm mt-1">
+              <a href="#reviews" className="text-yellow-600 underline">
+                ★ {product.rating_average} · {t('productDetail.ratingCount', { n: product.rating_count })}
+              </a>
+            </p>
+          )}
 
-          <p className="text-2xl font-semibold mt-3">
-            {sku ? `${sku.currency} ${Number(sku.retail_price).toFixed(2)}` : '—'}
+          <p className="mt-4 text-3xl font-semibold">
+            {sku ? `${sku.currency} ${Number(onSale ? sku.special_price : sku.retail_price).toFixed(2)}` : '-'}
+            {onSale && (
+              <>
+                {' '}
+                <s className="text-base font-normal text-gray-500">{Number(sku.retail_price).toFixed(2)}</s>{' '}
+                <span className="text-sm font-medium text-red-600">−{discount}%</span>
+              </>
+            )}
           </p>
-          <p className={`text-sm mt-1 ${inStock ? 'text-green-600' : 'text-red-500'}`}>
+          <p className={`text-sm mt-1 ${inStock ? 'text-green-700' : 'text-red-600'}`}>
             {inStock ? t('productDetail.inStockCount', { n: sku.available_quantity }) : t('productDetail.outOfStock')}
           </p>
+          {sku && !inStock && <StockAlertForm key={sku.id} skuId={sku.id} />}
+
+          {rows.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium mb-1">{t('productDetail.tiersTitle')}</p>
+              <table className="w-full max-w-xs overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-sm">
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.from} className={tierActive(row) ? 'bg-brand-light font-medium' : ''}>
+                      <th scope="row" className="text-left px-3 py-1 font-normal">
+                        {row.to == null ? t('productDetail.tierFrom', { from: row.from }) : t('productDetail.tierRange', { from: row.from, to: row.to })}
+                      </th>
+                      <td className="px-3 py-1 text-right">{sku.currency} {row.price.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-xs text-gray-500 mt-1">
+                {t('productDetail.yourPrice', { qty: quantity, price: `${sku.currency} ${unitNow.toFixed(2)}` })}
+              </p>
+            </div>
+          )}
 
           {product.variants.length > 1 && (
             <div className="mt-4">
               <VariantSelector
                 variants={product.variants}
                 selectedVariantId={variantId}
-                onSelect={setVariantId}
+                onSelect={handleSelectVariant}
               />
             </div>
           )}
@@ -159,18 +265,24 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <div className="flex gap-3 mt-6 sticky bottom-0 bg-white py-2 md:static">
+          {product.available_in_country === false && (
+            <p role="alert" className="mt-6 rounded-2xl border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-900">
+              {t('market.notSold', { country: shipCountry })}
+            </p>
+          )}
+
+          <div className="sticky bottom-0 z-30 mt-6 flex gap-3 bg-page/95 py-3 backdrop-blur md:static md:bg-transparent md:py-0 md:backdrop-blur-none">
             <button
               onClick={handleAddToCart}
-              disabled={!inStock}
-              className="flex-1 border border-brand text-brand rounded py-3 font-medium disabled:opacity-40"
+              disabled={!inStock || product.available_in_country === false}
+              className="flex-1 rounded-full border border-brand py-3 font-semibold text-brand transition-colors hover:bg-brand-light active:scale-[0.98] disabled:opacity-40"
             >
               {t('productDetail.addToCart')}
             </button>
             <button
               onClick={handleBuyNow}
-              disabled={!inStock}
-              className="flex-1 bg-brand text-white rounded py-3 font-medium disabled:opacity-40"
+              disabled={!inStock || product.available_in_country === false}
+              className="flex-1 rounded-full bg-brand py-3 font-semibold text-white transition-colors hover:bg-brand-dark active:scale-[0.98] disabled:opacity-40"
             >
               {t('productDetail.buyNow')}
             </button>
@@ -178,7 +290,7 @@ export default function ProductDetail() {
               <button
                 onClick={handleToggleWishlist}
                 aria-label={wishlisted ? t('wishlist.remove') : t('wishlist.add')}
-                className={`border rounded px-4 py-3 font-medium text-xl leading-none ${wishlisted ? 'border-red-400 text-red-500' : 'border-gray-300 text-gray-500'}`}
+                className={`rounded-full border px-5 py-3 text-xl font-medium leading-none ${wishlisted ? 'border-red-400 text-red-600' : 'border-gray-300 text-gray-500'}`}
               >
                 {wishlisted ? '♥' : '♡'}
               </button>
@@ -186,28 +298,23 @@ export default function ProductDetail() {
           </div>
 
           {status && (
-            <p className={`text-sm mt-2 ${status.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            <p role={status.type === 'success' ? 'status' : 'alert'} className={`text-sm mt-2 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
               {status.message}
             </p>
           )}
 
-          <div className="mt-6 border-t border-gray-200 pt-4">
-            <p className="text-sm font-medium mb-2">{t('productDetail.delivery')}</p>
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full max-w-xs"
+          <p className="mt-3 text-sm">
+            <Link
+              to={`/quote?product=${encodeURIComponent(product.name)}&quantity=${quantity}`}
+              className="text-brand underline"
             >
-              <option value="">{t('productDetail.selectCountry')}</option>
-              {countries.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            {country && (
-              <p className="text-xs text-gray-500 mt-2">
-                {t('productDetail.deliveryNote', { country })}
-              </p>
-            )}
+              {t('productDetail.requestQuote')}
+            </Link>
+          </p>
+
+          <div className="mt-6 border-t border-gray-200 pt-4">
+            <p className="text-sm font-medium">{t('productDetail.delivery')}</p>
+            <DeliveryEstimate />
           </div>
 
           {product.description && (
@@ -217,7 +324,33 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <dl className="mt-6 border-t border-gray-200 pt-4 text-sm grid grid-cols-2 gap-y-1">
+          {sku?.bundle_items?.length > 0 && (
+            <div className="mt-6 border-t border-gray-200 pt-4">
+              <p className="text-sm font-medium mb-2">{t('productDetail.setContents')}</p>
+              <ul className="text-sm text-gray-700 space-y-1">
+                {sku.bundle_items.map((i) => (
+                  <li key={i.sku_code}>{i.quantity} × {i.product_name}{i.variant_name && i.variant_name !== i.product_name ? ` - ${i.variant_name}` : ''}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {[['contentAdvantages', product.advantages, true], ['contentUsage', product.usage_scenarios, true], ['contentMaterial', product.material_info, false], ['contentInstructions', product.instructions, false]].map(([key, text, asList]) => {
+            const lines = (text || '').split('\n').map((l) => l.trim()).filter(Boolean)
+            if (!lines.length) return null
+            return (
+              <div key={key} className="mt-6 border-t border-gray-200 pt-4">
+                <p className="text-sm font-medium mb-2">{t(`productDetail.${key}`)}</p>
+                {asList ? (
+                  <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
+                ) : (
+                  <p className="text-sm text-gray-700 whitespace-pre-line">{lines.join('\n')}</p>
+                )}
+              </div>
+            )
+          })}
+
+          <dl className="mt-6 grid grid-cols-2 gap-y-2 rounded-3xl border border-gray-200 bg-gray-50 p-5 text-sm">
             <dt className="text-gray-500">{t('productDetail.volume')}</dt>
             <dd>{t('catalog.ml', { n: product.volume_ml })}</dd>
             <dt className="text-gray-500">{t('productDetail.material')}</dt>
@@ -236,9 +369,43 @@ export default function ProductDetail() {
             )}
           </dl>
 
-          <Reviews slug={slug} />
+          <div id="reviews">
+            <Reviews slug={slug} />
+          </div>
         </div>
       </div>
+
+      {faq.length > 0 && (
+        <section className="mt-16" aria-labelledby="product-faq">
+          <div className="flex items-end justify-between gap-4 mb-3">
+            <h2 id="product-faq" className="text-2xl font-semibold tracking-tight">{t('home.faqTitle')}</h2>
+            <Link to="/faq" className="text-sm text-brand underline">{t('home.allQuestions')}</Link>
+          </div>
+          <div className="max-w-3xl">
+            {faq.map((s) => <FaqItem key={s.id} question={s.title} answer={s.body} />)}
+          </div>
+        </section>
+      )}
+
+      {[['otherSizes', groups.other_sizes], ['boughtTogether', groups.bought_together], ['inSets', groups.sets]].map(([key, list]) =>
+        list.length > 0 ? (
+          <section key={key} className="mt-16" aria-labelledby={`rel-${key}`}>
+            <h2 id={`rel-${key}`} className="mb-5 text-2xl font-semibold tracking-tight">{t(`productDetail.${key}`)}</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {list.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          </section>
+        ) : null
+      )}
+
+      {related.length > 0 && (
+        <section className="mt-16" aria-labelledby="related-products">
+          <h2 id="related-products" className="mb-5 text-2xl font-semibold tracking-tight">{t('productDetail.recommended')}</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {related.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

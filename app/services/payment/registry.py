@@ -1,3 +1,5 @@
+from typing import Optional
+
 from app.services.payment.base import PaymentGatewayBase
 from app.services.payment.click import ClickPaymentGateway
 from app.services.payment.payme import PaymePaymentGateway
@@ -37,16 +39,30 @@ def _is_configured(payment_method: str) -> bool:
     }[payment_method]
 
 
-def list_payment_methods() -> list[dict]:
+# Local gateways only settle in their home market, so they are not offered
+# elsewhere (PRD ТЗ№2 §37: do not show methods unavailable in the buyer's region).
+_LOCAL_ONLY_COUNTRY = {"payme": "Uzbekistan", "click": "Uzbekistan"}
+
+
+def method_available_in_country(payment_method: str, country: Optional[str]) -> bool:
+    """True when the method may be used for a delivery to `country` (or no country is known yet)."""
+    home = _LOCAL_ONLY_COUNTRY.get(payment_method.lower())
+    return home is None or not country or country.strip().lower() == home.lower()
+
+
+def list_payment_methods(country: Optional[str] = None) -> list[dict]:
     methods = []
     for method, metadata in _METHOD_METADATA.items():
-        enabled = _is_configured(method)
+        in_region = method_available_in_country(method, country)
+        enabled = _is_configured(method) and in_region
         methods.append(
             {
                 "id": method,
                 **metadata,
                 "enabled": enabled,
-                "reason": None if enabled else "Merchant configuration is incomplete",
+                "reason": None if enabled else (
+                    "Merchant configuration is incomplete" if in_region else "Not available in this country"
+                ),
             }
         )
     methods.append(

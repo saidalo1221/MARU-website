@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -6,7 +7,7 @@ from app.models.notification_template import NotificationTemplate
 DEFAULT_LOCALE = "en"
 
 
-def _find(db: Session, event: str, locale: str, channel: str) -> NotificationTemplate | None:
+def _find(db: Session, event: str, locale: str, channel: str) -> Optional[NotificationTemplate]:
     return db.execute(
         select(NotificationTemplate).where(
             NotificationTemplate.event == event,
@@ -18,8 +19,8 @@ def _find(db: Session, event: str, locale: str, channel: str) -> NotificationTem
 
 
 def render_template(
-    db: Session | None, event: str, context: dict, locale: str = DEFAULT_LOCALE, channel: str = "email"
-) -> tuple[str, str] | None:
+    db: Optional[Session], event: str, context: dict, locale: str = DEFAULT_LOCALE, channel: str = "email"
+) -> Optional[tuple[str, str]]:
     """Looks up an admin-managed template (PRD ТЗ№4 §42) for `event`/`locale`/
     `channel`, falling back to the English template, then to None so the
     caller uses its own hardcoded copy. Never raises: a missing placeholder

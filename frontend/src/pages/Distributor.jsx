@@ -1,5 +1,7 @@
 import { useLocale } from '../context/LocaleContext'
 import InquiryForm from '../components/forms/InquiryForm'
+import InfoSections from '../components/layout/InfoSections'
+import PageIntro from '../components/layout/PageIntro'
 import Seo from '../components/Seo'
 
 export default function Distributor() {
@@ -11,25 +13,17 @@ export default function Distributor() {
     ['distributor.marketsTitle', 'distributor.marketsText'],
     ['distributor.termsTitle', 'distributor.termsText'],
     ['distributor.logisticsTitle', 'distributor.logisticsText'],
-  ]
+  ].map(([titleKey, textKey]) => ({ id: titleKey, title: t(titleKey), body: t(textKey) }))
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
+    <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
       <Seo title={t('distributor.title')} description={t('distributor.subtitle')} />
-      <h1 className="text-3xl font-bold mb-3">{t('distributor.title')}</h1>
-      <p className="text-gray-600 mb-8">{t('distributor.subtitle')}</p>
+      <PageIntro title={t('distributor.title')} subtitle={t('distributor.subtitle')} />
 
-      <div className="grid sm:grid-cols-2 gap-6 mb-10">
-        {sections.map(([titleKey, textKey]) => (
-          <div key={titleKey}>
-            <h2 className="font-semibold mb-1">{t(titleKey)}</h2>
-            <p className="text-sm text-gray-600">{t(textKey)}</p>
-          </div>
-        ))}
-      </div>
+      <InfoSections sections={sections} className="mb-12" />
 
-      <div className="max-w-lg border border-gray-200 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">{t('distributor.formTitle')}</h2>
+      <div className="mx-auto max-w-xl rounded-3xl border border-gray-200 bg-gray-50 p-6 md:p-8">
+        <h2 className="mb-5 text-xl font-semibold">{t('distributor.formTitle')}</h2>
         <InquiryForm defaultType="distributor" lockType ctaKey="distributor.cta" />
       </div>
     </div>

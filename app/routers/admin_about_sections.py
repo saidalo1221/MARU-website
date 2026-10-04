@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -28,7 +28,7 @@ def _ordered(db: Session) -> list[AboutSection]:
     return list(db.execute(select(AboutSection).order_by(AboutSection.sort_order, AboutSection.id)).scalars().all())
 
 
-def _to_out(section: AboutSection, display_title: str | None = None) -> AboutSectionAdminOut:
+def _to_out(section: AboutSection, display_title: Optional[str] = None) -> AboutSectionAdminOut:
     return AboutSectionAdminOut(
         id=section.id,
         title=section.title,
@@ -42,7 +42,7 @@ def _to_out(section: AboutSection, display_title: str | None = None) -> AboutSec
 
 @router.get("", response_model=list[AboutSectionAdminOut])
 def list_sections(
-    lang: str | None = None,
+    lang: Optional[str] = None,
     user: User = Depends(require_role(UserRole.MARKETING_MANAGER)),
     db: Session = Depends(get_db),
 ) -> list[AboutSectionAdminOut]:

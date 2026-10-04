@@ -1,0 +1,142 @@
+"""Edge cases from the PRD audit: minimum order quantity, promo currency and
+atomic promo redemption."""
+
+from decimal import Decimal
+
+import pytest
+
+from app.models.cart import Cart
+from app.models.cart_item import CartItem
+from app.models.exchange_rate import ExchangeRate
+from app.models.promo_code import PromoCode, PromoDiscountType
+from app.schemas.order import CheckoutRequest
+from app.services.order_service import OrderError, create_order
+from app.services.pricing import PromoCodeError, redeem_promo, validate_promo
+from conftest import CHECKOUT_PAYLOAD
+
+
+def _cart(db_session, sku, quantity, currency="USD"):
+    cart = Cart(token=f"tok-{id(object())}", currency=currency)
+    db_session.add(cart)
+    db_session.flush()
+    db_session.add(CartItem(cart_id=cart.id, sku_id=sku.id, quantity=quantity))
+    db_session.commit()
+    db_session.refresh(cart)
+    return cart
+
+
+def _checkout(**extra):
+    return CheckoutRequest(**{**CHECKOUT_PAYLOAD, **extra})
+
+
+def _promo(db_session, **fields):
+    promo = PromoCode(code="SAVE", is_active=True, **fields)
+    db_session.add(promo)
+    db_session.commit()
+    return promo
+
+
+def test_checkout_rejects_quantity_below_product_minimum(db_session, sku):
+    sku.variant.product.min_order_quantity = 5
+    db_session.commit()
+
+    with pytest.raises(OrderError, match="MIN_ORDER_QUANTITY"):
+        create_order(db_session, _cart(db_session, sku, 4), _checkout(), None)
+
+    order = create_order(db_session, _cart(db_session, sku, 5), _checkout(), None)
+    assert order.items[0].quantity == 5
+
+
+def test_fixed_promo_and_minimum_are_converted_from_promo_currency(db_session, sku):
+    db_session.add(ExchangeRate(currency="UZS", units_per_usd=Decimal("10000")))
+    # 5 USD off, with a 20 USD minimum, against a cart priced in UZS.
+    _promo(
+        db_session,
+        discount_type=PromoDiscountType.FIXED,
+        discount_value=Decimal("5"),
+        currency="USD",
+        min_order_amount=Decimal("20"),
+    )
+
+    # 1 x 10 USD = 100000 UZS, below the 200000 UZS minimum.
+    with pytest.raises(OrderError, match="at least"):
+        create_order(db_session, _cart(db_session, sku, 1, "UZS"), _checkout(promo_code="SAVE"), None)
+
+    # 3 x 10 USD = 300000 UZS; the discount is 5 USD = 50000 UZS, not 5 UZS.
+    order = create_order(db_session, _cart(db_session, sku, 3, "UZS"), _checkout(promo_code="SAVE"), None)
+    assert order.subtotal_amount == Decimal("300000.00")
+    assert order.discount_amount == Decimal("50000.00")
+
+
+def test_promo_without_currency_is_used_as_is(db_session, sku):
+    _promo(db_session, discount_type=PromoDiscountType.FIXED, discount_value=Decimal("5"), min_order_amount=0)
+    order = create_order(db_session, _cart(db_session, sku, 2), _checkout(promo_code="SAVE"), None)
+    assert order.discount_amount == Decimal("5.00")
+
+
+def test_last_promo_use_cannot_be_taken_twice(db_session, sku):
+    promo = _promo(
+        db_session, discount_type=PromoDiscountType.PERCENT, discount_value=Decimal("10"), min_order_amount=0, max_uses=1
+    )
+    # Both "requests" validated while one use was left...
+    assert validate_promo(db_session, "SAVE", Decimal("100")).id == promo.id
+    redeem_promo(db_session, promo)
+    assert promo.used_count == 1
+    # ...but only the first can redeem it.
+    with pytest.raises(PromoCodeError, match="usage limit"):
+        redeem_promo(db_session, promo)
+    assert promo.used_count == 1
+
+
+def test_uncapped_promo_keeps_counting(db_session, sku):
+    promo = _promo(
+        db_session, discount_type=PromoDiscountType.PERCENT, discount_value=Decimal("10"), min_order_amount=0
+    )
+    redeem_promo(db_session, promo)
+    redeem_promo(db_session, promo)
+    assert promo.used_count == 2
+
+
+def test_cart_lines_report_the_product_minimum(client, db_session, sku):
+    sku.variant.product.min_order_quantity = 5
+    db_session.commit()
+
+    r = client.post("/api/v1/cart/items", json={"sku_id": sku.id, "quantity": 1})
+    assert r.status_code == 201, r.text
+    assert r.json()["items"][0]["min_order_quantity"] == 5
+
+
+def test_sale_price_applies_to_retail_customers_but_not_other_types(db_session, sku):
+    from app.models.enums import CustomerType
+    from app.services.pricing import resolve_unit_price
+
+    sku.special_price = Decimal("7")
+    sku.wholesale_price = Decimal("8")
+    db_session.commit()
+
+    assert resolve_unit_price(db_session, sku, CustomerType.RETAIL, 1, "USD") == Decimal("7")
+    assert resolve_unit_price(db_session, sku, CustomerType.SPECIAL, 1, "USD") == Decimal("7")
+    assert resolve_unit_price(db_session, sku, CustomerType.WHOLESALE, 1, "USD") == Decimal("8")  # own column
+
+    sku.special_price = Decimal("12")  # above retail: not a sale, ignored for retail
+    db_session.commit()
+    assert resolve_unit_price(db_session, sku, CustomerType.RETAIL, 1, "USD") == Decimal("10")
+
+
+def test_cart_lines_carry_product_details_and_the_old_price(client, db_session, sku):
+    sku.special_price = Decimal("7")
+    sku.variant.photo_url = "https://img.example/box.jpg"
+    db_session.commit()
+
+    r = client.post("/api/v1/cart/items", json={"sku_id": sku.id, "quantity": 2})
+    assert r.status_code == 201, r.text
+    line = r.json()["items"][0]
+    assert line["product_name"] == "Food Container" and line["product_slug"] == "food-container"
+    assert line["variant_name"] == "1000ml" and line["image_url"] == "https://img.example/box.jpg"
+    assert Decimal(line["unit_price"]) == Decimal("7") and Decimal(line["list_price"]) == Decimal("10")
+
+    sku.special_price = None
+    db_session.commit()
+    cart = {"X-Cart-Token": r.headers["X-Cart-Token"]}
+    again = client.get("/api/v1/cart/", headers=cart).json()["items"][0]
+    assert again["list_price"] is None  # no discount, no old price

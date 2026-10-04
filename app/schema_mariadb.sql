@@ -6,6 +6,8 @@ CREATE TABLE audit_logs (
 	entity_id VARCHAR(50), 
 	old_value TEXT, 
 	new_value TEXT, 
+	ip_address VARCHAR(45), 
+	request_id VARCHAR(64), 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
@@ -15,6 +17,9 @@ CREATE TABLE categories (
 	parent_id BIGINT, 
 	name VARCHAR(255) NOT NULL, 
 	slug VARCHAR(255) NOT NULL, 
+	description TEXT, 
+	seo_content TEXT, 
+	image_url VARCHAR(500), 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -44,6 +49,7 @@ CREATE TABLE integration_logs (
 	error_code VARCHAR(100), 
 	error_message TEXT, 
 	attempt INTEGER NOT NULL, 
+	duration_ms INTEGER, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	completed_at DATETIME, 
 	PRIMARY KEY (id)
@@ -72,6 +78,11 @@ CREATE TABLE promo_codes (
 	min_order_amount DECIMAL(12, 2) NOT NULL, 
 	max_uses INTEGER, 
 	used_count INTEGER NOT NULL, 
+	product_ids TEXT, 
+	category_ids TEXT, 
+	max_uses_per_customer INTEGER, 
+	countries TEXT, 
+	customer_ids TEXT, 
 	valid_from DATETIME, 
 	valid_until DATETIME, 
 	is_active BOOL NOT NULL, 
@@ -88,6 +99,9 @@ CREATE TABLE shipping_rates (
 	currency VARCHAR(3) NOT NULL, 
 	base_fee DECIMAL(12, 2) NOT NULL, 
 	per_kg_fee DECIMAL(12, 2) NOT NULL, 
+	free_shipping_threshold DECIMAL(12, 2), 
+	min_delivery_days INTEGER, 
+	max_delivery_days INTEGER, 
 	is_active BOOL NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
@@ -98,14 +112,17 @@ CREATE TABLE shipping_rates (
 CREATE TABLE tax_rules (
 	id BIGINT NOT NULL AUTO_INCREMENT, 
 	country VARCHAR(100) NOT NULL, 
+	region VARCHAR(100) NOT NULL DEFAULT '*', 
 	customer_type VARCHAR(20) NOT NULL, 
 	tax_type VARCHAR(30) NOT NULL, 
+	tax_class VARCHAR(20) NOT NULL DEFAULT '*', 
+	min_order_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
 	rate DECIMAL(5, 2) NOT NULL, 
 	is_active BOOL NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
-	CONSTRAINT uq_tax_rules_country_customer_type_tax_type UNIQUE (country, customer_type, tax_type)
+	CONSTRAINT uq_tax_rules_lookup UNIQUE (country, region, customer_type, tax_type, tax_class, min_order_amount)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
 CREATE TABLE users (
@@ -175,6 +192,7 @@ CREATE TABLE addresses (
 	last_name VARCHAR(100) NOT NULL, 
 	phone VARCHAR(30) NOT NULL, 
 	country VARCHAR(100) NOT NULL, 
+	region VARCHAR(100), 
 	city VARCHAR(100) NOT NULL, 
 	address_line VARCHAR(255) NOT NULL, 
 	postal_code VARCHAR(20) NOT NULL,
@@ -205,6 +223,7 @@ CREATE TABLE carts (
 	currency VARCHAR(3) NOT NULL, 
 	is_active BOOL NOT NULL, 
 	converted_at DATETIME, 
+	abandoned_email_sent_at DATETIME, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -217,6 +236,8 @@ CREATE TABLE category_translations (
 	category_id BIGINT NOT NULL, 
 	locale VARCHAR(10) NOT NULL, 
 	name VARCHAR(255) NOT NULL, 
+	description TEXT, 
+	seo_content TEXT, 
 	PRIMARY KEY (id), 
 	CONSTRAINT uq_category_translations_category_locale UNIQUE (category_id, locale), 
 	FOREIGN KEY(category_id) REFERENCES categories (id) ON DELETE CASCADE
@@ -259,15 +280,29 @@ CREATE TABLE products (
 	width_mm INTEGER, 
 	height_mm INTEGER, 
 	weight_g INTEGER, 
-	description TEXT, 
-	country_of_origin VARCHAR(100), 
-	min_order_quantity INTEGER NOT NULL, 
-	created_at DATETIME NOT NULL DEFAULT now(), 
-	updated_at DATETIME NOT NULL DEFAULT now(), 
-	PRIMARY KEY (id), 
-	CONSTRAINT ck_products_volume_ml CHECK (volume_ml IN (350, 470, 800, 1000, 1900)), 
-	CONSTRAINT ck_products_material CHECK (material = 'polypropylene'), 
-	FOREIGN KEY(category_id) REFERENCES categories (id), 
+	description TEXT,
+	country_of_origin VARCHAR(100),
+	min_order_quantity INTEGER NOT NULL,
+	tax_class VARCHAR(20) NOT NULL DEFAULT 'standard', 
+	sold_in_countries TEXT, 
+	hidden_in_countries TEXT, 
+	seo_title VARCHAR(255), 
+	meta_description VARCHAR(320), 
+	advantages TEXT, 
+	usage_scenarios TEXT, 
+	instructions TEXT, 
+	material_info TEXT, 
+	badge_mode VARCHAR(10) NOT NULL DEFAULT 'auto',
+	badge_new BOOLEAN,
+	badge_sale BOOLEAN,
+	badge_bestseller BOOLEAN,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT ck_products_volume_ml CHECK (volume_ml IN (350, 470, 800, 1000, 1900)),
+	CONSTRAINT ck_products_material CHECK (material = 'polypropylene'),
+	CONSTRAINT ck_products_badge_mode CHECK (badge_mode IN ('auto', 'manual')),
+	FOREIGN KEY(category_id) REFERENCES categories (id),
 	UNIQUE (slug)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
@@ -276,6 +311,7 @@ CREATE TABLE orders (
 	order_number VARCHAR(50) NOT NULL, 
 	user_id BIGINT, 
 	guest_order_token VARCHAR(64), 
+	idempotency_key VARCHAR(64), 
 	cart_id BIGINT, 
 	promo_code_id BIGINT, 
 	promo_code_snapshot VARCHAR(50), 
@@ -294,11 +330,18 @@ CREATE TABLE orders (
 	phone VARCHAR(30) NOT NULL, 
 	email VARCHAR(255) NOT NULL, 
 	country VARCHAR(100) NOT NULL, 
+	region VARCHAR(100), 
 	city VARCHAR(100) NOT NULL, 
 	address_line VARCHAR(255) NOT NULL, 
 	postal_code VARCHAR(20) NOT NULL, 
 	delivery_method VARCHAR(50) NOT NULL, 
 	payment_method VARCHAR(50) NOT NULL, 
+	ads_consent TINYINT(1) NOT NULL DEFAULT 0, 
+	loyalty_points_used INTEGER NOT NULL DEFAULT 0, 
+	loyalty_discount_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
+	payment_status VARCHAR(24) NOT NULL DEFAULT 'CREATED', 
+	language VARCHAR(5), 
+	whatsapp_opt_in TINYINT(1) NOT NULL DEFAULT 0, 
 	source VARCHAR(20) NOT NULL, 
 	company_name VARCHAR(255), 
 	company_reg_number VARCHAR(100), 
@@ -308,12 +351,14 @@ CREATE TABLE orders (
 	payment_reference VARCHAR(255), 
 	crm_deal_id VARCHAR(50), 
 	notes TEXT, 
+	attribution TEXT, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
 	UNIQUE (order_number), 
 	FOREIGN KEY(user_id) REFERENCES users (id), 
 	UNIQUE (guest_order_token), 
+	UNIQUE (idempotency_key), 
 	FOREIGN KEY(cart_id) REFERENCES carts (id), 
 	FOREIGN KEY(promo_code_id) REFERENCES promo_codes (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
@@ -327,6 +372,12 @@ CREATE TABLE product_translations (
 	shape VARCHAR(100),
 	purpose VARCHAR(255),
 	country_of_origin VARCHAR(100),
+	seo_title VARCHAR(255), 
+	meta_description VARCHAR(320), 
+	advantages TEXT, 
+	usage_scenarios TEXT, 
+	instructions TEXT, 
+	material_info TEXT, 
 	PRIMARY KEY (id),
 	CONSTRAINT uq_product_translations_product_locale UNIQUE (product_id, locale),
 	FOREIGN KEY(product_id) REFERENCES products (id) ON DELETE CASCADE
@@ -342,8 +393,18 @@ CREATE TABLE product_variants (
 	is_active BOOL NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
-	PRIMARY KEY (id), 
+	PRIMARY KEY (id),
 	FOREIGN KEY(product_id) REFERENCES products (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE variant_images (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	variant_id BIGINT NOT NULL,
+	image_url VARCHAR(500) NOT NULL,
+	sort_order INTEGER NOT NULL DEFAULT 0,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(variant_id) REFERENCES product_variants (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
 CREATE TABLE reviews (
@@ -352,6 +413,7 @@ CREATE TABLE reviews (
 	product_id BIGINT NOT NULL, 
 	rating SMALLINT NOT NULL, 
 	content TEXT, 
+	image_urls TEXT, 
 	status VARCHAR(20) NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -450,6 +512,68 @@ CREATE TABLE refunds (
 	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
 
+CREATE TABLE shipments (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	order_id BIGINT NOT NULL,
+	carrier VARCHAR(100) NOT NULL,
+	tracking_number VARCHAR(100),
+	tracking_url VARCHAR(500),
+	status VARCHAR(20) NOT NULL,
+	shipped_at DATETIME,
+	delivered_at DATETIME,
+	created_by_user_id BIGINT,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(order_id) REFERENCES orders (id),
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE INDEX ix_shipments_order_id ON shipments (order_id);
+
+CREATE TABLE shipment_events (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	shipment_id BIGINT NOT NULL,
+	status VARCHAR(20) NOT NULL,
+	location VARCHAR(255),
+	note TEXT,
+	occurred_at DATETIME NOT NULL DEFAULT now(),
+	created_by_user_id BIGINT,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(shipment_id) REFERENCES shipments (id),
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE INDEX ix_shipment_events_shipment_id ON shipment_events (shipment_id);
+
+CREATE TABLE newsletter_subscribers (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	email VARCHAR(255) NOT NULL, 
+	locale VARCHAR(5) NOT NULL, 
+	status VARCHAR(20) NOT NULL, 
+	token VARCHAR(64) NOT NULL, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	confirmed_at DATETIME, 
+	unsubscribed_at DATETIME, 
+	PRIMARY KEY (id), 
+	UNIQUE (email), 
+	UNIQUE (token)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE newsletter_campaigns (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	subject VARCHAR(200) NOT NULL, 
+	body TEXT NOT NULL, 
+	locale VARCHAR(5), 
+	recipients_total INTEGER NOT NULL, 
+	sent_count INTEGER NOT NULL, 
+	created_by_user_id BIGINT, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
 CREATE TABLE skus (
 	id BIGINT NOT NULL AUTO_INCREMENT, 
 	variant_id BIGINT NOT NULL, 
@@ -460,6 +584,7 @@ CREATE TABLE skus (
 	distributor_price DECIMAL(12, 2), 
 	export_price DECIMAL(12, 2), 
 	special_price DECIMAL(12, 2), 
+	cost_price DECIMAL(12, 2), 
 	currency VARCHAR(3) NOT NULL, 
 	unit_weight_g INTEGER, 
 	box_quantity INTEGER, 
@@ -481,6 +606,7 @@ CREATE TABLE cart_items (
 	cart_id BIGINT NOT NULL, 
 	sku_id BIGINT NOT NULL, 
 	quantity INTEGER NOT NULL, 
+	saved_for_later BOOL NOT NULL DEFAULT false, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	updated_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -516,6 +642,9 @@ CREATE TABLE order_items (
 	unit_price DECIMAL(12, 2) NOT NULL, 
 	quantity INTEGER NOT NULL, 
 	line_total DECIMAL(12, 2) NOT NULL, 
+	discount_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
+	unit_cost_usd DECIMAL(12, 4), 
+	tax_amount DECIMAL(12, 2) NOT NULL DEFAULT 0, 
 	currency VARCHAR(3) NOT NULL, 
 	created_at DATETIME NOT NULL DEFAULT now(), 
 	PRIMARY KEY (id), 
@@ -593,6 +722,7 @@ CREATE TABLE page_sections (
 	title VARCHAR(255) NOT NULL,
 	body TEXT NOT NULL,
 	sort_order INTEGER NOT NULL,
+	category VARCHAR(30),
 	created_at DATETIME NOT NULL DEFAULT now(),
 	updated_at DATETIME NOT NULL DEFAULT now(),
 	PRIMARY KEY (id)
@@ -629,6 +759,10 @@ CREATE TABLE site_settings (
 	longitude FLOAT,
 	about_title VARCHAR(255),
 	about_body TEXT,
+	facebook_url VARCHAR(255),
+	instagram_url VARCHAR(255),
+	telegram_url VARCHAR(255),
+	youtube_url VARCHAR(255),
 	updated_at DATETIME NOT NULL DEFAULT now(),
 	PRIMARY KEY (id)
 )CHARSET=utf8mb4 ENGINE=InnoDB;
@@ -664,4 +798,246 @@ CREATE TABLE about_section_translations (
 	PRIMARY KEY (id),
 	CONSTRAINT uq_about_section_translations_section_locale UNIQUE (section_id, locale),
 	FOREIGN KEY(section_id) REFERENCES about_sections (id) ON DELETE CASCADE
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE stock_alerts (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	sku_id BIGINT NOT NULL, 
+	user_id BIGINT, 
+	email VARCHAR(255) NOT NULL, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	notified_at DATETIME, 
+	PRIMARY KEY (id), 
+	CONSTRAINT uq_stock_alerts_sku_email UNIQUE (sku_id, email), 
+	FOREIGN KEY(sku_id) REFERENCES skus (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_stock_alerts_sku_id ON stock_alerts (sku_id);
+
+CREATE TABLE jobs (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	queue VARCHAR(30) NOT NULL,
+	job_type VARCHAR(60) NOT NULL,
+	payload TEXT NOT NULL,
+	status VARCHAR(12) NOT NULL,
+	attempts INTEGER NOT NULL,
+	max_attempts INTEGER NOT NULL,
+	run_at DATETIME NOT NULL DEFAULT now(),
+	locked_by VARCHAR(64),
+	locked_at DATETIME,
+	last_error TEXT,
+	dedupe_key VARCHAR(120),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	finished_at DATETIME,
+	PRIMARY KEY (id),
+	UNIQUE (dedupe_key)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_jobs_status ON jobs (status);
+CREATE INDEX ix_jobs_run_at ON jobs (run_at);
+
+CREATE TABLE webhook_events (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	provider VARCHAR(50) NOT NULL,
+	event_id VARCHAR(120) NOT NULL,
+	job_id BIGINT,
+	received_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_webhook_events_provider_event UNIQUE (provider, event_id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+-- Outside-system id mapping (PRD ТЗ№4 §3-5).
+CREATE TABLE external_ids (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	`system` VARCHAR(40) NOT NULL,
+	entity VARCHAR(40) NOT NULL,
+	internal_id BIGINT NOT NULL,
+	external_id VARCHAR(120) NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_external_ids_internal UNIQUE (`system`, entity, internal_id),
+	CONSTRAINT uq_external_ids_external UNIQUE (`system`, entity, external_id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+-- Order documents: invoices, fiscal receipts, shipping and return documents (PRD ТЗ№4 §81-83).
+CREATE TABLE order_documents (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	order_id BIGINT NOT NULL,
+	doc_type VARCHAR(30) NOT NULL,
+	status VARCHAR(20) NOT NULL,
+	external_id VARCHAR(120),
+	filename VARCHAR(255) NOT NULL,
+	storage_name VARCHAR(80) NOT NULL,
+	content_type VARCHAR(100) NOT NULL,
+	size_bytes INTEGER NOT NULL,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(order_id) REFERENCES orders (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_order_documents_order_id ON order_documents (order_id);
+
+CREATE TABLE payments (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	order_id BIGINT NOT NULL,
+	provider VARCHAR(50) NOT NULL,
+	provider_transaction_id VARCHAR(255),
+	amount DECIMAL(12, 2) NOT NULL,
+	currency VARCHAR(3) NOT NULL,
+	status VARCHAR(24) NOT NULL,
+	idempotency_key VARCHAR(80) NOT NULL,
+	paid_at DATETIME,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	UNIQUE (idempotency_key),
+	FOREIGN KEY(order_id) REFERENCES orders (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_payments_order_id ON payments (order_id);
+
+CREATE TABLE promo_redemptions (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	promo_code_id BIGINT NOT NULL,
+	order_id BIGINT NOT NULL,
+	user_id BIGINT,
+	email VARCHAR(255),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(promo_code_id) REFERENCES promo_codes (id),
+	FOREIGN KEY(order_id) REFERENCES orders (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_promo_redemptions_promo_code_id ON promo_redemptions (promo_code_id);
+CREATE INDEX ix_promo_redemptions_user_id ON promo_redemptions (user_id);
+CREATE INDEX ix_promo_redemptions_email ON promo_redemptions (email);
+
+CREATE TABLE marketing_spend (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	month DATE NOT NULL, 
+	channel VARCHAR(60) NOT NULL, 
+	amount_usd DECIMAL(12, 2) NOT NULL, 
+	created_by_user_id BIGINT, 
+	created_at DATETIME NOT NULL DEFAULT now(), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_marketing_spend_month ON marketing_spend (month);
+
+-- Outbound webhooks (PRD ТЗ№1 §37).
+CREATE TABLE webhook_endpoints (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	url VARCHAR(500) NOT NULL,
+	description VARCHAR(200),
+	secret VARCHAR(64) NOT NULL,
+	events TEXT NOT NULL,
+	is_active TINYINT(1) NOT NULL,
+	last_delivery_at DATETIME,
+	last_status_code INTEGER,
+	last_error VARCHAR(300),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+-- Stock transfers between warehouses and manual corrections (PRD ТЗ№1 §33).
+CREATE TABLE stock_movements (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	movement_type VARCHAR(20) NOT NULL,
+	sku_id BIGINT NOT NULL,
+	from_warehouse_id BIGINT,
+	to_warehouse_id BIGINT,
+	quantity INTEGER NOT NULL,
+	note VARCHAR(300),
+	created_by_user_id BIGINT,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	FOREIGN KEY(sku_id) REFERENCES skus (id),
+	FOREIGN KEY(from_warehouse_id) REFERENCES warehouses (id),
+	FOREIGN KEY(to_warehouse_id) REFERENCES warehouses (id),
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_stock_movements_sku_id ON stock_movements (sku_id);
+
+-- Contents of set / pack SKUs (PRD ТЗ№1 §7).
+CREATE TABLE sku_bundle_items (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	bundle_sku_id BIGINT NOT NULL,
+	component_sku_id BIGINT NOT NULL,
+	quantity INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	CONSTRAINT uq_sku_bundle_items_pair UNIQUE (bundle_sku_id, component_sku_id),
+	FOREIGN KEY(bundle_sku_id) REFERENCES skus (id) ON DELETE CASCADE,
+	FOREIGN KEY(component_sku_id) REFERENCES skus (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_sku_bundle_items_bundle_sku_id ON sku_bundle_items (bundle_sku_id);
+
+CREATE TABLE loyalty_settings (
+	id BIGINT NOT NULL,
+	enabled TINYINT(1) NOT NULL,
+	earn_per_usd DECIMAL(8, 2) NOT NULL,
+	point_value_usd DECIMAL(8, 4) NOT NULL,
+	max_redeem_percent INTEGER NOT NULL,
+	eligible_customer_types VARCHAR(120) NOT NULL DEFAULT 'retail', 
+	expiry_days INTEGER NOT NULL DEFAULT 0, 
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE TABLE loyalty_transactions (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	kind VARCHAR(20) NOT NULL,
+	points INTEGER NOT NULL,
+	order_id BIGINT,
+	note VARCHAR(300),
+	created_by_user_id BIGINT,
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_loyalty_order_kind UNIQUE (order_id, kind),
+	FOREIGN KEY(user_id) REFERENCES users (id),
+	FOREIGN KEY(order_id) REFERENCES orders (id),
+	FOREIGN KEY(created_by_user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_loyalty_transactions_user_id ON loyalty_transactions (user_id);
+
+-- Web push subscriptions (PRD ТЗ№1 §38-39).
+CREATE TABLE push_subscriptions (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	user_id BIGINT NOT NULL,
+	endpoint VARCHAR(500) NOT NULL,
+	p256dh VARCHAR(255) NOT NULL,
+	auth VARCHAR(100) NOT NULL,
+	user_agent VARCHAR(200),
+	created_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	UNIQUE (endpoint),
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+CREATE INDEX ix_push_subscriptions_user_id ON push_subscriptions (user_id);
+
+CREATE TABLE loyalty_tiers (
+	id BIGINT NOT NULL AUTO_INCREMENT, 
+	name VARCHAR(60) NOT NULL, 
+	min_points_earned INTEGER NOT NULL, 
+	earn_multiplier DECIMAL(4, 2) NOT NULL, 
+	PRIMARY KEY (id)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE content_overrides (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	text_key VARCHAR(120) NOT NULL,
+	locale VARCHAR(5) NOT NULL,
+	value TEXT NOT NULL,
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_content_overrides_key_locale UNIQUE (text_key, locale)
+)CHARSET=utf8mb4 ENGINE=InnoDB;
+
+CREATE TABLE seo_meta (
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	path VARCHAR(255) NOT NULL,
+	locale VARCHAR(5) NOT NULL,
+	title VARCHAR(255),
+	description VARCHAR(500),
+	image_url VARCHAR(500),
+	noindex BOOL NOT NULL DEFAULT 0,
+	updated_at DATETIME NOT NULL DEFAULT now(),
+	PRIMARY KEY (id),
+	CONSTRAINT uq_seo_meta_path_locale UNIQUE (path, locale)
 )CHARSET=utf8mb4 ENGINE=InnoDB;

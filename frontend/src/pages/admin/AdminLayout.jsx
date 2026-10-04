@@ -21,6 +21,7 @@ export default function AdminLayout() {
       title: t('admin.sectionSales'),
       links: [
         ['/admin/orders', t('admin.nav.orders')],
+        ['/admin/customers', t('admin.nav.customers')],
         ['/admin/quotes', t('admin.nav.quotes')],
         ['/admin/promo-codes', t('admin.nav.promoCodes')],
         ['/admin/shipping-rates', t('admin.nav.shippingRates')],
@@ -33,6 +34,9 @@ export default function AdminLayout() {
         ['/admin/products', t('admin.nav.products')],
         ['/admin/categories', t('admin.nav.categories')],
         ['/admin/warehouses', t('admin.nav.warehouses')],
+        ['/admin/stock', t('admin.nav.stock')],
+        ['/admin/markets', t('admin.nav.markets')],
+        ['/admin/costs', t('admin.nav.costs')],
         ['/admin/exchange-rates', t('admin.nav.exchangeRates')],
       ],
     },
@@ -40,19 +44,24 @@ export default function AdminLayout() {
       title: t('admin.sectionMarketing'),
       links: [
         ['/admin/reviews', t('admin.nav.reviews')],
+        ['/admin/loyalty', t('admin.nav.loyalty')],
         ['/admin/blog/posts', t('admin.nav.blog')],
         ['/admin/blog/categories', t('admin.blog.categoriesTitle')],
         ['/admin/site-settings', t('admin.nav.siteSettings')],
         ['/admin/about-sections', t('admin.nav.aboutSections')],
+        ['/admin/landing-page', t('admin.nav.landingPage')],
+        ['/admin/seo', t('admin.nav.seo')],
         ['/admin/page-sections', t('admin.nav.pageSections')],
         ['/admin/notification-templates', t('admin.nav.notificationTemplates')],
         ['/admin/analytics-events', t('admin.nav.analyticsEvents')],
+        ['/admin/newsletter', t('admin.nav.newsletter')],
       ],
     },
     {
       title: t('admin.sectionSystem'),
       links: [
         ['/admin/integration-logs', t('admin.nav.integrationLogs')],
+        ['/admin/webhooks', t('admin.nav.webhooks')],
         ['/admin/audit-log', t('admin.nav.auditLog')],
         ['/admin/admins', t('admin.nav.admins')],
       ],
@@ -68,8 +77,8 @@ export default function AdminLayout() {
           <aside className="mb-6 md:mb-0 space-y-4">
             {sections.map((section, i) => (
               <div key={i}>
-                {section.title && <p className="text-xs font-semibold text-gray-400 uppercase mb-1 px-3">{section.title}</p>}
-                <nav className="space-y-0.5">
+                {section.title && <p className="text-xs font-semibold text-gray-500 uppercase mb-1 px-3">{section.title}</p>}
+                <nav aria-label={section.title || t('header.admin')} className="space-y-0.5">
                   {section.links.map(([to, label]) => (
                     <NavLink key={to} to={to} end={to === '/admin'} className={navLinkClass}>
                       {label}

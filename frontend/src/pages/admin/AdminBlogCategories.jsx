@@ -67,13 +67,13 @@ export default function AdminBlogCategories() {
       </div>
 
       {loading && <p>{t('admin.common.loading')}</p>}
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 mb-6 space-y-3">
-          <input required placeholder={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          <input required placeholder={t('admin.blog.slug')} value={form.slug} onChange={update('slug')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          <input required placeholder={t('admin.common.name')} aria-label={t('admin.common.name')} value={form.name} onChange={update('name')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input required placeholder={t('admin.blog.slug')} aria-label={t('admin.blog.slug')} value={form.slug} onChange={update('slug')} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+          {formError && <p role="alert" className="text-sm text-red-600">{formError}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-brand text-white px-4 py-2 rounded text-sm font-medium disabled:opacity-40">
               {submitting ? t('admin.common.saving') : t('admin.common.save')}
@@ -87,14 +87,14 @@ export default function AdminBlogCategories() {
         <ul className="border border-gray-200 rounded-lg divide-y divide-gray-100">
           {categories.map((c) => (
             <li key={c.id} className="px-3 py-2 flex justify-between items-center text-sm">
-              <span>{c.name} <span className="text-gray-400">({c.slug})</span></span>
+              <span>{c.name} <span className="text-gray-500">({c.slug})</span></span>
               <span className="flex gap-3">
                 <button onClick={() => openEdit(c)} className="text-brand">{t('admin.common.edit')}</button>
-                <button onClick={() => handleDelete(c.id)} className="text-red-500">{t('admin.common.delete')}</button>
+                <button onClick={() => handleDelete(c.id)} className="text-red-600">{t('admin.common.delete')}</button>
               </span>
             </li>
           ))}
-          {categories.length === 0 && <li className="px-3 py-6 text-center text-gray-400">{t('admin.blog.noneCategories')}</li>}
+          {categories.length === 0 && <li className="px-3 py-6 text-center text-gray-500">{t('admin.blog.noneCategories')}</li>}
         </ul>
       )}
     </div>

@@ -1,9 +1,10 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-PageKey = Literal["delivery", "payment", "returns", "faq", "contact"]
+PageKey = Literal["delivery", "payment", "returns", "faq", "contact", "privacy", "terms", "manufacturing", "quality"]
+FaqCategory = Literal["products", "orders", "payment", "delivery", "returns", "wholesale", "international"]
 
 
 class PageSectionOut(BaseModel):
@@ -12,6 +13,7 @@ class PageSectionOut(BaseModel):
     id: int
     title: str
     body: str
+    category: Optional[str] = None
 
 
 class PageSectionAdminOut(BaseModel):
@@ -23,6 +25,7 @@ class PageSectionAdminOut(BaseModel):
     # untranslated or no lang given) — display-only, for recognizing
     # sections at a glance; editing always targets the base `title`/`body`.
     display_title: str
+    category: Optional[str] = None
     sort_order: int
     created_at: datetime
     updated_at: datetime
@@ -32,11 +35,13 @@ class PageSectionCreate(BaseModel):
     page: PageKey
     title: str = Field(min_length=1, max_length=255)
     body: str = Field(min_length=1)
+    category: Optional[FaqCategory] = None
 
 
 class PageSectionUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=255)
-    body: str | None = Field(default=None, min_length=1)
+    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    body: Optional[str] = Field(default=None, min_length=1)
+    category: Optional[FaqCategory] = None
 
 
 class PageSectionMove(BaseModel):

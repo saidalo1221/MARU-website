@@ -1,5 +1,8 @@
 Project: MARU — plastic container e-commerce platform
-Stack (per Claude.md, already correct): React + Tailwind frontend (not started), Python FastAPI backend, MariaDB on UzCloud hosting (deployed to the same server, so DATABASE_URL uses localhost:3306 — that's correct for production, just unreachable from this dev machine), Redis cache (not used yet).
+
+NOTE (2026-09-30): this file is a historical log of the backend build (Aug 2026). It is NOT the current state — read HANDOFF.md for that. Statements below about the frontend, rate limiting, reviews, wishlist, addresses, audit log, search, B2B quotes and SEO being "not built" were true when written and are now out of date.
+
+Stack (per Claude.md, already correct): React + Tailwind frontend (built since this log was written; see HANDOFF.md), Python FastAPI backend, MariaDB on UzCloud hosting (deployed to the same server, so DATABASE_URL uses localhost:3306 — that's correct for production, just unreachable from this dev machine), Redis cache (used for rate limiting when REDIS_URL is set; otherwise in-process memory).
 
 Key environment facts:
 
@@ -32,7 +35,7 @@ Four more MVP gaps closed (2026-08-14, same session) — read the full PRD (66 s
   - schema_mariadb.sql regenerated from current models (17 tables now, was 13) via `CreateTable(...).compile(dialect=mysql.dialect())` — no live MariaDB connection needed. Note the ENGINE=/CHARSET= clause order in the output flipped cosmetically vs the old file (SQLAlchemy dialect-compiler detail, not a content change) — harmless since the whole file gets re-pasted into phpMyAdmin.
   - Smoke-tested all four together end-to-end (shipping fallback resolution, EUR conversion math, ru/uz translation + fallback, CRM push not throwing) via another throwaway TestClient script, then deleted it.
 
-Explicitly NOT built (flagged, not silently skipped)
+Explicitly NOT built as of 2026-08-15 (flagged, not silently skipped) — many of these have since been built, see HANDOFF.md
 Real payment/SMS/WhatsApp/Telegram providers, and a real email sender — all still stubbed/logged only. Blocked on the user picking a vendor (Payme/Click/Uzum for local UZ payment, a card processor for international, an SMTP/SMS provider) and providing credentials — writing a "real" integration without knowing the target would mean guessing an API shape, not delivering something that works.
 Real CRM system — the push boundary now exists (see above) and logs the exact payload PRD §26 wants; swapping in a real CRM is a one-file change once the user names which system.
 Reviews, wishlist, saved addresses, invoices, reorder (personal cabinet is still just order list/detail).
@@ -53,5 +56,4 @@ Frontend-readiness fixes (2026-08-15)
   - `POST /orders/` returns a checkout-only `payment` object with the provider reference (redirect URL, Stripe client secret, or PayPal order ID). It also returns a one-time guest-order token for guest orders. Normal order endpoints never return either secret.
   - Guest `GET /orders/{id}`, `POST /orders/{id}/confirm-payment`, and `POST /orders/{id}/cancel` require `X-Order-Token`; account orders require the owning JWT. Checkout now validates payment configuration and keeps order/cart/promo changes in one transaction, so unavailable providers and provider request failures roll back cleanly.
 
-Not started
-Frontend — nothing built yet. Agreed order was backend-first, then frontend.
+Frontend (was "not started" when this log was written): built since — see HANDOFF.md for its current state.

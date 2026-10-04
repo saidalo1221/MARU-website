@@ -33,6 +33,8 @@ class SKU(Base):
     distributor_price = Column(DECIMAL(12, 2), nullable=True)
     export_price = Column(DECIMAL(12, 2), nullable=True)
     special_price = Column(DECIMAL(12, 2), nullable=True)
+    # What one unit costs us, in `currency` (PRD ТЗ№1 §60 gross margin). Internal: never in a public schema.
+    cost_price = Column(DECIMAL(12, 2), nullable=True)
     currency = Column(String(3), nullable=False, default="USD")
 
     # Unit packaging specification (PRD section 18).
@@ -50,6 +52,22 @@ class SKU(Base):
 
     variant = relationship("ProductVariant", back_populates="skus")
     inventories = relationship("Inventory", back_populates="sku", cascade="all, delete-orphan")
+    # Quantity-break prices (PRD ТЗ№2 §15); app/services/pricing.py applies them.
+    quantity_tiers = relationship(
+        "QuantityPriceTier",
+        order_by="QuantityPriceTier.min_quantity",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    # Contents of a set (see app/models/sku_bundle_item.py); empty for ordinary SKUs.
+    bundle_items = relationship(
+        "SkuBundleItem",
+        foreign_keys="SkuBundleItem.bundle_sku_id",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="SkuBundleItem.id",
+    )
 
     @property
     def available_quantity(self) -> int:

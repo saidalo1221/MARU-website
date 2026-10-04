@@ -8,6 +8,7 @@ from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.exchange_rate import ExchangeRate
 from app.models.user import User
+from app.services.audit import audit_create, audit_update, log_audit
 from app.schemas.exchange_rate import CurrencyOption, ExchangeRateCreate, ExchangeRateOut, ExchangeRateUpdate
 from app.services.fx_provider import FxProviderError, fetch_rate_for_currency, fetch_supported_currencies, sync_exchange_rates
 
@@ -57,6 +58,7 @@ def create_exchange_rate(
     rate = ExchangeRate(currency=payload.currency, units_per_usd=units_per_usd)
     db.add(rate)
     try:
+        audit_create(db, user, "exchange_rate_create", "exchange_rate", rate, {"currency": payload.currency, "units_per_usd": units_per_usd})
         db.commit()
     except IntegrityError as exc:
         db.rollback()
@@ -85,6 +87,8 @@ def sync_rates_from_provider(
     except FxProviderError as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
 
+    log_audit(db, user, "exchange_rate_sync", "exchange_rate", "all")
+    db.commit()
     rates = db.execute(select(ExchangeRate).order_by(ExchangeRate.currency)).scalars().all()
     return list(rates)
 
@@ -99,6 +103,7 @@ def delete_exchange_rate(
     if rate is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exchange rate not found")
     try:
+        log_audit(db, user, "exchange_rate_delete", "exchange_rate", rate.id, {"currency": rate.currency, "units_per_usd": rate.units_per_usd})
         db.delete(rate)
         db.commit()
     except SQLAlchemyError as exc:
@@ -118,6 +123,7 @@ def update_exchange_rate(
         if rate is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exchange rate not found")
 
+        audit_update(db, user, "exchange_rate_update", "exchange_rate", rate, {"units_per_usd": payload.units_per_usd})
         rate.units_per_usd = payload.units_per_usd
         db.commit()
     except SQLAlchemyError as exc:

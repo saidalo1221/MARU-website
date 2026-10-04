@@ -1,6 +1,7 @@
 import hashlib
 from datetime import datetime, timedelta, timezone
 from secrets import randbelow, token_urlsafe
+from typing import Optional
 
 import pyotp
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,13 +9,14 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.password_policy import PasswordPolicyError, validate_password
 from app.core.security import create_access_token, hash_password, verify_password
 from app.core.rate_limit import rate_limit
 from app.database import get_db
 from app.dependencies import get_current_user_required
 from app.models.admin_login_code import AdminLoginCode
 from app.models.email_verification_token import EmailVerificationToken
-from app.models.enums import UserRole
+from app.models.enums import CustomerType, UserRole
 from app.models.login_device_code import LoginDeviceCode
 from app.models.password_reset_token import PasswordResetToken
 from app.models.trusted_device import TrustedDevice
@@ -23,11 +25,14 @@ from app.schemas.extras import ForgotPasswordRequest, ResetPasswordRequest, Veri
 from app.services.analytics import record_event
 from app.services.notifications.email import EmailNotifier
 from app.schemas.user import (
+    normalize_phone,
     AdminLoginRequest,
     AdminVerifyRequest,
+    ChangePasswordRequest,
     LoginResult,
     MfaCodeRequest,
     MfaSetupOut,
+    ProfileUpdate,
     Token,
     UserCreate,
     UserLogin,
@@ -97,6 +102,10 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
 
     if existing is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    try:
+        validate_password(payload.password, email=payload.email)
+    except PasswordPolicyError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     user = User(
         email=payload.email,
@@ -104,7 +113,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
         first_name=payload.first_name,
         last_name=payload.last_name,
         phone=payload.phone,
-        customer_type=payload.customer_type,
+        customer_type=CustomerType.RETAIL,
     )
     db.add(user)
     try:
@@ -119,10 +128,24 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
     return Token(access_token=create_access_token(str(user.id)))
 
 
+def _find_user_by_identifier(db: Session, identifier: str) -> Optional[User]:
+    """An email address, or a phone number that belongs to exactly one active
+    account (an ambiguous or unknown number never matches, and gets the same
+    "invalid credentials" answer as a wrong password)."""
+    if "@" in identifier:
+        return db.execute(select(User).where(User.email == identifier)).scalar_one_or_none()
+    try:
+        phone = normalize_phone(identifier)
+    except ValueError:
+        return None
+    matches = db.execute(select(User).where(User.phone == phone, User.is_active.is_(True)).limit(2)).scalars().all()
+    return matches[0] if len(matches) == 1 else None
+
+
 @router.post("/login", response_model=LoginResult, dependencies=[Depends(rate_limit("login", 10, 60))])
 def login(payload: UserLogin, db: Session = Depends(get_db)) -> LoginResult:
     try:
-        user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+        user = _find_user_by_identifier(db, payload.email)
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to authenticate") from exc
@@ -182,7 +205,7 @@ def login(payload: UserLogin, db: Session = Depends(get_db)) -> LoginResult:
 )
 def verify_login_device(payload: VerifyDeviceRequest, db: Session = Depends(get_db)) -> Token:
     try:
-        user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+        user = _find_user_by_identifier(db, payload.email)
     except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to verify code") from exc
@@ -217,9 +240,46 @@ def verify_login_device(payload: VerifyDeviceRequest, db: Session = Depends(get_
     return Token(access_token=create_access_token(str(user.id)))
 
 
-@router.get("/me", response_model=UserOut)
+@router.get("/me", response_model=UserOut, dependencies=[Depends(rate_limit("auth_me", 240, 60))])
 def me(user: User = Depends(get_current_user_required)) -> User:
     return user
+
+
+@router.patch("/me", response_model=UserOut, dependencies=[Depends(rate_limit("profile_update", 30, 3600))])
+def update_profile(
+    payload: ProfileUpdate, user: User = Depends(get_current_user_required), db: Session = Depends(get_db)
+) -> User:
+    """Self-service name and phone change (PRD ТЗ№2 §27 account profile)."""
+    try:
+        for field, value in payload.model_dump(exclude_unset=True).items():
+            setattr(user, field, value)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to update profile") from exc
+    db.refresh(user)
+    return user
+
+
+@router.post("/change-password", dependencies=[Depends(rate_limit("change_password", 10, 3600))])
+def change_password(
+    payload: ChangePasswordRequest, user: User = Depends(get_current_user_required), db: Session = Depends(get_db)
+) -> dict:
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+    if payload.new_password == payload.current_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must differ from the current one")
+    try:
+        validate_password(payload.new_password, email=user.email, strong=user.role != UserRole.CUSTOMER)
+    except PasswordPolicyError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    try:
+        user.password_hash = hash_password(payload.new_password)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to change password") from exc
+    return {"detail": "Password changed."}
 
 
 @router.post("/forgot-password", dependencies=[Depends(rate_limit("forgot", 5, 3600))])
@@ -254,6 +314,10 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 
     user = db.get(User, record.user_id)
     try:
+        validate_password(payload.new_password, email=user.email, strong=user.role != UserRole.CUSTOMER)
+    except PasswordPolicyError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    try:
         user.password_hash = hash_password(payload.new_password)
         record.used_at = now
         db.commit()
@@ -263,7 +327,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     return {"detail": "Password updated"}
 
 
-@router.post("/verify-email")
+@router.post("/verify-email", dependencies=[Depends(rate_limit("verify_email", 20, 3600))])
 def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)) -> dict:
     token_hash = hashlib.sha256(payload.token.encode()).hexdigest()
     record = db.execute(

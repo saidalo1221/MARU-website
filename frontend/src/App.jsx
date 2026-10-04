@@ -1,7 +1,9 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import EmailVerifyBanner from './components/layout/EmailVerifyBanner'
+import CountryBanner from './components/layout/CountryBanner'
+import ConsentBanner from './components/layout/ConsentBanner'
 import Home from './pages/Home'
 import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
@@ -17,6 +19,11 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import OrdersHistory from './pages/OrdersHistory'
+import TrackOrder from './pages/TrackOrder'
+import NewsletterAction from './pages/NewsletterAction'
+import AccountPrivacy from './pages/AccountPrivacy'
+import LegalPage from './pages/LegalPage'
+import AdminNewsletter from './pages/admin/AdminNewsletter'
 import Wishlist from './pages/Wishlist'
 import Addresses from './pages/Addresses'
 import QuoteRequest from './pages/QuoteRequest'
@@ -32,6 +39,12 @@ import FAQ from './pages/FAQ'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminOrders from './pages/admin/AdminOrders'
+import AdminCustomers from './pages/admin/AdminCustomers'
+import AdminWebhooks from './pages/admin/AdminWebhooks'
+import AdminStock from './pages/admin/AdminStock'
+import AdminLoyalty from './pages/admin/AdminLoyalty'
+import AdminMarkets from './pages/admin/AdminMarkets'
+import AdminCosts from './pages/admin/AdminCosts'
 import AdminOrderDetail from './pages/admin/AdminOrderDetail'
 import AdminQuotes from './pages/admin/AdminQuotes'
 import AdminQuoteDetail from './pages/admin/AdminQuoteDetail'
@@ -42,6 +55,9 @@ import AdminBlogCategories from './pages/admin/AdminBlogCategories'
 import AdminSiteSettings from './pages/admin/AdminSiteSettings'
 import AdminAboutSections from './pages/admin/AdminAboutSections'
 import AdminPageSections from './pages/admin/AdminPageSections'
+import AccountLayout from './components/account/AccountLayout'
+import AdminLandingPage from './pages/admin/AdminLandingPage'
+import AdminSeo from './pages/admin/AdminSeo'
 import AdminAdmins from './pages/admin/AdminAdmins'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductDetail from './pages/admin/AdminProductDetail'
@@ -55,15 +71,32 @@ import AdminNotificationTemplates from './pages/admin/AdminNotificationTemplates
 import AdminIntegrationLogs from './pages/admin/AdminIntegrationLogs'
 import AdminAuditLog from './pages/admin/AdminAuditLog'
 import AdminAnalyticsEvents from './pages/admin/AdminAnalyticsEvents'
+import AccountDashboard from './pages/AccountDashboard'
+import CategoryPage from './pages/CategoryPage'
+import AccountProfile from './pages/AccountProfile'
+import ContentPage from './pages/ContentPage'
 import NotFound from './pages/NotFound'
+import { useLocale } from './context/LocaleContext'
+import PageTransition from './components/motion/PageTransition'
 
 export default function App() {
+  const { t } = useLocale()
+  const location = useLocation()
   return (
     <div className="min-h-screen flex flex-col">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[70] focus:top-2 focus:left-2 focus:bg-white focus:text-brand focus:px-3 focus:py-2 focus:rounded focus:shadow"
+      >
+        {t('common.skipToContent')}
+      </a>
       <Header />
+      <CountryBanner />
+      <ConsentBanner />
       <EmailVerifyBanner />
-      <main className="flex-1">
-        <Routes>
+      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
+        <PageTransition>
+        <Routes location={location}>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Catalog />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
@@ -73,27 +106,45 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/orders/:orderId" element={<OrderStatus />} />
+          <Route path="/track" element={<TrackOrder />} />
+          <Route path="/newsletter/:action" element={<NewsletterAction />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/account/orders" element={<OrdersHistory />} />
-          <Route path="/account/wishlist" element={<Wishlist />} />
-          <Route path="/account/addresses" element={<Addresses />} />
+          <Route path="/shop/:slug" element={<CategoryPage />} />
+          <Route path="/account" element={<AccountLayout />}>
+            <Route index element={<AccountDashboard />} />
+            <Route path="profile" element={<AccountProfile />} />
+            <Route path="orders" element={<OrdersHistory />} />
+            <Route path="wishlist" element={<Wishlist />} />
+            <Route path="addresses" element={<Addresses />} />
+            <Route path="privacy" element={<AccountPrivacy />} />
+          </Route>
           <Route path="/quote" element={<QuoteRequest />} />
           <Route path="/b2b" element={<B2B />} />
           <Route path="/wholesale" element={<Wholesale />} />
           <Route path="/distributor" element={<Distributor />} />
           <Route path="/about" element={<About />} />
+          <Route path="/manufacturing" element={<ContentPage pageKey="manufacturing" />} />
+          <Route path="/quality" element={<ContentPage pageKey="quality" />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/delivery" element={<Delivery />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/returns" element={<Returns />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/privacy" element={<LegalPage pageKey="privacy" />} />
+          <Route path="/terms" element={<LegalPage pageKey="terms" />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            <Route path="webhooks" element={<AdminWebhooks />} />
+            <Route path="stock" element={<AdminStock />} />
+            <Route path="loyalty" element={<AdminLoyalty />} />
+            <Route path="markets" element={<AdminMarkets />} />
+            <Route path="costs" element={<AdminCosts />} />
             <Route path="orders/:orderId" element={<AdminOrderDetail />} />
             <Route path="quotes" element={<AdminQuotes />} />
             <Route path="quotes/:quoteId" element={<AdminQuoteDetail />} />
@@ -104,6 +155,8 @@ export default function App() {
             <Route path="site-settings" element={<AdminSiteSettings />} />
             <Route path="about-sections" element={<AdminAboutSections />} />
             <Route path="page-sections" element={<AdminPageSections />} />
+            <Route path="landing-page" element={<AdminLandingPage />} />
+            <Route path="seo" element={<AdminSeo />} />
             <Route path="admins" element={<AdminAdmins />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/:productId" element={<AdminProductDetail />} />
@@ -117,9 +170,11 @@ export default function App() {
             <Route path="integration-logs" element={<AdminIntegrationLogs />} />
             <Route path="audit-log" element={<AdminAuditLog />} />
             <Route path="analytics-events" element={<AdminAnalyticsEvents />} />
+            <Route path="newsletter" element={<AdminNewsletter />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </PageTransition>
       </main>
       <Footer />
     </div>

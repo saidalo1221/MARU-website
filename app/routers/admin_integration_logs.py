@@ -1,14 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.config import settings
+from app.core.pagination import PageParams, page_params, paged
 from app.database import get_db
 from app.dependencies import require_role
 from app.models.enums import UserRole
 from app.models.integration_log import IntegrationLog, IntegrationLogStatus
 from app.models.user import User
-from app.schemas.integration_log import IntegrationLogOut
+from app.schemas.integration_log import IntegrationHealthOut, IntegrationLogOut
+from app.services.integrations.health import integration_metrics
 from app.services.integrations.retry import UnknownIntegrationError, retry_one
 
 router = APIRouter(prefix="/admin/integration-logs", tags=["admin-integration-logs"])
@@ -16,8 +21,10 @@ router = APIRouter(prefix="/admin/integration-logs", tags=["admin-integration-lo
 
 @router.get("/", response_model=list[IntegrationLogOut])
 def list_integration_logs(
-    status_filter: IntegrationLogStatus | None = None,
-    integration: str | None = None,
+    response: Response,
+    status_filter: Optional[IntegrationLogStatus] = None,
+    integration: Optional[str] = None,
+    params: PageParams = Depends(page_params),
     user: User = Depends(require_role(UserRole.SUPER_ADMIN)),
     db: Session = Depends(get_db),
 ) -> list[IntegrationLog]:
@@ -26,7 +33,63 @@ def list_integration_logs(
         stmt = stmt.where(IntegrationLog.status == status_filter)
     if integration is not None:
         stmt = stmt.where(IntegrationLog.integration == integration)
-    return list(db.execute(stmt).scalars().all())
+    return paged(db, response, stmt, stmt, params)
+
+
+_HEALTH_WINDOW = timedelta(hours=24)
+
+
+def _health_status(integration: str, success: int, failed: int, dead: int) -> str:
+    """PRD ТЗ№4 §65. Over the last 24h: any dead letter, or only failures, is
+    FAILED; some failures alongside successes is DEGRADED; no calls is
+    HEALTHY unless the integration is not configured (DISABLED)."""
+    if integration == "crm_bitrix24" and not settings.BITRIX24_WEBHOOK_URL:
+        return "DISABLED"
+    if dead or (failed and not success):
+        return "FAILED"
+    if failed:
+        return "DEGRADED"
+    return "HEALTHY"
+
+
+@router.get("/health", response_model=list[IntegrationHealthOut])
+def integration_health(
+    user: User = Depends(require_role(UserRole.SUPER_ADMIN)),
+    db: Session = Depends(get_db),
+) -> list[IntegrationHealthOut]:
+    since = datetime.now(timezone.utc).replace(tzinfo=None) - _HEALTH_WINDOW
+    rows = db.execute(
+        select(IntegrationLog.integration, IntegrationLog.status, func.count(), func.max(IntegrationLog.created_at))
+        .where(IntegrationLog.created_at >= since)
+        .group_by(IntegrationLog.integration, IntegrationLog.status)
+    ).all()
+    per: dict[str, dict] = {}
+    for name, st, n, last in rows:
+        entry = per.setdefault(name, {"success": 0, "failed": 0, "dead_letter": 0, "last": None})
+        entry[st.value] = n
+        if st == IntegrationLogStatus.SUCCESS and (entry["last"] is None or last > entry["last"]):
+            entry["last"] = last
+    # Known integrations show up even with no traffic yet.
+    per.setdefault("crm_bitrix24", {"success": 0, "failed": 0, "dead_letter": 0, "last": None})
+    metrics = integration_metrics(db)
+    for name in metrics:
+        per.setdefault(name, {"success": 0, "failed": 0, "dead_letter": 0, "last": None})
+    return [
+        IntegrationHealthOut(
+            integration=name,
+            status=_health_status(name, e["success"], e["failed"], e["dead_letter"]),
+            success_24h=e["success"],
+            failed_24h=e["failed"],
+            dead_letter_24h=e["dead_letter"],
+            last_success_at=e["last"],
+            avg_latency_ms=metrics.get(name, {}).get("avg_latency_ms"),
+            max_latency_ms=metrics.get(name, {}).get("max_latency_ms"),
+            pending_retries=metrics.get(name, {}).get("pending_retries", 0),
+            dead_letters_open=metrics.get(name, {}).get("dead_letters", 0),
+            sync_lag_seconds=metrics.get(name, {}).get("sync_lag_seconds"),
+        )
+        for name, e in sorted(per.items())
+    ]
 
 
 @router.post("/{log_id}/retry", response_model=IntegrationLogOut)
