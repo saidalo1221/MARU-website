@@ -386,6 +386,10 @@ def set_order_status(
     old_status = order.status
     if old_status == new_status:
         return order
+    # A refunded order is final (the state machine has no way out of it). Staff changes are validated before they get
+    # here (admin_orders.py); a repeated gateway confirmation or a late callback must not bring it back to life.
+    if old_status == OrderStatus.REFUNDED:
+        return order
 
     if new_status in _RESERVING_STATUSES and old_status not in _RESERVED_STATUSES:
         _reserve_stock(db, order)

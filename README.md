@@ -10,13 +10,13 @@ Retail and wholesale, three languages (ru, uz, en), light and dark theme.
 | Database | MariaDB 10.5 in production (`maruplast`); SQLite for local work |
 | Cache and rate limits | Redis (optional locally) |
 
-Other documents: `START_HERE.md` (current state and owner decisions), `LAUNCH_CHECKLIST.md` (what is left before
+Other documents: `DEPLOY_DIRECTADMIN.md` (online on DirectAdmin hosting) and `DEPLOY_ARSENALD.md` (online on a VPS), `START_HERE.md` (current state and owner decisions), `LAUNCH_CHECKLIST.md` (what is left before
 going live), `OPS_RUNBOOK.md` (running the site), `DESIGN_SYSTEM.md` (colours, type, shapes), `INTEGRATIONS.md`
 (Telegram, WhatsApp, Bitrix24, analytics), `NOTES.md` (assumptions made while building), `PRD.md` (the requirements).
 
 ## Run it on your computer
 
-You need Python 3.11+ and Node 20+.
+You need Python 3.9 or newer (the production server uses 3.9) and Node 20+.
 
 **1. Backend**
 

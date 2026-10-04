@@ -41,7 +41,8 @@ class UserCreate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
-    customer_type: CustomerType = CustomerType.RETAIL
+    # No customer_type here on purpose: the wholesale / distributor / export price lists are granted by staff
+    # (Admin > Customers), never chosen by the person registering. An extra field in the request is ignored.
 
     _phone = field_validator("phone")(normalize_phone)
 

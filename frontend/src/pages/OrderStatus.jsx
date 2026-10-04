@@ -14,7 +14,8 @@ import Button from '../components/ui/Button'
 import ShipmentList from '../components/ShipmentList'
 import { formatDate, formatDateTime } from '../lib/format'
 
-const CANCELLABLE = new Set(['new', 'payment_pending', 'paid', 'processing'])
+const CANCELLABLE = new Set(['new', 'payment_pending'])
+const PAID_STATES = new Set(['paid', 'processing', 'packed', 'shipped', 'in_transit'])
 const PAID_STATUSES = new Set(['paid', 'processing', 'packed', 'shipped', 'in_transit', 'delivered', 'returned'])
 const AWAITING_PAYMENT = new Set(['new', 'payment_pending'])
 
@@ -231,6 +232,11 @@ export default function OrderStatus() {
           </button>
         )}
       </div>
+      {PAID_STATES.has(order.status) && (
+        <p className="mt-3 text-sm text-gray-600">
+          {t('orderStatus.cancelPaidHint')} <Link to="/contact" className="font-medium text-brand underline">{t('footer.contact')}</Link>
+        </p>
+      )}
       {reorderNote && <p role="alert" className="mt-3 text-sm text-red-600">{reorderNote}</p>}
     </div>
   )

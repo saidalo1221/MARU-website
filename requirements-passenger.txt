@@ -1,0 +1,2 @@
+-r requirements.txt
+a2wsgi  # lets Passenger (DirectAdmin / cPanel Python apps) run the FastAPI app, see passenger_wsgi.py

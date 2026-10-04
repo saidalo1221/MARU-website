@@ -40,7 +40,9 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 notifier = QueuedNotifier()
 crm = Bitrix24Connector()
 
-_CANCELLABLE_STATUSES = {OrderStatus.NEW, OrderStatus.PAYMENT_PENDING, OrderStatus.PAID, OrderStatus.PROCESSING}
+# Only unpaid orders can be cancelled online. A paid order is cancelled and refunded by staff (Admin > Orders), so the
+# money and the status never get out of step.
+_CANCELLABLE_STATUSES = {OrderStatus.NEW, OrderStatus.PAYMENT_PENDING}
 
 
 _ORDER_LOAD_OPTIONS = (
@@ -265,6 +267,13 @@ def confirm_payment(
 
     _require_order_access(order, user, order_token)
 
+    # Only an order that is still waiting for its payment can be confirmed. Stripe keeps reporting "succeeded" after
+    # a refund or a cancel, so without this a cancelled / refunded order could be flipped back to paid.
+    if order.status in _PAID_OR_LATER:
+        return order  # already confirmed (the storefront polls this): nothing to do
+    if order.status not in _RETRYABLE_PAYMENT_STATUSES:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This order can no longer be paid")
+
     try:
         gateway = get_payment_gateway(order.payment_method)
         confirmed = gateway.confirm(order.payment_reference or "")
@@ -294,6 +303,9 @@ def confirm_payment(
 
 
 _RETRYABLE_PAYMENT_STATUSES = {OrderStatus.NEW, OrderStatus.PAYMENT_PENDING, OrderStatus.PAYMENT_FAILED}
+_PAID_OR_LATER = {
+    OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.PACKED, OrderStatus.SHIPPED, OrderStatus.IN_TRANSIT, OrderStatus.DELIVERED,
+}
 
 
 @router.post(
@@ -344,6 +356,11 @@ def cancel_order(
 
     _require_order_access(order, user, order_token)
 
+    if order.status in _PAID_OR_LATER:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A paid order cannot be cancelled online. Please contact us to cancel it or return the goods.",
+        )
     if order.status not in _CANCELLABLE_STATUSES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

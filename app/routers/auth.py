@@ -16,7 +16,7 @@ from app.database import get_db
 from app.dependencies import get_current_user_required
 from app.models.admin_login_code import AdminLoginCode
 from app.models.email_verification_token import EmailVerificationToken
-from app.models.enums import UserRole
+from app.models.enums import CustomerType, UserRole
 from app.models.login_device_code import LoginDeviceCode
 from app.models.password_reset_token import PasswordResetToken
 from app.models.trusted_device import TrustedDevice
@@ -113,7 +113,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
         first_name=payload.first_name,
         last_name=payload.last_name,
         phone=payload.phone,
-        customer_type=payload.customer_type,
+        customer_type=CustomerType.RETAIL,
     )
     db.add(user)
     try:

@@ -1,3 +1,4 @@
+import inspect
 import json
 from typing import Any, Literal, Optional
 
@@ -14,7 +15,9 @@ from app.services.analytics import record_event
 router = APIRouter(prefix="/analytics", tags=["analytics"], dependencies=[Depends(rate_limit("analytics", 120, 60))])
 
 MAX_PROPERTIES_BYTES = 2048
-RESERVED_KEYS = {"db", "event_name", "user", "session_id"}
+# Every named parameter of record_event (db, event_name, user, session_id, forward_ads): a client property with one of
+# these names would set it instead of being stored, e.g. forward_ads=true would skip the cookie-consent check.
+RESERVED_KEYS = set(inspect.signature(record_event).parameters)
 
 
 class ClientEventIn(BaseModel):
